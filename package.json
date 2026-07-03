@@ -1,0 +1,23 @@
+{
+  "name": "sekiro",
+  "version": "0.1.0",
+  "private": true,
+  "description": "开箱即用的中后台脚手架（Monorepo：web + api + shared）",
+  "scripts": {
+    "dev": "pnpm --filter @sekiro/web dev",
+    "dev:web": "pnpm --filter @sekiro/web dev",
+    "dev:api": "echo \"后端待接入，见 apps/api/README.md\"",
+    "build": "pnpm -r --filter=./apps/* --filter=./packages/* build",
+    "build:web": "pnpm --filter @sekiro/web build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r exec rm -rf node_modules .next dist .turbo && rm -rf node_modules",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "engines": {
+    "node": ">=18.17.0",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@9.15.9"
+}

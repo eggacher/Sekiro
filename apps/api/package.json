@@ -1,0 +1,13 @@
+{
+  "name": "@sekiro/api",
+  "version": "0.1.0",
+  "private": true,
+  "// 说明": "后端占位包。技术栈确定后，在此实现具体服务（NestJS / Spring Boot / Go 等）",
+  "scripts": {
+    "dev": "echo \"后端待接入，详见 apps/api/README.md\"",
+    "typecheck": "echo \"no-op\""
+  },
+  "dependencies": {
+    "@sekiro/shared": "workspace:*"
+  }
+}
