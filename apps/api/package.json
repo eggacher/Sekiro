@@ -2,12 +2,33 @@
   "name": "@sekiro/api",
   "version": "0.1.0",
   "private": true,
-  "// 说明": "后端占位包。技术栈确定后，在此实现具体服务（NestJS / Spring Boot / Go 等）",
   "scripts": {
-    "dev": "echo \"后端待接入，详见 apps/api/README.md\"",
-    "typecheck": "echo \"no-op\""
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:format": "prisma format",
+    "prisma:validate": "prisma validate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "@sekiro/shared": "workspace:*"
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/core": "^11.1.27",
+    "@nestjs/platform-express": "^11.1.27",
+    "@prisma/client": "^7.8.0",
+    "@sekiro/shared": "workspace:*",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "prisma": "^7.8.0",
+    "tsx": "^4.23.0",
+    "typescript": "^5.5.3"
   }
 }
