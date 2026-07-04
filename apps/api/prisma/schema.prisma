@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// 核心域:组织与权限治理
+// ─────────────────────────────────────────────
+
+model User {
+  id             Int       @id @default(autoincrement())
+  username       String    @unique @db.VarChar(32)
+  passwordHash   String    @map("password_hash") @db.VarChar(255)
+  nickname       String    @db.VarChar(32)
+  email          String?   @db.VarChar(128)
+  phone          String?   @db.VarChar(20)
+  avatar         String?   @db.VarChar(512)
+  deptId         Int?      @map("dept_id")
+  status         String    @default("enabled") @db.VarChar(16)
+  lockedUntil    DateTime? @map("locked_until")
+  loginFailCount Int       @default(0) @map("login_fail_count")
+  lastLoginAt    DateTime? @map("last_login_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  dept      Dept?          @relation("UserDept", fields: [deptId], references: [id])
+  roles     UserRole[]
+  positions UserPosition[]
+
+  @@map("user")
+}
+
+model Role {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique @db.VarChar(32)
+  code        String    @unique @db.VarChar(64)
+  description String?   @db.VarChar(255)
+  dataScope   String    @default("self") @map("data_scope") @db.VarChar(32)
+  status      String    @default("enabled") @db.VarChar(16)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  users UserRole[]
+  menus RoleMenu[]
+  depts RoleDept[]
+
+  @@map("role")
+}
+
+model Menu {
+  id         Int      @id @default(autoincrement())
+  parentId   Int?     @map("parent_id")
+  title      String   @db.VarChar(32)
+  type       String   @db.VarChar(16)
+  path       String?  @db.VarChar(128)
+  component  String?  @db.VarChar(128)
+  icon       String?  @db.VarChar(64)
+  permission String?  @db.VarChar(128)
+  sort       Int      @default(0)
+  visible    Boolean  @default(true)
+  cache      Boolean  @default(true)
+  status     String   @default("enabled") @db.VarChar(16)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  parent   Menu?      @relation("MenuTree", fields: [parentId], references: [id])
+  children Menu[]     @relation("MenuTree")
+  roles    RoleMenu[]
+
+  @@index([parentId])
+  @@map("menu")
+}
+
+model Dept {
+  id        Int       @id @default(autoincrement())
+  parentId  Int?      @map("parent_id")
+  name      String    @db.VarChar(32)
+  leader    String?   @db.VarChar(32)
+  phone     String?   @db.VarChar(20)
+  sort      Int       @default(0)
+  status    String    @default("enabled") @db.VarChar(16)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  parent   Dept?      @relation("DeptTree", fields: [parentId], references: [id])
+  children Dept[]     @relation("DeptTree")
+  users    User[]     @relation("UserDept")
+  roles    RoleDept[]
+
+  @@index([parentId])
+  @@map("dept")
+}
+
+model Position {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique @db.VarChar(32)
+  code      String    @unique @db.VarChar(64)
+  sort      Int       @default(0)
+  status    String    @default("enabled") @db.VarChar(16)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  users UserPosition[]
+
+  @@map("position")
+}
+
+// 关联表
+model UserRole {
+  userId Int  @map("user_id")
+  roleId Int  @map("role_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+  @@map("user_role")
+}
+
+model RoleMenu {
+  roleId Int  @map("role_id")
+  menuId Int  @map("menu_id")
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, menuId])
+  @@index([menuId])
+  @@map("role_menu")
+}
+
+model UserPosition {
+  userId     Int      @map("user_id")
+  positionId Int      @map("position_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  position   Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, positionId])
+  @@index([positionId])
+  @@map("user_position")
+}
+
+model RoleDept {
+  roleId Int  @map("role_id")
+  deptId Int  @map("dept_id")
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  dept   Dept @relation(fields: [deptId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, deptId])
+  @@index([deptId])
+  @@map("role_dept")
+}
+
+// ─────────────────────────────────────────────
+// 支撑域
+// ─────────────────────────────────────────────
+
+model DictType {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique @db.VarChar(32)
+  code      String    @unique @db.VarChar(64)
+  remark    String?   @db.VarChar(255)
+  status    String    @default("enabled") @db.VarChar(16)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  items DictItem[]
+
+  @@map("dict_type")
+}
+
+model DictItem {
+  id        Int       @id @default(autoincrement())
+  typeId    Int       @map("type_id")
+  label     String    @db.VarChar(64)
+  value     String    @db.VarChar(64)
+  sort      Int       @default(0)
+  status    String    @default("enabled") @db.VarChar(16)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  type DictType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+
+  @@unique([typeId, value])
+  @@index([typeId])
+  @@map("dict_item")
+}
+
+model SystemConfig {
+  key       String   @id @db.VarChar(128)
+  value     String   @db.Text
+  remark    String?  @db.VarChar(255)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_config")
+}
+
+// ─────────────────────────────────────────────
+// 通用域:可观测(仅追加)
+// ─────────────────────────────────────────────
+// 注:Session 走 Redis,不建表
+
+model LoginLog {
+  id        Int      @id @default(autoincrement())
+  username  String   @db.VarChar(32)
+  ip        String   @db.VarChar(64)
+  location  String?  @db.VarChar(128)
+  browser   String?  @db.VarChar(64)
+  os        String?  @db.VarChar(64)
+  result    String   @db.VarChar(16)
+  message   String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([username])
+  @@index([createdAt])
+  @@map("login_log")
+}
+
+model OperationLog {
+  id          Int      @id @default(autoincrement())
+  operator    String   @db.VarChar(32)
+  module      String   @db.VarChar(64)
+  type        String   @db.VarChar(16)
+  description String   @db.VarChar(255)
+  method      String   @db.VarChar(8)
+  url         String   @db.VarChar(255)
+  ip          String   @db.VarChar(64)
+  cost        Int
+  status      String   @db.VarChar(16)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([operator])
+  @@index([createdAt])
+  @@map("operation_log")
+}
