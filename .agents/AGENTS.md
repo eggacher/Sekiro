@@ -39,20 +39,20 @@ When multiple skills apply, process skills come first — they set the approach,
 
 These thoughts mean STOP—you're rationalizing:
 
-| Thought | Reality |
-|---------|---------|
-| "This is just a simple question" | Questions are tasks. Check for skills. |
-| "I need more context first" | Skill check comes BEFORE clarifying questions. |
-| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
-| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
-| "Let me gather information first" | Skills tell you HOW to gather information. |
-| "This doesn't need a formal skill" | If a skill exists, use it. |
-| "I remember this skill" | Skills evolve. Read current version. |
-| "This doesn't count as a task" | Action = task. Check for skills. |
-| "The skill is overkill" | Simple things become complex. Use it. |
-| "I'll just do this one thing first" | Check BEFORE doing anything. |
-| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
-| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+| Thought                             | Reality                                                |
+| ----------------------------------- | ------------------------------------------------------ |
+| "This is just a simple question"    | Questions are tasks. Check for skills.                 |
+| "I need more context first"         | Skill check comes BEFORE clarifying questions.         |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first.           |
+| "I can check git/files quickly"     | Files lack conversation context. Check for skills.     |
+| "Let me gather information first"   | Skills tell you HOW to gather information.             |
+| "This doesn't need a formal skill"  | If a skill exists, use it.                             |
+| "I remember this skill"             | Skills evolve. Read current version.                   |
+| "This doesn't count as a task"      | Action = task. Check for skills.                       |
+| "The skill is overkill"             | Simple things become complex. Use it.                  |
+| "I'll just do this one thing first" | Check BEFORE doing anything.                           |
+| "This feels productive"             | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means"            | Knowing the concept ≠ using the skill. Invoke it.      |
 
 ## Platform Adaptation
 
@@ -68,10 +68,10 @@ User instructions (CLAUDE.md, AGENTS.md, GEMINI.md, etc, direct requests) take p
 
 Skills speak in actions ("dispatch a subagent", "create a todo", "read a file"). On the Antigravity CLI (`agy`) these resolve to the tools below.
 
-| Action skills request | Antigravity CLI equivalent |
-|----------------------|----------------------|
-| Dispatch a subagent (`Subagent (general-purpose):` template) | `invoke_subagent` with a built-in `TypeName` — `self` for full-capability work, `research` for read-only (see [Subagent support](#subagent-support)) |
-| Task tracking ("create a todo", "mark complete") | a **task artifact** — `write_to_file` with `IsArtifact: true` and `ArtifactType: "task"` (see [Task tracking](#task-tracking)). **Not** `manage_task`, which manages background processes. |
+| Action skills request                                        | Antigravity CLI equivalent                                                                                                                                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Dispatch a subagent (`Subagent (general-purpose):` template) | `invoke_subagent` with a built-in `TypeName` — `self` for full-capability work, `research` for read-only (see [Subagent support](#subagent-support))                                       |
+| Task tracking ("create a todo", "mark complete")             | a **task artifact** — `write_to_file` with `IsArtifact: true` and `ArtifactType: "task"` (see [Task tracking](#task-tracking)). **Not** `manage_task`, which manages background processes. |
 
 ### Task tracking
 
@@ -84,17 +84,23 @@ At the start of any multi-step task, create the task artifact listing every step
 
 When planning and executing tasks under the Superpowers framework, you MUST adhere to the following model routing policies:
 
-1. **Architecture & Design (重大设计与规划)**
-   - **Trigger**: Writing specifications (`docs/superpowers/specs/`), brainstorming (`superpowers:brainstorming`), or creating implementation plans.
-   - **Model**: `claude-4.5-opus-high-reasoning-distill` (Claude 4.5 Opus High Reasoning Distill) / `claude-3-opus-20240229` (Claude 3 Opus).
-   - **Instruction**: Recommend using Claude 4.5 Opus (or Claude 3 Opus) for this phase.
+1. **Architecture & Design (重大设计与规划) — Claude Opus 4.6 (`claude-opus-4-6`)**
+   - **Trigger / Skills**:
+     * `superpowers:brainstorming` (设计规范编写与头脑风暴)
+     * `superpowers:writing-plans` (编写多步骤的详细实施计划)
+   - **Instruction**: Recommend using Claude Opus 4.6 for these phases to ensure architectural consistency.
 
-2. **Core Coding & Implementation (主要编码工作)**
-   - **Trigger**: Executing tasks via `superpowers:subagent-driven-development` or `superpowers:executing-plans`.
-   - **Model**: `gemini-3-pro` (Gemini 3 Pro) / `gemini-2.5-pro` (Gemini 2.5 Pro).
-   - **Instruction**: When dispatching implementer subagents via `invoke_subagent`, explicitly specify the model parameter as `gemini-3-pro` or `gemini-2.5-pro`.
+2. **Core Coding & Implementation (主要编码工作) — Gemini 3.1 Pro (`gemini-3.5-flash`)**
+   - **Trigger / Skills**:
+     * `superpowers:subagent-driven-development` / `superpowers:executing-plans` (任务派发与代码编写)
+     * `superpowers:test-driven-development` (测试驱动开发 TDD 循环)
+     * `superpowers:systematic-debugging` (系统性 Debug 与 Bug 修复)
+     * `superpowers:dispatching-parallel-agents` (并行子智能体分发)
+   - **Instruction**: When dispatching implementer subagents via `invoke_subagent` for these tasks, explicitly specify the model parameter as `gemini-3.5-flash`.
 
-3. **Routine Tasks, Mechanical Edits & Commands (日常工作、常规命令与单文件修改)**
-   - **Trigger**: Running commands, formatting, basic queries, small files transcription, and task review checks.
-   - **Model**: `gemini-3.5-flash` (Gemini 3.5 Flash).
+3. **Routine Tasks, Reviews & Verification (日常、评审与验证) — Gemini 3.5 Flash (`gemini-3.5-flash`)**
+   - **Trigger / Skills**:
+     * `superpowers:verification-before-completion` (完成前的自动化测试与状态验证)
+     * `superpowers:requesting-code-review` / `superpowers:receiving-code-review` (代码评审的发起与意见接收)
+     * Running shell commands, code formatting, and simple queries.
    - **Instruction**: The main conversation loop and lightweight/review tasks use Gemini 3.5 Flash by default.
