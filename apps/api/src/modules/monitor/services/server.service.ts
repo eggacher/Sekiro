@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
 import * as os from "os";
+import * as v8 from "v8";
 import { exec } from "child_process";
 import { promisify } from "util";
 
@@ -62,7 +63,7 @@ export class ServerService implements OnModuleInit, OnModuleDestroy {
       }
     } catch {}
 
-    const heapLimit = Math.round(process.memoryUsage().heapLimit / 1024 / 1024);
+    const heapLimit = Math.round(v8.getHeapStatistics().heap_size_limit / 1024 / 1024);
     const heapUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
 
     const seconds = process.uptime();
