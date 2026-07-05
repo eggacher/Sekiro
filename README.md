@@ -85,6 +85,41 @@ import { CommonStatus, ResultCode, PERMISSIONS } from "@sekiro/shared";
 
 ---
 
+## 🌱 Seed 数据
+
+项目包含完整的示例数据 seed 脚本，可快速初始化开发数据库：
+
+```bash
+# 第一次初始化：建表
+pnpm --filter @sekiro/api exec prisma db push
+
+# 灌入示例数据（支持反复执行）
+pnpm --filter @sekiro/api exec prisma db seed
+
+# 可选：打开 Prisma Studio 可视化编辑
+pnpm --filter @sekiro/api exec prisma studio
+```
+
+### 测试账号
+
+| 账号 | 密码 | 备注 |
+| --- | --- | --- |
+| `admin` | `admin123` | 超级管理员 |
+| `zhangsan` | 见 seed 输出 | 管理员 |
+| 其他账号 | 见 seed 输出 | 各专员角色 |
+
+Seed 脚本执行完成后会输出完整的密码表。
+
+### 支持反复执行
+
+Seed 脚本每次执行都会先清空数据再重新插入，支持反复运行，不会产生约束冲突。
+
+**⚠️ 生产环境注意**：`prisma/seed.ts` 仅用于开发，部署到生产环境时应删除此脚本，防止意外数据清空。
+
+详见 [`apps/api/README.md` § Seed 数据](./apps/api/README.md#seed-数据)。
+
+---
+
 ## 🛣️ 后续路线
 
 1. **确定后端技术栈**（NestJS / Spring Boot / Go）——见 `docs/SPEC.md` OP-1
