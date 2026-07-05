@@ -117,6 +117,7 @@
 | **Story #9** | **Menu 菜单管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #17** | **Dept & Position 部门与岗位** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #18** | **数据字典管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #19** | **系统监控与日志** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 
 ---
 
@@ -166,6 +167,7 @@
 | `docs/superpowers/specs/2026-07-05-menu-management-design.md` | Story #9 | Menu 模块详细设计 |
 | `docs/superpowers/specs/2026-07-05-dept-position-design.md` | Story #17 | Dept & Position 模块详细设计 |
 | `docs/superpowers/specs/2026-07-05-dict-management-design.md` | Story #18 | 数据字典管理详细设计 |
+| `docs/superpowers/specs/2026-07-05-system-monitor-design.md` | Story #19 | 系统监控与日志详细设计 |
 
 ### 实施计划
 
@@ -178,6 +180,7 @@
 | `docs/superpowers/plans/2026-07-05-menu-management.md` | Story #9 | Story #9 实施计划 |
 | `docs/superpowers/plans/2026-07-05-dept-position.md` | Story #17 | Story #17 实施计划 |
 | `docs/superpowers/plans/2026-07-05-dict-management.md` | Story #18 | Story #18 实施计划 |
+| `docs/superpowers/plans/2026-07-05-system-monitor.md` | Story #19 | Story #19 实施计划 |
 
 ### 完成报告
 
@@ -199,6 +202,7 @@
 | 2026-07-05 | 完成 Story #9，同步关闭 GitHub Issues | Antigravity |
 | 2026-07-05 | 完成 Story #17，同步关闭 GitHub Issues | Antigravity |
 | 2026-07-05 | 完成 Story #18，同步关闭 GitHub Issues | Antigravity |
+| 2026-07-05 | 完成 Story #19，同步关闭 GitHub Issues | Antigravity |
 
 ---
 
