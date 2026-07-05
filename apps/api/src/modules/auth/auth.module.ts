@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from './services/auth.service';
+import { DataScopeService } from './services/data-scope.service';
 import { JwtProvider } from './providers/jwt.provider';
 import { RedisSessionProvider } from './providers/redis-session.provider';
 import { LoginFailureProvider } from './providers/login-failure.provider';
@@ -14,7 +15,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     PrismaModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtProvider, RedisSessionProvider, LoginFailureProvider, JwtAuthGuard],
-  exports: [AuthService, JwtProvider, JwtAuthGuard],
+  providers: [AuthService, JwtProvider, RedisSessionProvider, LoginFailureProvider, JwtAuthGuard, DataScopeService],
+  exports: [AuthService, JwtProvider, JwtAuthGuard, DataScopeService],
 })
 export class AuthModule {}

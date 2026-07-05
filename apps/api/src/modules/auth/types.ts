@@ -45,3 +45,13 @@ export interface LoginFailureRecord {
   failureCount: number;
   lockedUntil?: Date;
 }
+
+/**
+ * 数据权限对象 - 存储合并后的数据可见性权限
+ */
+export interface UserDataScope {
+  userId: number;
+  isAll: boolean;
+  isSelf: boolean;
+  deptIds: number[];
+}
