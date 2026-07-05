@@ -1,45 +1,80 @@
-# 数据字典管理 (STORY #18) — 执行进度
+# Story #16: 前端基建（mock 切真实 API + 工程化）— 执行进度
 
 ## 计划信息
-- **计划文件**：`docs/superpowers/plans/2026-07-05-dict-management.md`
+- **计划文件**：`docs/superpowers/plans/2026-07-05-frontend-infrastructure.md`
 - **执行方式**：subagent-driven-development
 - **开始时间**：2026-07-05
-- **完成时间**：待定
+- **完成时间**：2026-07-05
 
 ## 任务清单
-- [x] Task 1: 字典模块 DTOs 定义与导出
-- [x] Task 2: 数据库仓储层 (Repositories) 编写
-- [x] Task 3: 业务服务层 (Services) 与业务规则逻辑开发 (TDD)
-- [x] Task 4: 后端控制器层 (Controllers) 与模块装配
-- [x] Task 5: 前端字典页面对接真实 API 接口
+
+- [x] Task 1: Next.js API 代理配置
+- [x] Task 2: 增强请求客户端（401/403/422）
+- [x] Task 3: 新增 Auth Store
+- [x] Task 4: 创建 AuthProvider 并挂载
+- [x] Task 5: 登录页接真实 `/auth/login`
+- [x] Task 6: Header 退出登录 + Sidebar 真实菜单驱动
+- [x] Task 7: 岗位管理页面迁移
+- [x] Task 8: 部门管理页面迁移
+- [x] Task 9: 菜单管理页面迁移
+- [x] Task 10: 用户管理页面迁移
+- [x] Task 11: 工作台 Dashboard 与 codegen 处理
+- [x] Task 12: 清理硬编码菜单与全局验证
+- [x] Task 13: 更新本地 GitHub Issues 同步文档
+- [x] Final: 全量代码 review
 
 ## 完成记录
 
-### Task 1: 字典模块 DTOs 定义与导出
-- **Commit**: `b0a1c78`
-- **审阅**: ✅ APPROVED (验证通过，类型定义正确)
-- **备注**: 7 个文件已创建并导出。
+### Task 1: Next.js API 代理配置
+- **Commit**: `ff8aa4f`
+- **审阅**: ✅ 代理配置完成；发现后端启动阻塞问题并修复
+- **修复 Commit**: `db6fc6b`
+- **修复内容**: DictModule/MonitorModule 补充 PrismaModule 导入；后端设置 `/api` 全局前缀；vitest 排除 dist 目录
 
-### Task 2: 数据库仓储层 (Repositories) 编写
-- **Commit**: `a5369ec`
-- **审阅**: ✅ APPROVED (验证通过，接口完整，Prisma 语法正确)
-- **备注**: 包含逻辑删除级联实现。
+### Task 2: 增强请求客户端（401/403/422）
+- **Commit**: `6ccb2c6`
+- **审阅**: ✅ typecheck 通过，改动符合 plan
 
-### Task 3: 业务服务层 (Services) 与业务规则逻辑开发 (TDD)
-- **Commit**: `5ce7fec`
-- **审阅**: ✅ APPROVED (TDD 单元测试覆盖率达标，业务不变量规则已实现)
-- **备注**: 使用 vitest 进行验证，5 个测试用例全部通过。
+### Task 3: 新增 Auth Store
+### Task 4: 创建 AuthProvider 并挂载
+### Task 5: 登录页接真实 `/auth/login`
+- **Commit**: `7ee8084`
+- **审阅**: ✅ typecheck + 后端测试通过；子代理额外实现了后端 `/auth/me` 接口
+- **备注**: 存在 HTTP 401 状态码处理的小问题，后续可优化
 
-### Task 4: 后端控制器层 (Controllers) 与模块装配
-- **Commit**: `56f6cc8`
-- **审阅**: ✅ APPROVED (验证通过，RESTful 路由符合规范，并在 main.ts 成功挂载)
-- **备注**: 支持 /system/dict 与 /system/dict-item 模块。
+### Task 6: Header 退出登录 + Sidebar 真实菜单驱动
+- **Commit**: `9bfa5c3`
+- **审阅**: ✅ typecheck 通过
+- **备注**: 面包屑仍使用硬编码菜单，后续可优化
 
-### Task 5: 前端字典页面对接真实 API 接口
-- **Commit**: `d2e5e40`
-- **审阅**: ✅ APPROVED (验证通过，已从 mock 切换到真实 API，编译及 ESLint 校验成功)
-- **备注**: UI 状态加载与 CRUD 动作完全打通。
+### Task 7: 岗位管理页面迁移
+- **Commit**: `def3a8c`
+- **审阅**: ✅ typecheck 通过
 
+### Task 8: 部门管理页面迁移
+- **Commit**: `bd4685b`
+- **审阅**: ✅ typecheck 通过
 
+### Task 9: 菜单管理页面迁移
+- **Commit**: `9d1b65f`
+- **审阅**: ✅ typecheck 通过，无 concerns
 
+### Task 10: 用户管理页面迁移
+- **Commit**: `4ea68f5`
+- **审阅**: ✅ typecheck 通过
 
+### Task 11: 工作台 Dashboard 与 codegen 处理
+- **Commit**: `b46f857`
+- **审阅**: ✅ typecheck 通过，无 concerns
+
+### Task 12: 清理硬编码菜单与全局验证
+- **Commit**: `c949c63`
+- **审阅**: ✅ typecheck + lint + 101 API 测试全部通过
+
+### Task 13: 更新本地 GitHub Issues 同步文档
+- **Commit**: `4a0eaeb`
+- **审阅**: ✅ 文档更新完成
+
+### Final: 全量代码 review
+- **验证结果**: ✅ `pnpm typecheck` + `pnpm lint` + `pnpm --filter @sekiro/api test` 全部通过
+- **测试**: 101 / 101 通过

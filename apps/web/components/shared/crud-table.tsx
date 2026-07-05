@@ -25,6 +25,7 @@ import {
   ChevronsRight,
   Search,
   RotateCcw,
+  Loader2,
 } from "lucide-react";
 import { cn, paginate } from "@/lib/utils";
 
@@ -53,6 +54,7 @@ export type CrudTableProps<T extends { id: string | number }> = {
   toolbar?: React.ReactNode; // 右上角操作区（如"新增"按钮）
   rowKey?: (row: T) => string | number;
   searchable?: boolean;
+  loading?: boolean;
 };
 
 export function CrudTable<T extends { id: string | number }>({
@@ -62,6 +64,7 @@ export function CrudTable<T extends { id: string | number }>({
   pageSize = 10,
   toolbar,
   searchable = true,
+  loading = false,
 }: CrudTableProps<T>) {
   const [page, setPage] = React.useState(1);
   const [keyword, setKeyword] = React.useState("");
@@ -190,7 +193,14 @@ export function CrudTable<T extends { id: string | number }>({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pageData.length === 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
+                  <Loader2 className="mr-2 inline-block h-4 w-4 animate-spin" />
+                  加载中...
+                </TableCell>
+              </TableRow>
+            ) : pageData.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
                   暂无数据

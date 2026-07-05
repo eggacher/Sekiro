@@ -1,7 +1,7 @@
 import { Injectable, Inject, UnprocessableEntityException, NotFoundException } from "@nestjs/common";
 import { DeptRepository } from "../repositories/dept.repository";
 import { CreateDeptDto, UpdateDeptDto, QueryDeptDto } from "../dtos";
-import { UserDataScope } from "../auth/types";
+import { UserDataScope } from "../../auth/types";
 import { Dept } from "@sekiro/shared";
 
 interface DeptNode extends Dept {

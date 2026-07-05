@@ -1,180 +1,121 @@
-### Task 4: 后端控制器层 (Controllers) 与模块装配
+## Task 4: 创建 AuthProvider 并挂载
 
 **Files:**
-- Create: `apps/api/src/modules/dict/dict.controller.ts`
-- Create: `apps/api/src/modules/dict/dict-item.controller.ts`
-- Create: `apps/api/src/modules/dict/dict.module.ts`
-- Create: `apps/api/src/modules/dict/index.ts`
-- Modify: `apps/api/src/main.ts` (集成新模块)
+- Create: `apps/web/components/providers/auth-provider.tsx`
+- Modify: `apps/web/app/layout.tsx`
 
 **Interfaces:**
-- Consumes: `DictService`
-- Produces: 暴露 RESTful 路由。
+- Consumes: `useAuthStore`, `apiClient`
+- Produces: 应用加载时自动拉取 `/auth/me`；未登录跳转 `/login`
 
-- [ ] **Step 1: 创建 `dict.controller.ts`**
-  ```typescript
-  // apps/api/src/modules/dict/dict.controller.ts
-  import {
-    Controller, Get, Post, Put, Delete,
-    Body, Query, Param, UseGuards,
-    ParseIntPipe, HttpCode, Inject,
-  } from "@nestjs/common";
-  import { DictService } from "./services/dict.service";
-  import { CreateDictDto, UpdateDictDto, QueryDictDto } from "./dtos";
-  import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-  import { ApiResponse } from "@sekiro/shared";
+- [ ] **Step 1: 创建 AuthProvider**
 
-  @Controller("system/dict")
-  @UseGuards(JwtAuthGuard)
-  export class DictController {
-    constructor(
-      @Inject(DictService) private readonly dictService: DictService,
-    ) {}
+```tsx
+"use client";
 
-    @Get()
-    async getPage(@Query() query: QueryDictDto): Promise<ApiResponse<any>> {
-      const data = await this.dictService.getTypePage(query);
-      return { code: 0, message: "查询成功", data };
-    }
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/store/auth-store";
+import { apiClient } from "@/lib/api/client";
+import type { CurrentUser, Menu } from "@sekiro/shared";
 
-    @Get(":id")
-    async getDetail(@Param("id", ParseIntPipe) id: number): Promise<ApiResponse<any>> {
-      const data = await this.dictService.getTypeDetail(id);
-      return { code: 0, message: "查询成功", data };
-    }
+const PUBLIC_PATHS = ["/login"];
 
-    @Post()
-    @HttpCode(200)
-    async create(@Body() createDto: CreateDictDto): Promise<ApiResponse<any>> {
-      const data = await this.dictService.createType(createDto);
-      return { code: 0, message: "创建成功", data };
-    }
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { token, setAuth, clearAuth } = useAuthStore();
+  const [ready, setReady] = useState(false);
+  const isPublic = PUBLIC_PATHS.includes(pathname);
 
-    @Put(":id")
-    @HttpCode(200)
-    async update(
-      @Param("id", ParseIntPipe) id: number,
-      @Body() updateDto: UpdateDictDto,
-    ): Promise<ApiResponse<any>> {
-      const data = await this.dictService.updateType(id, updateDto);
-      return { code: 0, message: "更新成功", data };
-    }
+  useEffect(() => {
+    const init = async () => {
+      const storedToken = token;
+      if (!storedToken) {
+        setReady(true);
+        if (!isPublic) router.replace("/login");
+        return;
+      }
 
-    @Delete(":id")
-    @HttpCode(200)
-    async delete(@Param("id", ParseIntPipe) id: number): Promise<ApiResponse<any>> {
-      await this.dictService.deleteType(id);
-      return { code: 0, message: "删除成功", data: null };
-    }
+      try {
+        const data = await apiClient.get<{
+          user: CurrentUser;
+          permissions: string[];
+          menus: Menu[];
+        }>("/auth/me");
+        setAuth(storedToken, data.user, data.permissions, data.menus);
+      } catch {
+        clearAuth();
+        if (!isPublic) router.replace("/login");
+      } finally {
+        setReady(true);
+      }
+    };
 
-    @Get(":code/items")
-    async getItemsByCode(@Param("code") code: string): Promise<ApiResponse<any>> {
-      const data = await this.dictService.getActiveItemsByCode(code);
-      return { code: 0, message: "查询成功", data };
-    }
+    init();
+  }, [token, pathname, router, setAuth, clearAuth, isPublic]);
+
+  if (!ready) {
+    return (
+      <div className="flex h-screen items-center justify-center text-muted-foreground">
+        加载中...
+      </div>
+    );
   }
-  ```
 
-- [ ] **Step 2: 创建 `dict-item.controller.ts`**
-  ```typescript
-  // apps/api/src/modules/dict/dict-item.controller.ts
-  import {
-    Controller, Get, Post, Put, Delete,
-    Body, Query, Param, UseGuards,
-    ParseIntPipe, HttpCode, Inject,
-  } from "@nestjs/common";
-  import { DictService } from "./services/dict.service";
-  import { CreateDictItemDto, UpdateDictItemDto, QueryDictItemDto } from "./dtos";
-  import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-  import { ApiResponse } from "@sekiro/shared";
+  return <>{children}</>;
+}
+```
 
-  @Controller("system/dict-item")
-  @UseGuards(JwtAuthGuard)
-  export class DictItemController {
-    constructor(
-      @Inject(DictService) private readonly dictService: DictService,
-    ) {}
+- [ ] **Step 2: 在 layout.tsx 挂载**
 
-    @Get()
-    async getPage(@Query() query: QueryDictItemDto): Promise<ApiResponse<any>> {
-      const data = await this.dictService.getItemPage(query);
-      return { code: 0, message: "查询成功", data };
-    }
+```tsx
+import type { Metadata } from "next";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
+import { AuthProvider } from "@/components/providers/auth-provider";
 
-    @Get(":id")
-    async getDetail(@Param("id", ParseIntPipe) id: number): Promise<ApiResponse<any>> {
-      const data = await this.dictService.getItemDetail(id);
-      return { code: 0, message: "查询成功", data };
-    }
+export const metadata: Metadata = {
+  title: "Sekiro · 管理后台",
+  description: "开箱即用的中后台脚手架",
+};
 
-    @Post()
-    @HttpCode(200)
-    async create(@Body() createDto: CreateDictItemDto): Promise<ApiResponse<any>> {
-      const data = await this.dictService.createItem(createDto);
-      return { code: 0, message: "创建成功", data };
-    }
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="zh-CN" suppressHydrationWarning>
+      <body className="font-sans antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>{children}</AuthProvider>
+          <Toaster position="top-center" richColors closeButton />
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
+```
 
-    @Put(":id")
-    @HttpCode(200)
-    async update(
-      @Param("id", ParseIntPipe) id: number,
-      @Body() updateDto: UpdateDictItemDto,
-    ): Promise<ApiResponse<any>> {
-      const data = await this.dictService.updateItem(id, updateDto);
-      return { code: 0, message: "更新成功", data };
-    }
+- [ ] **Step 3: 运行 typecheck**
 
-    @Delete(":id")
-    @HttpCode(200)
-    async delete(@Param("id", ParseIntPipe) id: number): Promise<ApiResponse<any>> {
-      await this.dictService.deleteItem(id);
-      return { code: 0, message: "删除成功", data: null };
-    }
-  }
-  ```
+```bash
+pnpm --filter @sekiro/web typecheck
+```
 
-- [ ] **Step 3: 创建 `dict.module.ts` 并装配依赖**
-  ```typescript
-  // apps/api/src/modules/dict/dict.module.ts
-  import { Module } from "@nestjs/common";
-  import { DictController } from "./dict.controller";
-  import { DictItemController } from "./dict-item.controller";
-  import { DictService } from "./services/dict.service";
-  import { DictTypeRepository } from "./repositories/dict-type.repository";
-  import { DictItemRepository } from "./repositories/dict-item.repository";
+Expected: 0 errors。
 
-  @Module({
-    controllers: [DictController, DictItemController],
-    providers: [DictService, DictTypeRepository, DictItemRepository],
-    exports: [DictService],
-  })
-  export class DictModule {}
-  ```
+- [ ] **Step 4: Commit**
 
-- [ ] **Step 4: 创建 `index.ts` 导出模块**
-  ```typescript
-  // apps/api/src/modules/dict/index.ts
-  export * from "./dict.module";
-  export * from "./services/dict.service";
-  ```
-
-- [ ] **Step 5: 修改 `apps/api/src/main.ts` 以注册 `DictModule`**
-  ```typescript
-  // apps/api/src/main.ts
-  // 查找 imports 数组并在其中添加 DictModule:
-  import { DictModule } from "./modules/dict";
-  ```
-  *(注：将其追加到 imports: `[..., DeptModule, DictModule]`)*
-
-- [ ] **Step 6: 检查后端构建状态与全局测试**
-  运行：`pnpm --filter @sekiro/api typecheck && pnpm --filter @sekiro/api test`
-  预期结果：编译通过且全部测试绿色通过。
-
-- [ ] **Step 7: 提交代码**
-  ```bash
-  git add apps/api/src/modules/dict/dict.controller.ts apps/api/src/modules/dict/dict-item.controller.ts apps/api/src/modules/dict/dict.module.ts apps/api/src/modules/dict/index.ts apps/api/src/main.ts
-  git commit -m "feat(dict): implement Controllers and register DictModule"
-  ```
+```bash
+git add apps/web/components/providers/auth-provider.tsx apps/web/app/layout.tsx
+git commit -m "feat(web): add AuthProvider for /auth/me and login redirect"
+```
 
 ---
 
