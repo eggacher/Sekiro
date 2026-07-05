@@ -1,6 +1,7 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateUserDto, UpdateUserDto, QueryUserDto } from "../dtos";
+import { UserDataScope } from "../../auth/types";
 
 @Injectable()
 export class UserRepository {
@@ -68,7 +69,7 @@ export class UserRepository {
     });
   }
 
-  async findPage(query: QueryUserDto, deptIdsScope: number[] | null) {
+  async findPage(query: QueryUserDto, scope: UserDataScope) {
     const where: any = { deletedAt: null };
 
     if (query.status) {
@@ -82,10 +83,17 @@ export class UserRepository {
       ];
     }
 
-    if (query.deptId) {
-      where.deptId = query.deptId;
-    } else if (deptIdsScope !== null) {
-      where.deptId = { in: deptIdsScope };
+    if (scope.isSelf) {
+      where.id = scope.userId;
+    } else if (!scope.isAll) {
+      const allowedDepts = scope.deptIds;
+      if (query.deptId) {
+        where.deptId = allowedDepts.includes(Number(query.deptId)) ? Number(query.deptId) : -1;
+      } else {
+        where.deptId = { in: allowedDepts };
+      }
+    } else if (query.deptId) {
+      where.deptId = Number(query.deptId);
     }
 
     const page = Number(query.page) || 1;

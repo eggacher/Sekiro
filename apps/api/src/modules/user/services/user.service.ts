@@ -3,14 +3,16 @@ import { UserRepository } from "../repositories/user.repository";
 import { CreateUserDto, UpdateUserDto, QueryUserDto } from "../dtos";
 import * as bcrypt from "bcrypt";
 
+import { UserDataScope } from "../../auth/types";
+
 @Injectable()
 export class UserService {
   constructor(
     @Inject(UserRepository) private readonly userRepo: UserRepository,
   ) {}
 
-  async getPage(query: QueryUserDto, deptIdsScope: number[] | null) {
-    return this.userRepo.findPage(query, deptIdsScope);
+  async getPage(query: QueryUserDto, scope: UserDataScope) {
+    return this.userRepo.findPage(query, scope);
   }
 
   async getDetail(id: number) {

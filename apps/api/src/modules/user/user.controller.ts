@@ -12,11 +12,15 @@ import {
   ParseIntPipe,
   HttpCode,
   Inject,
+  UseInterceptors,
 } from "@nestjs/common";
 import { UserService } from "./services/user.service";
 import { CreateUserDto, UpdateUserDto, QueryUserDto } from "./dtos";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CommonStatus, ApiResponse } from "@sekiro/shared";
+import { DataScopeInterceptor } from "../auth/interceptors/data-scope.interceptor";
+import { UserScope } from "../auth/decorators/user-scope.decorator";
+import { UserDataScope } from "../auth/types";
 
 @Controller("system/user")
 @UseGuards(JwtAuthGuard)
@@ -26,8 +30,12 @@ export class UserController {
   ) {}
 
   @Get()
-  async getPage(@Query() query: QueryUserDto): Promise<ApiResponse<any>> {
-    const data = await this.userService.getPage(query, null);
+  @UseInterceptors(DataScopeInterceptor)
+  async getPage(
+    @Query() query: QueryUserDto,
+    @UserScope() scope: UserDataScope,
+  ): Promise<ApiResponse<any>> {
+    const data = await this.userService.getPage(query, scope);
     return { code: 0, message: "查询成功", data };
   }
 
