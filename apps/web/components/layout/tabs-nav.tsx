@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { X, Home, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store/app-store";
+import { useAuthStore } from "@/lib/store/auth-store";
 import { findBreadcrumb } from "@/lib/menu";
 import {
   DropdownMenu,
@@ -17,9 +18,10 @@ export function TabsNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { tabs, addTab, removeTab, removeOtherTabs, removeAllTabs } = useAppStore();
+  const { menus } = useAuthStore();
 
   // 同步当前路径到 tabs
-  const crumbs = findBreadcrumb(pathname);
+  const crumbs = findBreadcrumb(menus, pathname);
   const currentTitle = crumbs[crumbs.length - 1]?.title;
   if (currentTitle && !tabs.find((t) => t.href === pathname) && pathname !== "/") {
     addTab({ title: currentTitle, href: pathname });

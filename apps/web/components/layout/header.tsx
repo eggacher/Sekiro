@@ -31,9 +31,9 @@ import { useAppStore } from "@/lib/store/app-store";
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const crumbs = findBreadcrumb(pathname);
   const { toggleCollapsed } = useAppStore();
-  const { user, clearAuth } = useAuthStore();
+  const { user, clearAuth, menus } = useAuthStore();
+  const crumbs = findBreadcrumb(menus, pathname);
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4">
