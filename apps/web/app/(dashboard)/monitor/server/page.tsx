@@ -1,17 +1,17 @@
 "use client";
 
+import * as React from "react";
 import {
-  Cpu, MemoryStick, HardDrive, Globe, Activity, Clock, Server, Network,
+  Cpu, MemoryStick, HardDrive, Globe, Activity, Server, Network,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
-  Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer,
-  Tooltip, XAxis, YAxis,
+  CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/page-header";
-import { serverInfo, cpuTrend } from "@/lib/mock/monitor";
+import { apiClient } from "@/lib/api/client";
 
 function Gauge({ value, label, icon: Icon, color }: {
   value: number; label: string; icon: typeof Cpu; color: string;
@@ -52,25 +52,48 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export default function ServerMonitorPage() {
-  const memUsage = (serverInfo.memoryUsed / serverInfo.memoryTotal) * 100;
-  const diskUsage = (serverInfo.diskUsed / serverInfo.diskTotal) * 100;
-  const jvmUsage = (serverInfo.jvmMemoryUsed / serverInfo.jvmMemoryMax) * 100;
+  const [info, setInfo] = React.useState<any>(null);
+
+  const fetchInfo = React.useCallback(async () => {
+    try {
+      const res = await apiClient.get<any>("/monitor/server");
+      setInfo(res);
+    } catch {}
+  }, []);
+
+  React.useEffect(() => {
+    fetchInfo();
+    const interval = setInterval(fetchInfo, 2000);
+    return () => clearInterval(interval);
+  }, [fetchInfo]);
+
+  if (!info) {
+    return (
+      <div className="flex h-[400px] items-center justify-center text-muted-foreground">
+        加载监控数据中...
+      </div>
+    );
+  }
+
+  const memUsage = (info.memoryUsed / info.memoryTotal) * 100;
+  const diskUsage = (info.diskUsed / info.diskTotal) * 100;
+  const jvmUsage = (info.jvmMemoryUsed / info.jvmMemoryMax) * 100;
 
   return (
     <div className="space-y-6">
       <PageHeader title="服务监控" description="实时监控服务器与运行时的核心指标">
         <Badge variant="success" className="gap-1">
           <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
-          运行中 · {serverInfo.uptime}
+          运行中 · {info.uptime}
         </Badge>
       </PageHeader>
 
       {/* 仪表盘 */}
       <div className="grid gap-4 rounded-xl border bg-card p-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Gauge value={serverInfo.cpuUsage} label="CPU 使用率" icon={Cpu} color="#3b82f6" />
+        <Gauge value={info.cpuUsage} label="CPU 使用率" icon={Cpu} color="#3b82f6" />
         <Gauge value={memUsage} label="内存使用率" icon={MemoryStick} color="#8b5cf6" />
         <Gauge value={diskUsage} label="磁盘使用率" icon={HardDrive} color="#06b6d4" />
-        <Gauge value={jvmUsage} label="JVM 内存" icon={Activity} color="#f59e0b" />
+        <Gauge value={jvmUsage} label="Node 运行内存" icon={Activity} color="#f59e0b" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -85,7 +108,7 @@ export default function ServerMonitorPage() {
           <CardContent>
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={cpuTrend}>
+                <LineChart data={info.cpuTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                   <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
@@ -95,8 +118,8 @@ export default function ServerMonitorPage() {
                       borderRadius: "8px", fontSize: "12px",
                     }}
                   />
-                  <Line type="monotone" dataKey="cpu" name="CPU%" stroke="#3b82f6" strokeWidth={2} dot={false} animationDuration={800} />
-                  <Line type="monotone" dataKey="memory" name="内存%" stroke="#8b5cf6" strokeWidth={2} dot={false} animationDuration={1000} />
+                  <Line type="monotone" dataKey="cpu" name="CPU%" stroke="#3b82f6" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="memory" name="内存%" stroke="#8b5cf6" strokeWidth={2} dot={false} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -112,13 +135,13 @@ export default function ServerMonitorPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-0">
-            <InfoRow label="主机名" value={serverInfo.hostname} />
-            <InfoRow label="操作系统" value={serverInfo.os} />
-            <InfoRow label="架构" value={serverInfo.arch} />
-            <InfoRow label="CPU 核数" value={`${serverInfo.cpuCores} 核`} />
-            <InfoRow label="内存" value={`${(serverInfo.memoryUsed / 1024).toFixed(1)} / ${(serverInfo.memoryTotal / 1024).toFixed(0)} GB`} />
-            <InfoRow label="磁盘" value={`${serverInfo.diskUsed} / ${serverInfo.diskTotal} GB`} />
-            <InfoRow label="JVM" value={serverInfo.jvmVersion} />
+            <InfoRow label="主机名" value={info.hostname} />
+            <InfoRow label="操作系统" value={info.os} />
+            <InfoRow label="架构" value={info.arch} />
+            <InfoRow label="CPU 核数" value={`${info.cpuCores} 核`} />
+            <InfoRow label="内存" value={`${(info.memoryUsed / 1024).toFixed(1)} / ${(info.memoryTotal / 1024).toFixed(0)} GB`} />
+            <InfoRow label="磁盘" value={`${info.diskUsed} / ${info.diskTotal} GB`} />
+            <InfoRow label="Node 版本" value={info.jvmVersion} />
           </CardContent>
         </Card>
       </div>
@@ -139,7 +162,7 @@ export default function ServerMonitorPage() {
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">入站流量</div>
-                <div className="text-xl font-bold">{serverInfo.networkRx} <span className="text-sm font-normal text-muted-foreground">MB/s</span></div>
+                <div className="text-xl font-bold">{info.networkRx} <span className="text-sm font-normal text-muted-foreground">MB/s</span></div>
               </div>
             </div>
             <div className="flex items-center gap-3 rounded-lg border p-4">
@@ -148,7 +171,7 @@ export default function ServerMonitorPage() {
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">出站流量</div>
-                <div className="text-xl font-bold">{serverInfo.networkTx} <span className="text-sm font-normal text-muted-foreground">MB/s</span></div>
+                <div className="text-xl font-bold">{info.networkTx} <span className="text-sm font-normal text-muted-foreground">MB/s</span></div>
               </div>
             </div>
           </div>

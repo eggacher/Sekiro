@@ -9,21 +9,42 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { PageHeader } from "@/components/shared/page-header";
 import { CrudTable, type Column } from "@/components/shared/crud-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { mockOnlineUsers, type MockOnlineUser } from "@/lib/mock/monitor";
+import { apiClient } from "@/lib/api/client";
 
 export default function OnlineUserPage() {
-  const [list, setList] = React.useState<MockOnlineUser[]>(mockOnlineUsers);
-  const [forceOut, setForceOut] = React.useState<number | null>(null);
+  const [list, setList] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [forceOut, setForceOut] = React.useState<string | null>(null);
 
-  const handleForceOut = () => {
+  const fetchList = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get<any[]>("/monitor/online");
+      setList(res);
+    } catch (err: any) {
+      toast.error(err.message || "加载在线用户失败");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchList();
+  }, [fetchList]);
+
+  const handleForceOut = async () => {
     if (forceOut == null) return;
-    const u = list.find((x) => x.id === forceOut);
-    setList((p) => p.filter((x) => x.id !== forceOut));
-    toast.success(`已强制下线用户「${u?.nickname}」`);
-    setForceOut(null);
+    try {
+      await apiClient.delete(`/monitor/online/${forceOut}`);
+      toast.success("强退成功");
+      setForceOut(null);
+      await fetchList();
+    } catch (err: any) {
+      toast.error(err.message || "操作失败");
+    }
   };
 
-  const columns: Column<MockOnlineUser>[] = [
+  const columns: Column<any>[] = [
     {
       key: "username",
       title: "用户",
@@ -67,7 +88,7 @@ export default function OnlineUserPage() {
     {
       key: "loginTime",
       title: "登录时间",
-      render: (r) => <span className="text-muted-foreground">{r.loginTime}</span>,
+      render: (r) => <span className="text-muted-foreground">{new Date(r.loginTime).toLocaleString()}</span>,
     },
     {
       key: "lastActive",
@@ -103,11 +124,15 @@ export default function OnlineUserPage() {
         </Badge>
       </PageHeader>
 
-      <CrudTable columns={columns} data={list}
-        searchFields={[
-          { key: "username", label: "用户名", placeholder: "请输入用户名" },
-          { key: "ip", label: "IP", placeholder: "请输入 IP 地址" },
-        ]} />
+      {loading ? (
+        <div className="flex h-[300px] items-center justify-center text-muted-foreground">加载中...</div>
+      ) : (
+        <CrudTable columns={columns} data={list}
+          searchFields={[
+            { key: "username", label: "用户名", placeholder: "请输入用户名" },
+            { key: "ip", label: "IP", placeholder: "请输入 IP 地址" },
+          ]} />
+      )}
 
       <ConfirmDialog open={forceOut != null} onOpenChange={(v) => !v && setForceOut(null)}
         title="强制下线" description="该用户的会话将立即失效，需要重新登录。确定继续吗？"
