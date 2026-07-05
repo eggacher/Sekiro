@@ -70,6 +70,47 @@ import { ResultCode, CommonStatus } from "@sekiro/shared";
 
 确定后在此实现第一个跑通的真实接口（建议从 `auth/login` 开始）。
 
+## Seed 数据
+
+项目包含完整的示例数据 seed 脚本（`prisma/seed.ts`），覆盖：
+- 12 个用户（含超管账号 `admin / admin123`）
+- 7 个角色 + 精细菜单权限映射（96 条权限）
+- 完整的部门树、岗位、菜单树、字典
+- 登录日志和操作日志示例
+
+### 快速初始化数据库
+
+```bash
+# 建表
+pnpm --filter @sekiro/api exec prisma db push
+
+# 灌入示例数据
+pnpm --filter @sekiro/api exec prisma db seed
+
+# 查看数据（可选）
+pnpm --filter @sekiro/api exec prisma studio
+```
+
+### 测试账号
+
+| 账号 | 密码 | 权限 |
+|------|------|------|
+| admin | admin123 | 超级管理员 |
+| zhangsan | 见控制台输出 | 管理员 |
+| 其他用户 | 见控制台输出 | 各专员角色 |
+
+Seed 脚本完成时会输出所有账号密码。
+
+### 反复运行 Seed
+
+Seed 脚本每次执行都会先清空所有数据再重新插入，支持反复执行：
+
+```bash
+pnpm --filter @sekiro/api exec prisma db seed
+```
+
+**注意**：生产环境不应包含此 seed 脚本。
+
 ## 下一步
 
 1. 确定技术栈
