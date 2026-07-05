@@ -71,4 +71,20 @@ export class UserService {
     const defaultPasswordHash = await bcrypt.hash("sekiro123", 10);
     return this.userRepo.updatePassword(id, defaultPasswordHash);
   }
+
+  async assignRoles(id: number, roleIds: number[]) {
+    const user = await this.userRepo.findById(id);
+    if (!user) {
+      throw new NotFoundException("用户不存在");
+    }
+    return this.userRepo.assignRoles(id, roleIds);
+  }
+
+  async assignPositions(id: number, positionIds: number[]) {
+    const user = await this.userRepo.findById(id);
+    if (!user) {
+      throw new NotFoundException("用户不存在");
+    }
+    return this.userRepo.assignPositions(id, positionIds);
+  }
 }

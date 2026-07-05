@@ -103,4 +103,26 @@ export class UserRepository {
       pageSize: query.pageSize,
     };
   }
+
+  async assignRoles(id: number, roleIds: number[]) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userRole.deleteMany({ where: { userId: id } });
+      if (roleIds.length > 0) {
+        await tx.userRole.createMany({
+          data: roleIds.map((roleId) => ({ userId: id, roleId })),
+        });
+      }
+    });
+  }
+
+  async assignPositions(id: number, positionIds: number[]) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userPosition.deleteMany({ where: { userId: id } });
+      if (positionIds.length > 0) {
+        await tx.userPosition.createMany({
+          data: positionIds.map((positionId) => ({ userId: id, positionId })),
+        });
+      }
+    });
+  }
 }

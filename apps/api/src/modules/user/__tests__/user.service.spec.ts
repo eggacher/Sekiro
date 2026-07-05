@@ -41,4 +41,18 @@ describe("UserService", () => {
     repository.findById.mockResolvedValue({ id: 1, username: "admin" });
     await expect(service.updateStatus(1, "disabled")).rejects.toThrow(ForbiddenException);
   });
+
+  it("分配角色 - 成功调用仓储层操作", async () => {
+    repository.findById.mockResolvedValue({ id: 2, username: "tom" });
+    repository.assignRoles = vi.fn().mockResolvedValue(undefined);
+    await service.assignRoles(2, [1, 2]);
+    expect(repository.assignRoles).toHaveBeenCalledWith(2, [1, 2]);
+  });
+
+  it("分配岗位 - 成功调用仓储层操作", async () => {
+    repository.findById.mockResolvedValue({ id: 2, username: "tom" });
+    repository.assignPositions = vi.fn().mockResolvedValue(undefined);
+    await service.assignPositions(2, [3, 4]);
+    expect(repository.assignPositions).toHaveBeenCalledWith(2, [3, 4]);
+  });
 });
