@@ -11,6 +11,7 @@ export class RoleRepository {
   async findById(id: number) {
     return this.prisma.role.findFirst({
       where: { id, deletedAt: null },
+      include: { depts: true, menus: true },
     });
   }
 
@@ -110,6 +111,7 @@ export class RoleRepository {
       where,
       skip,
       take,
+      include: { depts: true, menus: true },
       orderBy: { createdAt: "desc" },
     });
 

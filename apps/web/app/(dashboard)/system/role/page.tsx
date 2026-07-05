@@ -29,16 +29,15 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { PageHeader } from "@/components/shared/page-header";
 import { CrudTable, type Column } from "@/components/shared/crud-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { CheckableTree, type TreeNode } from "@/components/shared/checkable-tree";
-import { mockRoles, mockMenus, type MockRole } from "@/lib/mock/system";
+import { apiClient } from "@/lib/api/client";
 
-const dataScopeLabels: Record<MockRole["dataScope"], string> = {
+const dataScopeLabels: Record<string, string> = {
   all: "全部数据",
   dept_and_below: "本部门及以下",
   dept: "仅本部门",
@@ -46,66 +45,122 @@ const dataScopeLabels: Record<MockRole["dataScope"], string> = {
   custom: "自定义",
 };
 
-function menusToTree(menus: typeof mockMenus): TreeNode[] {
-  return menus.map((m) => ({
-    id: m.id,
-    title: m.title,
-    type: m.type,
-    children: m.children ? menusToTree(m.children) : undefined,
-  }));
-}
-
 export default function RolePage() {
-  const [roles, setRoles] = React.useState<MockRole[]>(mockRoles);
+  const [list, setList] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(false);
   const [formOpen, setFormOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<MockRole | null>(null);
+  const [editing, setEditing] = React.useState<any | null>(null);
   const [delId, setDelId] = React.useState<number | null>(null);
   const [permOpen, setPermOpen] = React.useState(false);
-  const [permTarget, setPermTarget] = React.useState<MockRole | null>(null);
+  const [permTarget, setPermTarget] = React.useState<any | null>(null);
   const [checkedKeys, setCheckedKeys] = React.useState<Set<string | number>>(new Set());
+  const [menuTree, setMenuTree] = React.useState<TreeNode[]>([]);
 
-  const handleSave = (data: Partial<MockRole>) => {
-    if (editing) {
-      setRoles((prev) => prev.map((r) => (r.id === editing.id ? { ...r, ...data } as MockRole : r)));
-      toast.success("角色更新成功");
-    } else {
-      const newRole: MockRole = {
-        id: Math.max(0, ...roles.map((r) => r.id)) + 1,
-        name: data.name!,
-        code: data.code!,
-        description: data.description ?? "",
-        dataScope: data.dataScope ?? "self",
-        status: "enabled",
-        userCount: 0,
-        createdAt: new Date().toISOString().replace("T", " ").slice(0, 19),
-      };
-      setRoles((prev) => [newRole, ...prev]);
-      toast.success("角色新增成功");
+  const fetchList = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get<any>("/system/role?page=1&pageSize=1000");
+      setList(res.list || []);
+    } catch (err: any) {
+      toast.error(err.message || "加载角色列表失败");
+    } finally {
+      setLoading(false);
     }
-    setFormOpen(false);
-    setEditing(null);
+  }, []);
+
+  const fetchMenuTree = React.useCallback(async () => {
+    try {
+      const res = await apiClient.get<any[]>("/system/menu");
+      const mapNode = (nodes: any[]): TreeNode[] => {
+        return nodes.map((n) => ({
+          id: n.id,
+          title: n.title,
+          type: n.type,
+          children: n.children ? mapNode(n.children) : undefined,
+        }));
+      };
+      setMenuTree(mapNode(res));
+    } catch (err: any) {
+      toast.error("加载菜单失败");
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchList();
+    fetchMenuTree();
+  }, [fetchList, fetchMenuTree]);
+
+  const handleSave = async (data: Partial<any>, customDeptIds: number[]) => {
+    try {
+      let roleId = editing?.id;
+      if (editing) {
+        await apiClient.put(`/system/role/${editing.id}`, {
+          name: data.name,
+          code: data.code,
+          description: data.description,
+          status: data.status,
+        });
+        toast.success("角色更新成功");
+      } else {
+        const res = await apiClient.post<any>("/system/role", {
+          name: data.name,
+          code: data.code,
+          description: data.description,
+          status: data.status || "enabled",
+        });
+        roleId = res.id;
+        toast.success("角色新增成功");
+      }
+
+      if (roleId) {
+        await apiClient.put(`/system/role/${roleId}/data-scope`, {
+          dataScope: data.dataScope || "self",
+          customDeptIds: data.dataScope === "custom" ? customDeptIds : [],
+        });
+      }
+
+      setFormOpen(false);
+      setEditing(null);
+      await fetchList();
+    } catch (err: any) {
+      toast.error(err.message || "保存失败");
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (delId == null) return;
-    setRoles((prev) => prev.filter((r) => r.id !== delId));
-    toast.success("已删除该角色");
-    setDelId(null);
+    try {
+      await apiClient.delete(`/system/role/${delId}`);
+      toast.success("已删除该角色");
+      setDelId(null);
+      await fetchList();
+    } catch (err: any) {
+      toast.error(err.message || "删除角色失败");
+    }
   };
 
-  const openPerm = (role: MockRole) => {
+  const openPerm = (role: any) => {
     setPermTarget(role);
-    // 默认勾选一部分（演示）
-    setCheckedKeys(new Set([1, 21, 211, 22, 31, 32]));
+    const assignedMenuIds = (role.menus || []).map((m: any) => m.menuId);
+    setCheckedKeys(new Set(assignedMenuIds));
     setPermOpen(true);
   };
 
-  const handleSavePerm = () => {
-    toast.success(`已为「${permTarget?.name}」分配 ${checkedKeys.size} 项权限`);
-    setPermOpen(false);
+  const handleSavePerm = async () => {
+    if (!permTarget) return;
+    try {
+      await apiClient.put(`/system/role/${permTarget.id}/menus`, {
+        menuIds: Array.from(checkedKeys).map(Number),
+      });
+      toast.success("分配权限成功");
+      setPermOpen(false);
+      await fetchList();
+    } catch (err: any) {
+      toast.error(err.message || "分配权限失败");
+    }
   };
 
-  const columns: Column<MockRole>[] = [
+  const columns: Column<any>[] = [
     { key: "id", title: "编号", width: 70, render: (r) => <span className="text-muted-foreground">{r.id}</span> },
     {
       key: "name",
@@ -126,13 +181,7 @@ export default function RolePage() {
     {
       key: "dataScope",
       title: "数据范围",
-      render: (r) => <Badge variant="outline">{dataScopeLabels[r.dataScope]}</Badge>,
-    },
-    {
-      key: "userCount",
-      title: "用户数",
-      align: "center",
-      render: (r) => <span className="font-medium">{r.userCount}</span>,
+      render: (r) => <Badge variant="outline">{dataScopeLabels[r.dataScope] || r.dataScope}</Badge>,
     },
     {
       key: "status",
@@ -172,6 +221,7 @@ export default function RolePage() {
             size="icon"
             className="h-8 w-8 text-destructive"
             onClick={() => setDelId(r.id)}
+            disabled={r.id === 1}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -191,7 +241,8 @@ export default function RolePage() {
 
       <CrudTable
         columns={columns}
-        data={roles}
+        data={list}
+        loading={loading}
         searchFields={[
           { key: "name", label: "角色名称", placeholder: "请输入角色名称" },
           { key: "code", label: "角色编码", placeholder: "请输入编码" },
@@ -227,7 +278,7 @@ export default function RolePage() {
           </SheetHeader>
           <div className="mt-4 rounded-lg border p-2">
             <CheckableTree
-              data={menusToTree(mockMenus)}
+              data={menuTree}
               checkedKeys={checkedKeys}
               onChange={setCheckedKeys}
               showType
@@ -267,14 +318,38 @@ function RoleFormDialog({
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  editing: MockRole | null;
-  onSave: (data: Partial<MockRole>) => void;
+  editing: any | null;
+  onSave: (data: Partial<any>, customDeptIds: number[]) => void;
 }) {
-  const [form, setForm] = React.useState<Partial<MockRole>>({});
+  const [form, setForm] = React.useState<Partial<any>>({});
+  const [deptTree, setDeptTree] = React.useState<TreeNode[]>([]);
+  const [checkedDepts, setCheckedDepts] = React.useState<Set<string | number>>(new Set());
+
+  const fetchDeptTree = React.useCallback(async () => {
+    try {
+      const res = await apiClient.get<any[]>("/system/dept");
+      const mapNode = (nodes: any[]): TreeNode[] => {
+        return nodes.map((n) => ({
+          id: n.id,
+          title: n.name,
+          children: n.children ? mapNode(n.children) : undefined,
+        }));
+      };
+      setDeptTree(mapNode(res));
+    } catch {}
+  }, []);
 
   React.useEffect(() => {
-    if (open) setForm(editing ?? { dataScope: "self", status: "enabled" });
-  }, [open, editing]);
+    if (open) {
+      setForm(editing ?? { dataScope: "self", status: "enabled" });
+      fetchDeptTree();
+      if (editing && editing.depts) {
+        setCheckedDepts(new Set(editing.depts.map((d: any) => d.deptId)));
+      } else {
+        setCheckedDepts(new Set());
+      }
+    }
+  }, [open, editing, fetchDeptTree]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -282,12 +357,12 @@ function RoleFormDialog({
       toast.error("请填写角色名称与编码");
       return;
     }
-    onSave(form);
+    onSave(form, Array.from(checkedDepts).map(Number));
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{editing ? "编辑角色" : "新增角色"}</DialogTitle>
           <DialogDescription>
@@ -317,7 +392,7 @@ function RoleFormDialog({
             <Label>数据范围</Label>
             <Select
               value={form.dataScope ?? "self"}
-              onValueChange={(v) => setForm({ ...form, dataScope: v as MockRole["dataScope"] })}
+              onValueChange={(v) => setForm({ ...form, dataScope: v })}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -331,11 +406,25 @@ function RoleFormDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {form.dataScope === "custom" && (
+            <div className="space-y-2 rounded-lg border p-3">
+              <Label className="mb-2 block">选择自定义部门</Label>
+              <div className="max-h-[200px] overflow-y-auto rounded border bg-muted/20 p-2">
+                <CheckableTree
+                  data={deptTree}
+                  checkedKeys={checkedDepts}
+                  onChange={setCheckedDepts}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>状态</Label>
             <Select
               value={form.status ?? "enabled"}
-              onValueChange={(v) => setForm({ ...form, status: v as MockRole["status"] })}
+              onValueChange={(v) => setForm({ ...form, status: v })}
             >
               <SelectTrigger>
                 <SelectValue />

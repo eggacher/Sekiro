@@ -1,17 +1,16 @@
-# Task 3 Report: Controller Layer & Module
+# Task 3 Report: Apply Data Scope to Department tree query
 
 ## Status
 DONE
 
 ## Commits
-- `fcd5480`: feat(monitor): wire up controllers and register MonitorModule
+- `80308ee`: feat(dept): integrate DataScopeInterceptor and filter in department query
 
 ## Test Summary
-- Created `OnlineController`, `LogController`, and `ServerController`.
-- Wrapped Monitor services and controllers into NestJS `MonitorModule`.
-- Registered `MonitorModule` globally in `AppModule`.
-- Standard Node.js `v8` module used for type-safe heap limit calculation to pass TSC build.
-- 13 test suites (93 tests total) passed.
+- Integrated `DataScopeInterceptor` and `@UserScope()` param decorator on `DeptController.getTree`.
+- Applied scope filters in `DeptRepository.findAll` to restrict the list of returned departments.
+- Created `dept.data-scope.spec.ts` unit tests.
+- 16 test suites (101 tests total) passed.
 - Typecheck passed.
 
 ## Concerns
