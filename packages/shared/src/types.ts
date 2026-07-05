@@ -218,3 +218,14 @@ export interface CurrentUser {
   roles: string[];
   permissions: string[];
 }
+
+/** 刷新令牌请求 */
+export interface RefreshRequest {
+  refreshToken: string;
+}
+
+/** 刷新令牌响应 */
+export interface RefreshResponse {
+  token: string;
+  expiresIn: number;
+}
