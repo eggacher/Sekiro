@@ -26,7 +26,8 @@ import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TreeTable, type TreeRow } from "@/components/shared/tree-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { mockMenus, type MockMenu } from "@/lib/mock/system";
+import { apiClient } from "@/lib/api/client";
+import type { Menu } from "@sekiro/shared";
 
 const typeMeta = {
   directory: { label: "目录", icon: Folder, color: "text-blue-500" },
@@ -34,56 +35,69 @@ const typeMeta = {
   button: { label: "按钮", icon: MousePointerClick, color: "text-amber-500" },
 } as const;
 
-let nextId = 1000;
-
 export default function MenuPage() {
-  const [menus, setMenus] = React.useState<MockMenu[]>(mockMenus);
+  const [menus, setMenus] = React.useState<Menu[]>([]);
+  const [loading, setLoading] = React.useState(false);
   const [formOpen, setFormOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<MockMenu | null>(null);
+  const [editing, setEditing] = React.useState<Menu | null>(null);
   const [parentId, setParentId] = React.useState<number | null>(null);
   const [delId, setDelId] = React.useState<number | null>(null);
 
-  const flatten = (list: MockMenu[]): MockMenu[] =>
-    list.flatMap((m) => [m, ...(m.children ? flatten(m.children) : [])]);
+  const fetchTree = async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.get<Menu[]>("/system/menu");
+      setMenus(res);
+    } catch (err: any) {
+      toast.error(err.message || "加载菜单列表失败");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleSave = (data: Partial<MockMenu>) => {
-    const newNode: MockMenu = {
-      id: nextId++,
-      title: data.title || "新菜单",
-      type: (data.type as MockMenu["type"]) || "menu",
-      path: data.path,
-      icon: data.icon,
-      permission: data.permission,
-      sort: data.sort ?? 1,
-      status: (data.status as MockMenu["status"]) || "enabled",
-    };
+  React.useEffect(() => {
+    fetchTree();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    setMenus((prev) => {
-      // 编辑：先删后插
+  const handleSave = async (data: Partial<Menu>) => {
+    try {
       if (editing) {
-        const filtered = removeNode(prev, editing.id);
-        return insertNode(filtered, parentId, { ...newNode, id: editing.id });
+        await apiClient.put<Menu>(`/system/menu/${editing.id}`, { ...data, parentId });
+        toast.success("菜单更新成功");
+      } else {
+        await apiClient.post<Menu>("/system/menu", { ...data, parentId });
+        toast.success("菜单新增成功");
       }
-      return insertNode(prev, parentId, newNode);
-    });
-
-    toast.success(editing ? "菜单更新成功" : "菜单新增成功");
-    setFormOpen(false);
-    setEditing(null);
+      setFormOpen(false);
+      setEditing(null);
+      setParentId(null);
+      await fetchTree();
+    } catch (err: any) {
+      toast.error(err.message || "保存菜单失败");
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (delId == null) return;
-    setMenus((prev) => removeNode(prev, delId));
-    toast.success("已删除该菜单");
-    setDelId(null);
+    try {
+      await apiClient.delete(`/system/menu/${delId}`);
+      toast.success("已删除该菜单");
+      setDelId(null);
+      await fetchTree();
+    } catch (err: any) {
+      toast.error(err.message || "删除菜单失败");
+    }
   };
+
+  const flatten = (list: Menu[]): Menu[] =>
+    list.flatMap((m) => [m, ...(m.children ? flatten(m.children) : [])]);
 
   const columns = [
     {
       key: "title",
       title: "菜单名称",
-      render: (row: MockMenu, level: number) => {
+      render: (row: Menu, level: number) => {
         const meta = typeMeta[row.type];
         const Icon = meta.icon;
         return (
@@ -98,7 +112,7 @@ export default function MenuPage() {
       key: "type",
       title: "类型",
       width: 90,
-      render: (row: MockMenu) => {
+      render: (row: Menu) => {
         const meta = typeMeta[row.type];
         return <Badge variant="outline">{meta.label}</Badge>;
       },
@@ -106,31 +120,31 @@ export default function MenuPage() {
     {
       key: "path",
       title: "路由/权限标识",
-      render: (row: MockMenu) => (
+      render: (row: Menu) => (
         <code className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
           {row.path || row.permission || "—"}
         </code>
       ),
     },
-    { key: "icon", title: "图标", width: 100, render: (row: MockMenu) => row.icon || "—" },
+    { key: "icon", title: "图标", width: 100, render: (row: Menu) => row.icon || "—" },
     {
       key: "sort",
       title: "排序",
       width: 80,
       align: "center" as const,
-      render: (row: MockMenu) => <span className="text-muted-foreground">{row.sort}</span>,
+      render: (row: Menu) => <span className="text-muted-foreground">{row.sort}</span>,
     },
     {
       key: "status",
       title: "状态",
       width: 100,
-      render: (row: MockMenu) => <StatusBadge status={row.status} />,
+      render: (row: Menu) => <StatusBadge status={row.status} />,
     },
     {
       key: "actions",
       title: "操作",
       width: 220,
-      render: (row: MockMenu) => (
+      render: (row: Menu) => (
         <div className="flex items-center gap-1">
           {row.type !== "button" && (
             <Button
@@ -191,7 +205,7 @@ export default function MenuPage() {
         </p>
       </div>
 
-      <TreeTable<MockMenu> columns={columns} data={menus as TreeRow<MockMenu>[]} />
+      <TreeTable<Menu> columns={columns} data={menus as TreeRow<Menu>[]} />
 
       <MenuFormDialog
         open={formOpen}
@@ -214,28 +228,7 @@ export default function MenuPage() {
   );
 }
 
-function removeNode(list: MockMenu[], id: number): MockMenu[] {
-  return list
-    .filter((m) => m.id !== id)
-    .map((m) => (m.children ? { ...m, children: removeNode(m.children, id) } : m));
-}
-
-function insertNode(list: MockMenu[], parentId: number | null, node: MockMenu): MockMenu[] {
-  if (parentId == null) {
-    return [...list, node];
-  }
-  return list.map((m) => {
-    if (m.id === parentId) {
-      return { ...m, children: [...(m.children ?? []), node] };
-    }
-    if (m.children) {
-      return { ...m, children: insertNode(m.children, parentId, node) };
-    }
-    return m;
-  });
-}
-
-function findParentId(list: MockMenu[], id: number, parent: number | null = null): number | null {
+function findParentId(list: Menu[], id: number, parent: number | null = null): number | null {
   for (const m of list) {
     if (m.id === id) return parent;
     if (m.children) {
@@ -256,12 +249,12 @@ function MenuFormDialog({
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  editing: MockMenu | null;
+  editing: Menu | null;
   parentId: number | null;
-  allMenus: MockMenu[];
-  onSave: (data: Partial<MockMenu>) => void;
+  allMenus: Menu[];
+  onSave: (data: Partial<Menu>) => void;
 }) {
-  const [form, setForm] = React.useState<Partial<MockMenu>>({});
+  const [form, setForm] = React.useState<Partial<Menu>>({});
 
   React.useEffect(() => {
     if (open) {
@@ -299,7 +292,7 @@ function MenuFormDialog({
               <Label>类型</Label>
               <Select
                 value={form.type ?? "menu"}
-                onValueChange={(v) => setForm({ ...form, type: v as MockMenu["type"] })}
+                onValueChange={(v) => setForm({ ...form, type: v as Menu["type"] })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -380,7 +373,7 @@ function MenuFormDialog({
               <Label>状态</Label>
               <Select
                 value={form.status ?? "enabled"}
-                onValueChange={(v) => setForm({ ...form, status: v as MockMenu["status"] })}
+                onValueChange={(v) => setForm({ ...form, status: v as Menu["status"] })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -404,7 +397,7 @@ function MenuFormDialog({
   );
 }
 
-function flattenForSelect(list: MockMenu[], level = 0): { id: number; title: string; level: number }[] {
+function flattenForSelect(list: Menu[], level = 0): { id: number; title: string; level: number }[] {
   return list.flatMap((m) => [
     { id: m.id, title: m.title, level },
     ...(m.children ? flattenForSelect(m.children, level + 1) : []),
