@@ -20,84 +20,157 @@ import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { cn } from "@/lib/utils";
-import { mockDicts, type MockDict } from "@/lib/mock/system";
-
-type DictItem = MockDict["items"][number];
+import { apiClient } from "@/lib/api/client";
+import type { DictType, DictItem, PageResult } from "@sekiro/shared";
 
 export default function DictPage() {
-  const [dicts, setDicts] = React.useState<MockDict[]>(mockDicts);
-  const [activeId, setActiveId] = React.useState<number>(mockDicts[0].id);
+  const [dicts, setDicts] = React.useState<DictType[]>([]);
+  const [activeId, setActiveId] = React.useState<number | null>(null);
+  const [items, setItems] = React.useState<DictItem[]>([]);
   const [kw, setKw] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [itemsLoading, setItemsLoading] = React.useState(false);
+
   const [typeFormOpen, setTypeFormOpen] = React.useState(false);
   const [itemFormOpen, setItemFormOpen] = React.useState(false);
-  const [editingType, setEditingType] = React.useState<MockDict | null>(null);
+  const [editingType, setEditingType] = React.useState<DictType | null>(null);
   const [editingItem, setEditingItem] = React.useState<DictItem | null>(null);
   const [delType, setDelType] = React.useState<number | null>(null);
   const [delItemValue, setDelItemValue] = React.useState<string | null>(null);
 
-  const active = dicts.find((d) => d.id === activeId)!;
+  const active = dicts.find((d) => d.id === activeId);
 
   const filteredTypes = dicts.filter(
     (d) => !kw || d.name.includes(kw) || d.code.includes(kw)
   );
-  const filteredItems = active.items;
 
-  const saveType = (data: Partial<MockDict>) => {
-    if (editingType) {
-      setDicts((p) => p.map((d) => (d.id === editingType.id ? { ...d, ...data } as MockDict : d)));
-      toast.success("字典类型更新成功");
+  const fetchTypes = async (shouldSelectFirst = false) => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get<PageResult<DictType>>("/system/dict?page=1&pageSize=1000");
+      setDicts(res.list);
+      if (res.list.length > 0 && (activeId === null || shouldSelectFirst)) {
+        setActiveId(res.list[0].id);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "加载字典类型失败");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchItems = async (typeId: number) => {
+    try {
+      setItemsLoading(true);
+      const res = await apiClient.get<PageResult<DictItem>>(`/system/dict-item?typeId=${typeId}&page=1&pageSize=1000`);
+      setItems(res.list);
+    } catch (err: any) {
+      toast.error(err.message || "加载字典项失败");
+    } finally {
+      setItemsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchTypes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  React.useEffect(() => {
+    if (activeId !== null) {
+      fetchItems(activeId);
     } else {
-      const newType: MockDict = {
-        id: Math.max(0, ...dicts.map((d) => d.id)) + 1,
-        name: data.name!, code: data.code!,
-        status: (data.status as MockDict["status"]) ?? "enabled",
-        remark: data.remark ?? "",
-        items: [],
-        createdAt: new Date().toISOString().replace("T", " ").slice(0, 19),
-      };
-      setDicts((p) => [newType, ...p]);
-      setActiveId(newType.id);
-      toast.success("字典类型新增成功");
+      setItems([]);
     }
-    setTypeFormOpen(false);
-    setEditingType(null);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
 
-  const deleteType = () => {
-    setDicts((p) => p.filter((d) => d.id !== delType));
-    if (activeId === delType && dicts.length > 1) {
-      setActiveId(dicts.find((d) => d.id !== delType)!.id);
+  const saveType = async (data: Partial<DictType>) => {
+    try {
+      if (editingType) {
+        await apiClient.put(`/system/dict/${editingType.id}`, {
+          name: data.name,
+          status: data.status,
+          remark: data.remark,
+        });
+        toast.success("字典类型更新成功");
+      } else {
+        const res = await apiClient.post<DictType>("/system/dict", {
+          name: data.name,
+          code: data.code,
+          status: data.status,
+          remark: data.remark,
+        });
+        setActiveId(res.id);
+        toast.success("字典类型新增成功");
+      }
+      setTypeFormOpen(false);
+      setEditingType(null);
+      await fetchTypes();
+    } catch (err: any) {
+      toast.error(err.message || "保存字典类型失败");
     }
-    setDelType(null);
-    toast.success("已删除字典类型");
   };
 
-  const saveItem = (data: Partial<DictItem>) => {
-    setDicts((p) =>
-      p.map((d) => {
-        if (d.id !== activeId) return d;
-        if (editingItem) {
-          return { ...d, items: d.items.map((it) => (it.value === editingItem.value ? { ...it, ...data } as DictItem : it)) };
-        }
-        return { ...d, items: [...d.items, {
-          label: data.label || "新选项",
-          value: data.value || String(Date.now()),
-          sort: data.sort ?? d.items.length + 1,
-          status: (data.status as DictItem["status"]) ?? "enabled",
-        }] };
-      })
-    );
-    toast.success(editingItem ? "字典项更新成功" : "字典项新增成功");
-    setItemFormOpen(false);
-    setEditingItem(null);
+  const deleteType = async () => {
+    if (delType === null) return;
+    try {
+      await apiClient.delete(`/system/dict/${delType}`);
+      toast.success("已删除字典类型");
+      setDelType(null);
+      const remaining = dicts.filter((d) => d.id !== delType);
+      if (activeId === delType) {
+        setActiveId(remaining.length > 0 ? remaining[0].id : null);
+      }
+      await fetchTypes();
+    } catch (err: any) {
+      toast.error(err.message || "删除字典类型失败");
+    }
   };
 
-  const deleteItem = () => {
-    setDicts((p) => p.map((d) =>
-      d.id === activeId ? { ...d, items: d.items.filter((it) => it.value !== delItemValue) } : d
-    ));
-    setDelItemValue(null);
-    toast.success("已删除字典项");
+  const saveItem = async (data: Partial<DictItem>) => {
+    if (activeId === null) return;
+    try {
+      if (editingItem) {
+        await apiClient.put(`/system/dict-item/${editingItem.id}`, {
+          label: data.label,
+          value: data.value,
+          sort: data.sort,
+          status: data.status,
+        });
+        toast.success("字典项更新成功");
+      } else {
+        await apiClient.post("/system/dict-item", {
+          typeId: activeId,
+          label: data.label,
+          value: data.value,
+          sort: data.sort,
+          status: data.status,
+        });
+        toast.success("字典项新增成功");
+      }
+      setItemFormOpen(false);
+      setEditingItem(null);
+      await fetchItems(activeId);
+    } catch (err: any) {
+      toast.error(err.message || "保存字典项失败");
+    }
+  };
+
+  const deleteItem = async () => {
+    if (!delItemValue) return;
+    const itemToDelete = items.find((it) => it.value === delItemValue);
+    if (!itemToDelete) return;
+    try {
+      await apiClient.delete(`/system/dict-item/${itemToDelete.id}`);
+      toast.success("已删除字典项");
+      setDelItemValue(null);
+      if (activeId !== null) {
+        await fetchItems(activeId);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "删除字典项失败");
+    }
   };
 
   return (
@@ -120,95 +193,115 @@ export default function DictPage() {
               <Input value={kw} onChange={(e) => setKw(e.target.value)} placeholder="搜索字典" className="h-8 pl-8" />
             </div>
             <div className="scrollbar-thin max-h-[560px] space-y-0.5 overflow-y-auto">
-              {filteredTypes.map((d) => (
-                <button
-                  key={d.id}
-                  onClick={() => setActiveId(d.id)}
-                  className={cn(
-                    "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors",
-                    activeId === d.id ? "bg-primary/10 text-primary" : "hover:bg-accent"
-                  )}
-                >
-                  <BookMarked className="h-4 w-4 shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium">{d.name}</div>
-                    <div className="truncate text-xs text-muted-foreground">{d.code}</div>
-                  </div>
-                  <Badge variant="outline" className="text-[10px]">{d.items.length}</Badge>
-                </button>
-              ))}
+              {loading ? (
+                <div className="py-8 text-center text-sm text-muted-foreground">加载中...</div>
+              ) : filteredTypes.length === 0 ? (
+                <div className="py-8 text-center text-sm text-muted-foreground">无匹配字典</div>
+              ) : (
+                filteredTypes.map((d) => (
+                  <button
+                    key={d.id}
+                    onClick={() => setActiveId(d.id)}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors",
+                      activeId === d.id ? "bg-primary/10 text-primary" : "hover:bg-accent"
+                    )}
+                  >
+                    <BookMarked className="h-4 w-4 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{d.name}</div>
+                      <div className="truncate text-xs text-muted-foreground">{d.code}</div>
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         </div>
 
         {/* 右侧：字典项 */}
         <div className="rounded-lg border bg-card">
-          <div className="flex items-center justify-between border-b p-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">{active.name}</span>
-                <Badge variant="secondary" className="text-[10px]">{active.code}</Badge>
+          {!active ? (
+            <div className="flex h-[300px] flex-col items-center justify-center text-muted-foreground">
+              <BookMarked className="mb-2 h-8 w-8 opacity-50" />
+              请选择或创建一个字典类型
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between border-b p-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{active.name}</span>
+                    <Badge variant="secondary" className="text-[10px]">{active.code}</Badge>
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{active.remark}</p>
+                </div>
+                <div className="flex gap-1">
+                  <Button size="sm" variant="ghost" className="h-7"
+                    onClick={() => { setEditingType(active); setTypeFormOpen(true); }}>
+                    <Edit2 className="h-3.5 w-3.5" />编辑类型
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 text-destructive"
+                    onClick={() => setDelType(active.id)}>
+                    <Trash2 className="h-3.5 w-3.5" />删除类型
+                  </Button>
+                  <Button size="sm"
+                    onClick={() => { setEditingItem(null); setItemFormOpen(true); }}>
+                    <Plus className="h-3.5 w-3.5" />新增字典项
+                  </Button>
+                </div>
               </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">{active.remark}</p>
-            </div>
-            <div className="flex gap-1">
-              <Button size="sm" variant="ghost" className="h-7"
-                onClick={() => { setEditingType(active); setTypeFormOpen(true); }}>
-                <Edit2 className="h-3.5 w-3.5" />编辑类型
-              </Button>
-              <Button size="sm" variant="ghost" className="h-7 text-destructive"
-                onClick={() => setDelType(active.id)}>
-                <Trash2 className="h-3.5 w-3.5" />删除类型
-              </Button>
-              <Button size="sm"
-                onClick={() => { setEditingItem(null); setItemFormOpen(true); }}>
-                <Plus className="h-3.5 w-3.5" />新增字典项
-              </Button>
-            </div>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/40 hover:bg-muted/40">
-                <TableHead className="w-16">序号</TableHead>
-                <TableHead>字典标签</TableHead>
-                <TableHead>字典值</TableHead>
-                <TableHead className="w-20 text-center">排序</TableHead>
-                <TableHead className="w-24">状态</TableHead>
-                <TableHead className="w-28 text-right">操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredItems.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                    暂无字典项，点击右上角"新增字典项"
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredItems.map((it, i) => (
-                  <TableRow key={it.value}>
-                    <TableCell className="text-muted-foreground">{i + 1}</TableCell>
-                    <TableCell className="font-medium">{it.label}</TableCell>
-                    <TableCell><code className="rounded bg-muted px-1.5 py-0.5 text-xs">{it.value}</code></TableCell>
-                    <TableCell className="text-center text-muted-foreground">{it.sort}</TableCell>
-                    <TableCell><StatusBadge status={it.status} /></TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-primary"
-                          onClick={() => { setEditingItem(it); setItemFormOpen(true); }}>
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                          onClick={() => setDelItemValue(it.value)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40 hover:bg-muted/40">
+                    <TableHead className="w-16">序号</TableHead>
+                    <TableHead>字典标签</TableHead>
+                    <TableHead>字典值</TableHead>
+                    <TableHead className="w-20 text-center">排序</TableHead>
+                    <TableHead className="w-24">状态</TableHead>
+                    <TableHead className="w-28 text-right">操作</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {itemsLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                        加载中...
+                      </TableCell>
+                    </TableRow>
+                  ) : items.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                        暂无字典项，点击右上角&quot;新增字典项&quot;
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    items.map((it, i) => (
+                      <TableRow key={it.value}>
+                        <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                        <TableCell className="font-medium">{it.label}</TableCell>
+                        <TableCell><code className="rounded bg-muted px-1.5 py-0.5 text-xs">{it.value}</code></TableCell>
+                        <TableCell className="text-center text-muted-foreground">{it.sort}</TableCell>
+                        <TableCell><StatusBadge status={it.status} /></TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-primary"
+                              onClick={() => { setEditingItem(it); setItemFormOpen(true); }}>
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                              onClick={() => setDelItemValue(it.value)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </>
+          )}
         </div>
       </div>
 
@@ -220,7 +313,7 @@ export default function DictPage() {
         editing={editingItem} onSave={saveItem} />
 
       <ConfirmDialog open={delType != null} onOpenChange={(v) => !v && setDelType(null)}
-        title="删除字典类型" description="删除后该类型下所有字典项将一并清除，确定继续吗？"
+        title="删除字典类型" description="删除后该类型下所有字典项将一并逻辑删除，确定继续吗？"
         confirmText="确认删除" onConfirm={deleteType} />
       <ConfirmDialog open={delItemValue != null} onOpenChange={(v) => !v && setDelItemValue(null)}
         title="删除字典项" description="确定要删除该字典项吗？" confirmText="确认删除" onConfirm={deleteItem} />
@@ -230,9 +323,9 @@ export default function DictPage() {
 
 function DictTypeDialog({ open, onOpenChange, editing, onSave }: {
   open: boolean; onOpenChange: (v: boolean) => void;
-  editing: MockDict | null; onSave: (data: Partial<MockDict>) => void;
+  editing: DictType | null; onSave: (data: Partial<DictType>) => void;
 }) {
-  const [form, setForm] = React.useState<Partial<MockDict>>({});
+  const [form, setForm] = React.useState<Partial<DictType>>({});
   React.useEffect(() => { if (open) setForm(editing ?? { status: "enabled" }); }, [open, editing]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -256,11 +349,11 @@ function DictTypeDialog({ open, onOpenChange, editing, onSave }: {
             </div>
             <div className="space-y-2">
               <Label>字典编码 *</Label>
-              <Input value={form.code ?? ""} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="sys_xxx" />
+              <Input value={form.code ?? ""} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="sys_xxx" disabled={!!editing} />
             </div>
             <div className="space-y-2">
               <Label>状态</Label>
-              <Select value={form.status ?? "enabled"} onValueChange={(v) => setForm({ ...form, status: v as MockDict["status"] })}>
+              <Select value={form.status ?? "enabled"} onValueChange={(v) => setForm({ ...form, status: v as DictType["status"] })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="enabled">启用</SelectItem>
