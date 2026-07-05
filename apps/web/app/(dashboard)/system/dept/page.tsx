@@ -25,47 +25,69 @@ import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TreeTable, type TreeRow } from "@/components/shared/tree-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { mockDepts, type MockDept } from "@/lib/mock/system";
-
-let nextId = 10000;
+import { apiClient } from "@/lib/api/client";
+import type { Dept } from "@sekiro/shared";
 
 export default function DeptPage() {
-  const [depts, setDepts] = React.useState<MockDept[]>(mockDepts);
+  const [depts, setDepts] = React.useState<Dept[]>([]);
+  const [loading, setLoading] = React.useState(false);
   const [formOpen, setFormOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<MockDept | null>(null);
+  const [editing, setEditing] = React.useState<Dept | null>(null);
   const [parentId, setParentId] = React.useState<number | null>(null);
   const [delId, setDelId] = React.useState<number | null>(null);
 
-  const handleSave = (data: Partial<MockDept>) => {
-    const node: MockDept = {
-      id: editing?.id ?? nextId++,
-      name: data.name || "新部门",
-      leader: data.leader || "",
-      phone: data.phone || "",
-      sort: data.sort ?? 1,
-      status: (data.status as MockDept["status"]) || "enabled",
-    };
-    setDepts((prev) => {
-      const filtered = editing ? removeNode(prev, editing.id) : prev;
-      return insertNode(filtered, parentId, node);
-    });
-    toast.success(editing ? "部门更新成功" : "部门新增成功");
-    setFormOpen(false);
-    setEditing(null);
+  const fetchTree = async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.get<Dept[]>("/system/dept");
+      setDepts(res);
+    } catch (err: any) {
+      toast.error(err.message || "加载部门列表失败");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = () => {
+  React.useEffect(() => {
+    fetchTree();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSave = async (data: Partial<Dept>) => {
+    try {
+      if (editing) {
+        await apiClient.put<Dept>(`/system/dept/${editing.id}`, { ...data, parentId });
+        toast.success("部门更新成功");
+      } else {
+        await apiClient.post<Dept>("/system/dept", { ...data, parentId });
+        toast.success("部门新增成功");
+      }
+      setFormOpen(false);
+      setEditing(null);
+      setParentId(null);
+      await fetchTree();
+    } catch (err: any) {
+      toast.error(err.message || "保存部门失败");
+    }
+  };
+
+  const handleDelete = async () => {
     if (delId == null) return;
-    setDepts((prev) => removeNode(prev, delId));
-    toast.success("已删除该部门");
-    setDelId(null);
+    try {
+      await apiClient.delete(`/system/dept/${delId}`);
+      toast.success("已删除该部门");
+      setDelId(null);
+      await fetchTree();
+    } catch (err: any) {
+      toast.error(err.message || "删除部门失败");
+    }
   };
 
   const columns = [
     {
       key: "name",
       title: "部门名称",
-      render: (row: MockDept, level: number) => (
+      render: (row: Dept, level: number) => (
         <span className="flex items-center gap-2">
           <Building2 className={`h-4 w-4 ${level === 0 ? "text-primary" : "text-muted-foreground"}`} />
           <span className={level === 0 ? "font-semibold" : ""}>{row.name}</span>
@@ -76,7 +98,7 @@ export default function DeptPage() {
       key: "leader",
       title: "负责人",
       width: 140,
-      render: (row: MockDept) =>
+      render: (row: Dept) =>
         row.leader ? (
           <span className="flex items-center gap-1.5 text-muted-foreground">
             <User className="h-3.5 w-3.5" />
@@ -90,7 +112,7 @@ export default function DeptPage() {
       key: "phone",
       title: "联系电话",
       width: 160,
-      render: (row: MockDept) =>
+      render: (row: Dept) =>
         row.phone ? (
           <span className="flex items-center gap-1.5 text-muted-foreground">
             <Phone className="h-3.5 w-3.5" />
@@ -105,19 +127,19 @@ export default function DeptPage() {
       title: "排序",
       width: 80,
       align: "center" as const,
-      render: (row: MockDept) => <span className="text-muted-foreground">{row.sort}</span>,
+      render: (row: Dept) => <span className="text-muted-foreground">{row.sort}</span>,
     },
     {
       key: "status",
       title: "状态",
       width: 100,
-      render: (row: MockDept) => <StatusBadge status={row.status} />,
+      render: (row: Dept) => <StatusBadge status={row.status} />,
     },
     {
       key: "actions",
       title: "操作",
       width: 220,
-      render: (row: MockDept) => (
+      render: (row: Dept) => (
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -159,7 +181,7 @@ export default function DeptPage() {
         </Button>
       </PageHeader>
 
-      <TreeTable<MockDept> columns={columns} data={depts as TreeRow<MockDept>[]} />
+      <TreeTable<Dept> columns={columns} data={depts as TreeRow<Dept>[]} />
 
       <DeptFormDialog
         open={formOpen}
@@ -182,22 +204,7 @@ export default function DeptPage() {
   );
 }
 
-function removeNode(list: MockDept[], id: number): MockDept[] {
-  return list
-    .filter((m) => m.id !== id)
-    .map((m) => (m.children ? { ...m, children: removeNode(m.children, id) } : m));
-}
-
-function insertNode(list: MockDept[], parentId: number | null, node: MockDept): MockDept[] {
-  if (parentId == null) return [...list, node];
-  return list.map((m) => {
-    if (m.id === parentId) return { ...m, children: [...(m.children ?? []), node] };
-    if (m.children) return { ...m, children: insertNode(m.children, parentId, node) };
-    return m;
-  });
-}
-
-function findParentId(list: MockDept[], id: number, parent: number | null = null): number | null {
+function findParentId(list: Dept[], id: number, parent: number | null = null): number | null {
   for (const m of list) {
     if (m.id === id) return parent;
     if (m.children) {
@@ -208,7 +215,7 @@ function findParentId(list: MockDept[], id: number, parent: number | null = null
   return null;
 }
 
-function flattenForSelect(list: MockDept[], level = 0): { id: number; name: string; level: number }[] {
+function flattenForSelect(list: Dept[], level = 0): { id: number; name: string; level: number }[] {
   return list.flatMap((m) => [
     { id: m.id, name: m.name, level },
     ...(m.children ? flattenForSelect(m.children, level + 1) : []),
@@ -220,12 +227,12 @@ function DeptFormDialog({
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  editing: MockDept | null;
+  editing: Dept | null;
   parentId: number | null;
-  allDepts: MockDept[];
-  onSave: (data: Partial<MockDept>) => void;
+  allDepts: Dept[];
+  onSave: (data: Partial<Dept>) => void;
 }) {
-  const [form, setForm] = React.useState<Partial<MockDept>>({});
+  const [form, setForm] = React.useState<Partial<Dept>>({});
 
   React.useEffect(() => {
     if (open) setForm(editing ?? { status: "enabled", sort: 1 });
@@ -301,7 +308,7 @@ function DeptFormDialog({
               <Label>状态</Label>
               <Select
                 value={form.status ?? "enabled"}
-                onValueChange={(v) => setForm({ ...form, status: v as MockDept["status"] })}
+                onValueChange={(v) => setForm({ ...form, status: v as Dept["status"] })}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
