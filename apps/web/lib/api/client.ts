@@ -1,19 +1,21 @@
 import type { ApiResponse } from "@sekiro/shared";
 import { ResultCode, RESULT_MESSAGES, STORAGE_KEYS } from "@sekiro/shared";
+import { toast } from "sonner";
 
-/**
- * 后端 API 基础地址
- * 接入真实后端时，通过环境变量配置：NEXT_PUBLIC_API_BASE_URL
- */
+export type ApiFieldError = { field: string; message: string };
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api";
 
-/**
- * 统一请求封装
- *
- * 当前为原型阶段，调用方仍使用 lib/mock/* 的本地数据。
- * 当 apps/api 就绪后，业务页面把 mock 调用替换为这里的方法即可，
- * 返回值类型已与 @sekiro/shared 对齐，前端无需改动组件层。
- */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public code: number,
+    public fieldErrors?: ApiFieldError[]
+  ) {
+    super(message);
+  }
+}
+
 export async function request<T>(
   path: string,
   options: RequestInit = {}
@@ -38,14 +40,24 @@ export async function request<T>(
 
   const json: ApiResponse<T> = await res.json();
 
-  // 统一处理业务码
   if (json.code !== ResultCode.SUCCESS) {
-    // 401: 清理凭证，跳转登录
     if (json.code === ResultCode.UNAUTHORIZED && typeof window !== "undefined") {
       localStorage.removeItem(STORAGE_KEYS.TOKEN);
       window.location.href = "/login";
+      throw new ApiError(json.message || RESULT_MESSAGES[json.code], json.code);
     }
-    throw new Error(json.message || RESULT_MESSAGES[json.code]);
+
+    if (json.code === ResultCode.FORBIDDEN) {
+      toast.error(json.message || "无权限访问");
+      throw new ApiError(json.message || RESULT_MESSAGES[json.code], json.code);
+    }
+
+    if (json.code === ResultCode.VALIDATION_ERROR && Array.isArray(json.data)) {
+      const fieldErrors = json.data as ApiFieldError[];
+      throw new ApiError(json.message || "参数校验失败", json.code, fieldErrors);
+    }
+
+    throw new ApiError(json.message || RESULT_MESSAGES[json.code], json.code);
   }
 
   return json.data;
