@@ -100,19 +100,24 @@ export class RoleRepository {
       ];
     }
 
+    const page = Number(query.page) || 1;
+    const pageSize = Number(query.pageSize) || 10;
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
     const total = await this.prisma.role.count({ where });
     const list = await this.prisma.role.findMany({
       where,
-      skip: (query.page - 1) * query.pageSize,
-      take: query.pageSize,
+      skip,
+      take,
       orderBy: { createdAt: "desc" },
     });
 
     return {
       list,
       total,
-      page: query.page,
-      pageSize: query.pageSize,
+      page,
+      pageSize,
     };
   }
 }
