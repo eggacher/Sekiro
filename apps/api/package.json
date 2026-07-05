@@ -2,6 +2,9 @@
   "name": "@sekiro/api",
   "version": "0.1.0",
   "private": true,
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "build": "tsc",
@@ -29,6 +32,7 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^20.14.10",
     "prisma": "^7.8.0",
     "tsx": "^4.23.0",
