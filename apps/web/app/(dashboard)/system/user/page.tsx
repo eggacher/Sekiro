@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Edit2, Trash2, KeyRound, MoreHorizontal, Download, Upload } from "lucide-react";
+import { Plus, Edit2, Trash2, KeyRound, MoreHorizontal, Download, Upload, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,56 +29,110 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { PageHeader } from "@/components/shared/page-header";
 import { CrudTable, type Column } from "@/components/shared/crud-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { mockUsers, type MockUser } from "@/lib/mock/system";
-import { mockDepts } from "@/lib/mock/system";
-
-const deptOptions = [
-  "研发中心", "财务部", "运营部", "市场部", "客服部", "人事部", "前端组", "后端组", "测试组",
-];
+import { apiClient } from "@/lib/api/client";
+import type { User, Dept, Role, PageResult } from "@sekiro/shared";
 
 export default function UserPage() {
-  const [users, setUsers] = React.useState<MockUser[]>(mockUsers);
+  const [users, setUsers] = React.useState<User[]>([]);
+  const [depts, setDepts] = React.useState<Dept[]>([]);
+  const [roles, setRoles] = React.useState<Role[]>([]);
+  const [loading, setLoading] = React.useState(false);
   const [formOpen, setFormOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<MockUser | null>(null);
+  const [editing, setEditing] = React.useState<User | null>(null);
   const [delId, setDelId] = React.useState<number | null>(null);
+  const [roleOpen, setRoleOpen] = React.useState(false);
+  const [roleTarget, setRoleTarget] = React.useState<User | null>(null);
+  const [resetTarget, setResetTarget] = React.useState<User | null>(null);
 
-  const handleSave = (data: Partial<MockUser>) => {
-    if (editing) {
-      setUsers((prev) => prev.map((u) => (u.id === editing.id ? { ...u, ...data } as MockUser : u)));
-      toast.success("用户更新成功");
-    } else {
-      const newUser: MockUser = {
-        id: Math.max(0, ...users.map((u) => u.id)) + 1,
-        username: data.username!,
-        nickname: data.nickname ?? "",
-        email: data.email ?? "",
-        phone: data.phone ?? "",
-        dept: data.dept ?? "研发中心",
-        roles: data.roles ?? ["普通用户"],
-        status: "enabled",
-        lastLogin: "—",
-        createdAt: new Date().toISOString().replace("T", " ").slice(0, 19),
-      };
-      setUsers((prev) => [newUser, ...prev]);
-      toast.success("用户新增成功");
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.get<PageResult<User>>("/system/user?page=1&pageSize=1000");
+      setUsers(res.list);
+    } catch (err: any) {
+      toast.error(err.message || "加载用户列表失败");
+    } finally {
+      setLoading(false);
     }
-    setFormOpen(false);
-    setEditing(null);
   };
 
-  const handleDelete = () => {
+  const fetchDepts = async () => {
+    try {
+      const res = await apiClient.get<Dept[]>("/system/dept");
+      setDepts(res);
+    } catch (err: any) {
+      toast.error(err.message || "加载部门列表失败");
+    }
+  };
+
+  const fetchRoles = async () => {
+    try {
+      const res = await apiClient.get<PageResult<Role>>("/system/role?page=1&pageSize=1000");
+      setRoles(res.list || []);
+    } catch (err: any) {
+      toast.error(err.message || "加载角色列表失败");
+    }
+  };
+
+  React.useEffect(() => {
+    fetchUsers();
+    fetchDepts();
+    fetchRoles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSave = async (data: Partial<User>) => {
+    try {
+      if (editing) {
+        await apiClient.put<User>(`/system/user/${editing.id}`, data);
+        toast.success("用户更新成功");
+      } else {
+        await apiClient.post<User>("/system/user", data);
+        toast.success("用户新增成功");
+      }
+      setFormOpen(false);
+      setEditing(null);
+      await fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message || "保存用户失败");
+    }
+  };
+
+  const handleDelete = async () => {
     if (delId == null) return;
-    setUsers((prev) => prev.filter((u) => u.id !== delId));
-    toast.success("已删除该用户");
-    setDelId(null);
+    try {
+      await apiClient.delete(`/system/user/${delId}`);
+      toast.success("已删除该用户");
+      setDelId(null);
+      await fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message || "删除用户失败");
+    }
   };
 
-  const columns: Column<MockUser>[] = [
+  const handleResetPassword = async () => {
+    if (!resetTarget) return;
+    try {
+      await apiClient.put(`/system/user/${resetTarget.id}/reset-password`, {});
+      toast.success("密码重置成功");
+      setResetTarget(null);
+    } catch (err: any) {
+      toast.error(err.message || "重置密码失败");
+    }
+  };
+
+  const openAssignRoles = (row: User) => {
+    setRoleTarget(row);
+    setRoleOpen(true);
+  };
+
+  const columns: Column<User>[] = [
     {
       key: "id",
       title: "编号",
@@ -102,15 +156,15 @@ export default function UserPage() {
         </div>
       ),
     },
-    { key: "dept", title: "部门" },
+    { key: "deptName", title: "部门" },
     {
-      key: "roles",
+      key: "roleNames",
       title: "角色",
       render: (row) => (
         <div className="flex flex-wrap gap-1">
-          {row.roles.map((r) => (
-            <Badge key={r} variant="secondary" className="font-normal">
-              {r}
+          {(row.roleNames || row.roleIds || []).map((r, i) => (
+            <Badge key={i} variant="secondary" className="font-normal">
+              {typeof r === "string" ? r : `角色 ${r}`}
             </Badge>
           ))}
         </div>
@@ -123,9 +177,9 @@ export default function UserPage() {
       render: (row) => <StatusBadge status={row.status} />,
     },
     {
-      key: "lastLogin",
+      key: "lastLoginTime",
       title: "最后登录",
-      render: (row) => <span className="text-muted-foreground">{row.lastLogin}</span>,
+      render: (row) => <span className="text-muted-foreground">{row.lastLoginTime ?? "—"}</span>,
     },
     {
       key: "actions",
@@ -153,12 +207,12 @@ export default function UserPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setResetTarget(row)}>
                 <KeyRound className="h-4 w-4" />
                 重置密码
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Upload className="h-4 w-4" />
+              <DropdownMenuItem onClick={() => openAssignRoles(row)}>
+                <ShieldCheck className="h-4 w-4" />
                 分配角色
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -201,6 +255,7 @@ export default function UserPage() {
       <CrudTable
         columns={columns}
         data={users}
+        loading={loading}
         searchFields={[
           { key: "username", label: "用户名", placeholder: "请输入用户名" },
           { key: "phone", label: "手机号", placeholder: "请输入手机号" },
@@ -226,7 +281,28 @@ export default function UserPage() {
         open={formOpen}
         onOpenChange={setFormOpen}
         editing={editing}
+        depts={depts}
+        roles={roles}
         onSave={handleSave}
+      />
+
+      <RoleAssignDialog
+        open={roleOpen}
+        onOpenChange={setRoleOpen}
+        target={roleTarget}
+        roles={roles}
+        onSave={async (roleIds) => {
+          if (!roleTarget) return;
+          try {
+            await apiClient.put(`/system/user/${roleTarget.id}/roles`, { roleIds });
+            toast.success("分配角色成功");
+            setRoleOpen(false);
+            setRoleTarget(null);
+            await fetchUsers();
+          } catch (err: any) {
+            toast.error(err.message || "分配角色失败");
+          }
+        }}
       />
 
       <ConfirmDialog
@@ -237,6 +313,15 @@ export default function UserPage() {
         confirmText="确认删除"
         onConfirm={handleDelete}
       />
+
+      <ConfirmDialog
+        open={resetTarget != null}
+        onOpenChange={(v) => !v && setResetTarget(null)}
+        title="重置密码"
+        description={resetTarget ? `确定要重置用户「${resetTarget.nickname}」的登录密码吗？` : ""}
+        confirmText="确认重置"
+        onConfirm={handleResetPassword}
+      />
     </div>
   );
 }
@@ -245,20 +330,30 @@ function UserFormDialog({
   open,
   onOpenChange,
   editing,
+  depts,
+  roles,
   onSave,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  editing: MockUser | null;
-  onSave: (data: Partial<MockUser>) => void;
+  editing: User | null;
+  depts: Dept[];
+  roles: Role[];
+  onSave: (data: Partial<User>) => void;
 }) {
-  const [form, setForm] = React.useState<Partial<MockUser>>({});
+  const [form, setForm] = React.useState<Partial<User>>({});
 
   React.useEffect(() => {
     if (open) {
-      setForm(editing ?? { dept: "研发中心", roles: ["普通用户"] });
+      setForm(
+        editing ?? {
+          status: "enabled",
+          deptId: depts[0]?.id,
+          roleIds: roles[0] ? [roles[0].id] : [],
+        }
+      );
     }
-  }, [open, editing]);
+  }, [open, editing, depts, roles]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,6 +362,15 @@ function UserFormDialog({
       return;
     }
     onSave(form);
+  };
+
+  const toggleRole = (roleId: number, checked: boolean) => {
+    const current = form.roleIds ?? [];
+    if (checked) {
+      setForm({ ...form, roleIds: [...current, roleId] });
+    } else {
+      setForm({ ...form, roleIds: current.filter((id) => id !== roleId) });
+    }
   };
 
   return (
@@ -317,16 +421,16 @@ function UserFormDialog({
             <div className="space-y-2">
               <Label>部门</Label>
               <Select
-                value={form.dept ?? "研发中心"}
-                onValueChange={(v) => setForm({ ...form, dept: v })}
+                value={String(form.deptId ?? "")}
+                onValueChange={(v) => setForm({ ...form, deptId: Number(v) })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {deptOptions.map((d) => (
-                    <SelectItem key={d} value={d}>
-                      {d}
+                  {depts.map((d) => (
+                    <SelectItem key={d.id} value={String(d.id)}>
+                      {d.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -336,7 +440,7 @@ function UserFormDialog({
               <Label>状态</Label>
               <Select
                 value={form.status ?? "enabled"}
-                onValueChange={(v) => setForm({ ...form, status: v as MockUser["status"] })}
+                onValueChange={(v) => setForm({ ...form, status: v as User["status"] })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -347,6 +451,20 @@ function UserFormDialog({
                 </SelectContent>
               </Select>
             </div>
+            <div className="col-span-2 space-y-2">
+              <Label>角色</Label>
+              <div className="flex flex-wrap gap-3 rounded-md border p-3">
+                {roles.map((r) => (
+                  <label key={r.id} className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={(form.roleIds ?? []).includes(r.id)}
+                      onCheckedChange={(checked) => toggleRole(r.id, checked === true)}
+                    />
+                    {r.name}
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
           <DialogFooter className="pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
@@ -355,6 +473,66 @@ function UserFormDialog({
             <Button type="submit">{editing ? "保存" : "创建"}</Button>
           </DialogFooter>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RoleAssignDialog({
+  open,
+  onOpenChange,
+  target,
+  roles,
+  onSave,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  target: User | null;
+  roles: Role[];
+  onSave: (roleIds: number[]) => void;
+}) {
+  const [selected, setSelected] = React.useState<number[]>([]);
+
+  React.useEffect(() => {
+    if (open && target) {
+      setSelected(target.roleIds ?? []);
+    }
+  }, [open, target]);
+
+  const toggle = (roleId: number, checked: boolean) => {
+    setSelected((prev) => (checked ? [...prev, roleId] : prev.filter((id) => id !== roleId)));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>分配角色 · {target?.nickname ?? ""}</DialogTitle>
+          <DialogDescription>勾选需要分配给该用户的角色</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2 py-2">
+          {roles.map((r) => (
+            <label
+              key={r.id}
+              className="flex items-center justify-between rounded-md border p-3 text-sm hover:bg-muted/50"
+            >
+              <span className="flex items-center gap-3">
+                <Checkbox
+                  checked={selected.includes(r.id)}
+                  onCheckedChange={(checked) => toggle(r.id, checked === true)}
+                />
+                <span className="font-medium">{r.name}</span>
+              </span>
+              <Badge variant="outline">{r.code}</Badge>
+            </label>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            取消
+          </Button>
+          <Button onClick={() => onSave(selected)}>保存</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
