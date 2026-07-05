@@ -1,0 +1,21 @@
+{
+  "agent": {
+    "default_model": "gpt-5.5",
+    "inline_assistant_model": "claude-sonnet-5",
+    "commit_message_model": "claude-haiku-4-5",
+    "thread_summary_model": "claude-haiku-4-5",
+    "subagent_model": "claude-sonnet-5",
+    "commit_message_instructions": "简洁风格，使用 Conventional Commits：type(scope): description。控制在 50 字以内。",
+    "auto_compact": {
+      "enabled": true,
+      "threshold": "85%",
+    },
+    "tool_permissions": {
+      "terminal": true,
+      "file_edit": true,
+      "run_commands": true,
+      "read_files": true,
+    },
+  },
+  "disable_ai": false,
+}
