@@ -14,9 +14,10 @@ import { AuthModule } from "./modules/auth";
 import { UserModule } from "./modules/user";
 import { RoleModule } from "./modules/role";
 import { MenuModule } from "./modules/menu";
+import { DeptModule } from "./modules/dept";
 
 @Module({
-  imports: [PrismaModule, RedisModule, AuthModule, UserModule, RoleModule, MenuModule],
+  imports: [PrismaModule, RedisModule, AuthModule, UserModule, RoleModule, MenuModule, DeptModule],
 })
 class AppModule {}
 
