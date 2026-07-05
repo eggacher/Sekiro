@@ -7,7 +7,7 @@ export default defineConfig({
     url: env("DATABASE_URL"),
   },
   migrations: {
-    initShadowDatabase: {
+    initShadowDb: {
       url: env("DIRECT_DATABASE_URL"),
     },
     seed: "tsx prisma/seed.ts",

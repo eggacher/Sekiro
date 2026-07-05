@@ -29,16 +29,18 @@
     "@sekiro/shared": "workspace:*",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
-    "uuid": "^9.0.0",
     "pg": "^8.22.0",
-    "reflect-metadata": "^0.2.2",
     "redis": "^4.7.0",
-    "rxjs": "^7.8.2"
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^20.14.10",
     "@types/uuid": "^9.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "prisma": "^7.8.0",
     "tsx": "^4.23.0",
     "typescript": "^5.5.3",
