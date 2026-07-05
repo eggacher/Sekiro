@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Body,
   Req,
@@ -62,6 +63,35 @@ export class AuthController {
       code: result.code,
       message: result.message,
       data: null,
+    };
+  }
+
+  /**
+   * 获取当前登录用户信息
+   * GET /auth/me
+   *
+   * 请求头：
+   * Authorization: Bearer <token>
+   *
+   * 响应：
+   * {
+   *   "code": 0,
+   *   "message": "获取成功",
+   *   "data": {
+   *     "user": { ... },
+   *     "permissions": [ ... ],
+   *     "menus": [ ... ]
+   *   }
+   * }
+   */
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMe(@Req() req: any): Promise<ApiResponse<any>> {
+    const result = await this.authService.getMe(req.user.sub);
+    return {
+      code: 0,
+      message: '获取成功',
+      data: result,
     };
   }
 

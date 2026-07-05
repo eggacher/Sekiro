@@ -11,6 +11,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { AuroraBackground } from "@/components/aceternity/aurora";
 import { Logo } from "@/components/layout/logo";
+import { apiClient } from "@/lib/api/client";
+import { useAuthStore } from "@/lib/store/auth-store";
+import type { CurrentUser, LoginResponse } from "@sekiro/shared";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,19 +23,41 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { setAuth } = useAuthStore();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
       toast.error("请输入账号和密码");
       return;
     }
     setLoading(true);
-    // 模拟登录
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const data = await apiClient.post<LoginResponse>("/auth/login", {
+        username,
+        password,
+        remember,
+      });
+
+      const currentUser: CurrentUser = {
+        id: data.user.id,
+        username: data.user.username,
+        nickname: data.user.nickname,
+        avatar: data.user.avatar,
+        email: data.user.email,
+        phone: data.user.phone,
+        roles: [],
+        permissions: data.permissions,
+      };
+
+      setAuth(data.token, currentUser, data.permissions, data.menus);
       toast.success("登录成功，欢迎回来！");
       router.push("/");
-    }, 900);
+    } catch (err: any) {
+      toast.error(err.message || "登录失败");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,7 +82,7 @@ export default function LoginPage() {
             </motion.div>
             <h1 className="mt-6 text-2xl font-bold tracking-tight">欢迎回来</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              登录 Sekiro 管理后台（原型，任意密码可进入）
+              登录 Sekiro 管理后台
             </p>
           </div>
 

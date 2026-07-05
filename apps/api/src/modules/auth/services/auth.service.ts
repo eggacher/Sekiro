@@ -1,11 +1,16 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  Inject,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtProvider } from '../providers/jwt.provider';
 import { RedisSessionProvider } from '../providers/redis-session.provider';
 import { LoginFailureProvider } from '../providers/login-failure.provider';
-import type { LoginRequest, Menu } from '@sekiro/shared';
+import type { CurrentUser, LoginRequest, Menu } from '@sekiro/shared';
 
 /**
  * 菜单树节点 - 用于递归构建菜单树
@@ -224,6 +229,53 @@ export class AuthService {
     return {
       code: 0,
       data: { token, expiresIn },
+    };
+  }
+
+  /**
+   * 获取当前登录用户信息
+   *
+   * 1. 查询用户
+   * 2. 计算权限和菜单
+   * 3. 组装 CurrentUser
+   */
+  async getMe(userId: number): Promise<{
+    user: CurrentUser;
+    permissions: string[];
+    menus: MenuNode[];
+  }> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('用户不存在');
+    }
+
+    const permissions = await this.getUserPermissions(userId);
+    const menus = await this.buildMenuTree(userId);
+    const roles = user.roles.map((ur) => ur.role.code);
+
+    return {
+      user: {
+        id: user.id,
+        username: user.username,
+        nickname: user.nickname,
+        avatar: user.avatar ?? undefined,
+        email: user.email ?? undefined,
+        phone: user.phone ?? undefined,
+        roles,
+        permissions,
+      },
+      permissions,
+      menus,
     };
   }
 
