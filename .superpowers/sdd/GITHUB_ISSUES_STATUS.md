@@ -116,19 +116,20 @@
 | **Story #8** | **Role 角色管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #9** | **Menu 菜单管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #17** | **Dept & Position 部门与岗位** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #18** | **数据字典管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 
 ---
 
 ## 🚀 后续 Story
 
-### Story #18: 数据字典管理 (待开始)
+### Story #18: 数据字典管理 (已完成)
 
 | 维度 | 信息 |
 |------|------|
 | **Story** | #18 数据字典管理 |
 | **Epic** | #3 v0.5 生产就绪 |
 | **Milestone** | v0.5 生产就绪 |
-| **状态** | 🟡 **未开始** |
+| **状态** | ✅ **已完成** |
 | **依赖** | Story #7 (User) & Story #8 (Role) ✅ 已完成 |
 | **相关文档** | `docs/SPEC.md` §4.5 (Dict 接口规范) |
 
@@ -145,7 +146,7 @@
 - [x] **关闭 Story #8 (Role 角色管理)** (已关闭)
 - [x] **关闭 Story #9 (Menu 菜单管理)** (已关闭)
 - [x] **关闭 Story #17 (Dept & Position 部门与岗位)** (已关闭)
-- [ ] **创建/推进 Story #18: 数据字典管理**
+- [x] **创建/推进 Story #18: 数据字典管理**
   - 标题：`Story #18: 数据字典管理`
   - 描述：字典类型与字典项的 CRUD，及字典项快速检索组件等。
 
@@ -164,6 +165,7 @@
 | `docs/superpowers/specs/2026-07-05-role-management-design.md` | Story #8 | Role 模块详细设计 |
 | `docs/superpowers/specs/2026-07-05-menu-management-design.md` | Story #9 | Menu 模块详细设计 |
 | `docs/superpowers/specs/2026-07-05-dept-position-design.md` | Story #17 | Dept & Position 模块详细设计 |
+| `docs/superpowers/specs/2026-07-05-dict-management-design.md` | Story #18 | 数据字典管理详细设计 |
 
 ### 实施计划
 
@@ -175,6 +177,7 @@
 | `docs/superpowers/plans/2026-07-05-role-management.md` | Story #8 | Story #8 实施计划 |
 | `docs/superpowers/plans/2026-07-05-menu-management.md` | Story #9 | Story #9 实施计划 |
 | `docs/superpowers/plans/2026-07-05-dept-position.md` | Story #17 | Story #17 实施计划 |
+| `docs/superpowers/plans/2026-07-05-dict-management.md` | Story #18 | Story #18 实施计划 |
 
 ### 完成报告
 
@@ -195,6 +198,7 @@
 | 2026-07-05 | 完成 Story #7 与 Story #8，同步关闭 GitHub Issues | Antigravity |
 | 2026-07-05 | 完成 Story #9，同步关闭 GitHub Issues | Antigravity |
 | 2026-07-05 | 完成 Story #17，同步关闭 GitHub Issues | Antigravity |
+| 2026-07-05 | 完成 Story #18，同步关闭 GitHub Issues | Antigravity |
 
 ---
 
