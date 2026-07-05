@@ -16,41 +16,72 @@ import { PageHeader } from "@/components/shared/page-header";
 import { CrudTable, type Column } from "@/components/shared/crud-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { mockPositions, type MockPosition } from "@/lib/mock/system";
+import { apiClient } from "@/lib/api/client";
+import type { Position, PageResult } from "@sekiro/shared";
 
 export default function PositionPage() {
-  const [list, setList] = React.useState<MockPosition[]>(mockPositions);
+  const [list, setList] = React.useState<Position[]>([]);
+  const [loading, setLoading] = React.useState(false);
   const [formOpen, setFormOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<MockPosition | null>(null);
+  const [editing, setEditing] = React.useState<Position | null>(null);
   const [delId, setDelId] = React.useState<number | null>(null);
 
-  const handleSave = (data: Partial<MockPosition>) => {
-    if (editing) {
-      setList((p) => p.map((x) => (x.id === editing.id ? { ...x, ...data } as MockPosition : x)));
-      toast.success("岗位更新成功");
-    } else {
-      setList((p) => [
-        {
-          id: Math.max(0, ...p.map((x) => x.id)) + 1,
-          name: data.name!, code: data.code!, sort: data.sort ?? 1,
-          status: (data.status as MockPosition["status"]) ?? "enabled",
-          createdAt: new Date().toISOString().replace("T", " ").slice(0, 19),
-        },
-        ...p,
-      ]);
-      toast.success("岗位新增成功");
+  const fetchList = async () => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get<PageResult<Position>>("/system/position?page=1&pageSize=1000");
+      setList(res.list);
+    } catch (err: any) {
+      toast.error(err.message || "加载岗位列表失败");
+    } finally {
+      setLoading(false);
     }
-    setFormOpen(false);
-    setEditing(null);
   };
 
-  const handleDelete = () => {
-    setList((p) => p.filter((x) => x.id !== delId));
-    toast.success("已删除该岗位");
-    setDelId(null);
+  React.useEffect(() => {
+    fetchList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSave = async (data: Partial<Position>) => {
+    try {
+      if (editing) {
+        await apiClient.put(`/system/position/${editing.id}`, {
+          name: data.name,
+          sort: data.sort,
+          status: data.status,
+        });
+        toast.success("岗位更新成功");
+      } else {
+        await apiClient.post("/system/position", {
+          name: data.name,
+          code: data.code,
+          sort: data.sort,
+          status: data.status,
+        });
+        toast.success("岗位新增成功");
+      }
+      setFormOpen(false);
+      setEditing(null);
+      await fetchList();
+    } catch (err: any) {
+      toast.error(err.message || "保存岗位失败");
+    }
   };
 
-  const columns: Column<MockPosition>[] = [
+  const handleDelete = async () => {
+    if (delId === null) return;
+    try {
+      await apiClient.delete(`/system/position/${delId}`);
+      toast.success("已删除该岗位");
+      setDelId(null);
+      await fetchList();
+    } catch (err: any) {
+      toast.error(err.message || "删除岗位失败");
+    }
+  };
+
+  const columns: Column<Position>[] = [
     { key: "id", title: "编号", width: 70, render: (r) => <span className="text-muted-foreground">{r.id}</span> },
     { key: "name", title: "岗位名称", render: (r) => <span className="font-medium">{r.name}</span> },
     { key: "code", title: "岗位编码", render: (r) => <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{r.code}</code> },
@@ -82,7 +113,7 @@ export default function PositionPage() {
         </Button>
       </PageHeader>
 
-      <CrudTable columns={columns} data={list}
+      <CrudTable columns={columns} data={list} loading={loading}
         searchFields={[
           { key: "name", label: "岗位名称", placeholder: "请输入岗位名称" },
           { key: "code", label: "岗位编码", placeholder: "请输入编码" },
@@ -99,9 +130,9 @@ export default function PositionPage() {
 
 function PositionFormDialog({ open, onOpenChange, editing, onSave }: {
   open: boolean; onOpenChange: (v: boolean) => void;
-  editing: MockPosition | null; onSave: (data: Partial<MockPosition>) => void;
+  editing: Position | null; onSave: (data: Partial<Position>) => void;
 }) {
-  const [form, setForm] = React.useState<Partial<MockPosition>>({});
+  const [form, setForm] = React.useState<Partial<Position>>({});
   React.useEffect(() => { if (open) setForm(editing ?? { status: "enabled", sort: 1 }); }, [open, editing]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -125,7 +156,7 @@ function PositionFormDialog({ open, onOpenChange, editing, onSave }: {
             </div>
             <div className="space-y-2">
               <Label>岗位编码 *</Label>
-              <Input value={form.code ?? ""} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="如：senior_dev" />
+              <Input value={form.code ?? ""} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="如：senior_dev" disabled={!!editing} />
             </div>
             <div className="space-y-2">
               <Label>排序</Label>
@@ -133,7 +164,7 @@ function PositionFormDialog({ open, onOpenChange, editing, onSave }: {
             </div>
             <div className="space-y-2">
               <Label>状态</Label>
-              <Select value={form.status ?? "enabled"} onValueChange={(v) => setForm({ ...form, status: v as MockPosition["status"] })}>
+              <Select value={form.status ?? "enabled"} onValueChange={(v) => setForm({ ...form, status: v as Position["status"] })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="enabled">启用</SelectItem>
