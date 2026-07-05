@@ -114,21 +114,22 @@
 | **Story #6** | **Auth 登录接口** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #7** | **User 用户管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #8** | **Role 角色管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #9** | **Menu 菜单管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 
 ---
 
 ## 🚀 后续 Story
 
-### Story #9: Menu 菜单管理 (待开始)
+### Story #17: 部门与岗位管理 (待开始)
 
 | 维度 | 信息 |
 |------|------|
-| **Story** | #9 Menu 菜单管理 |
-| **Epic** | #2 v0.1 MVP |
-| **Milestone** | v0.1 MVP |
+| **Story** | #17 部门与岗位管理 |
+| **Epic** | #3 v0.5 生产就绪 |
+| **Milestone** | v0.5 生产就绪 |
 | **状态** | 🟡 **未开始** |
-| **依赖** | Story #8 (Role) ✅ 已完成 |
-| **相关文档** | `docs/SPEC.md` §4.5 (Menu 接口规范) |
+| **依赖** | Story #7 (User) & Story #8 (Role) ✅ 已完成 |
+| **相关文档** | `docs/SPEC.md` §4.5 (Dept & Position 接口规范) |
 
 ---
 
@@ -141,9 +142,10 @@
 - [x] **关闭 Story #6 (Auth 登录接口)** (已关闭)
 - [x] **关闭 Story #7 (User 用户管理)** (已关闭)
 - [x] **关闭 Story #8 (Role 角色管理)** (已关闭)
-- [ ] **创建/推进 Story #9: Menu 菜单管理**
-  - 标题：`Story #9: Menu 菜单管理`
-  - 描述：参照 `docs/SPEC.md` §4.5，返回树形菜单列表与权限增删改查。
+- [x] **关闭 Story #9 (Menu 菜单管理)** (已关闭)
+- [ ] **创建/推进 Story #17: 部门与岗位管理**
+  - 标题：`Story #17: 部门与岗位管理`
+  - 描述：包括部门/岗位 CRUD，部门列表返回树形，非删根，带子节点时禁止删除等。
 
 ---
 
@@ -158,6 +160,7 @@
 | `docs/superpowers/specs/2026-07-05-auth-login-design.md` | Story #6 | Auth 模块详细设计 |
 | `docs/superpowers/specs/2026-07-05-user-management-design.md` | Story #7 | User 模块详细设计 |
 | `docs/superpowers/specs/2026-07-05-role-management-design.md` | Story #8 | Role 模块详细设计 |
+| `docs/superpowers/specs/2026-07-05-menu-management-design.md` | Story #9 | Menu 模块详细设计 |
 
 ### 实施计划
 
@@ -167,6 +170,7 @@
 | `docs/superpowers/plans/2026-07-05-auth-login-implementation.md` | Story #6 | Story #6 实施计划 |
 | `docs/superpowers/plans/2026-07-05-user-management.md` | Story #7 | Story #7 实施计划 |
 | `docs/superpowers/plans/2026-07-05-role-management.md` | Story #8 | Story #8 实施计划 |
+| `docs/superpowers/plans/2026-07-05-menu-management.md` | Story #9 | Story #9 实施计划 |
 
 ### 完成报告
 
@@ -174,7 +178,7 @@
 |------|-----------|------|
 | `.superpowers/sdd/FINAL_COMPLETION_REPORT.md` | Story #5 | Story #5 最终完成总结 |
 | `.superpowers/sdd/progress.md` | Story #5 | Story #5 进度账本 |
-| `.superpowers/sdd/walkthrough.md` | Story #6, #7, #8 | 核心模块功能测试与 TDD 验证汇总 |
+| `.superpowers/sdd/walkthrough.md` | Story #6, #7, #8, #9 | 核心模块功能测试与 TDD 验证汇总 |
 
 ---
 
@@ -185,6 +189,7 @@
 | 2026-07-05 | 创建本同步文档 | Zed Agent |
 | 2026-07-05 | 完成 Story #6 并更新本地进度记录 | Antigravity |
 | 2026-07-05 | 完成 Story #7 与 Story #8，同步关闭 GitHub Issues | Antigravity |
+| 2026-07-05 | 完成 Story #9，同步关闭 GitHub Issues | Antigravity |
 
 ---
 
