@@ -115,9 +115,14 @@
 | **Story #7** | **User 用户管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #8** | **Role 角色管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #9** | **Menu 菜单管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #16** | **前端基建（mock 切真实 API + 工程化）** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #17** | **Dept & Position 部门与岗位** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #18** | **数据字典管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
-| **Story #19** | **系统监控与日志** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #19** | **数据权限 DataScope 完整实现** | **🟡 进行中 / OPEN** | **🟡 Open** | **🟡 Open** |
+| **Story #20** | **系统监控：在线用户** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #21** | **系统监控：操作日志** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #22** | **系统监控：登录日志** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #23** | **系统监控：服务监控** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 
 ---
 
@@ -150,6 +155,15 @@
 - [x] **创建/推进 Story #18: 数据字典管理**
   - 标题：`Story #18: 数据字典管理`
   - 描述：字典类型与字典项的 CRUD，及字典项快速检索组件等。
+- [x] **关闭 Story #16 (前端基建)**
+  - 标题：`Story #16: 前端基建（mock 切真实 API + 工程化）`
+  - 描述：Next.js 代理、真实 API 调用、401/403/422 统一处理、真实菜单驱动、零业务 import mock。
+- [ ] **创建/推进 Story #19: 数据权限 DataScope 完整实现**
+  - 标题：`Story #19: 数据权限 DataScope 完整实现`
+  - 描述：角色数据范围设置、用户/部门列表按数据权限裁剪、自定义部门范围持久化。
+- [x] **关闭 Story #20~#23 (系统监控与日志)**
+  - 标题：`Story #20~#23: 系统监控与日志`
+  - 描述：在线用户、操作日志、登录日志、服务监控模块已随 Story #18 之前实现并关闭。
 
 ---
 
@@ -167,7 +181,8 @@
 | `docs/superpowers/specs/2026-07-05-menu-management-design.md` | Story #9 | Menu 模块详细设计 |
 | `docs/superpowers/specs/2026-07-05-dept-position-design.md` | Story #17 | Dept & Position 模块详细设计 |
 | `docs/superpowers/specs/2026-07-05-dict-management-design.md` | Story #18 | 数据字典管理详细设计 |
-| `docs/superpowers/specs/2026-07-05-system-monitor-design.md` | Story #19 | 系统监控与日志详细设计 |
+| `docs/superpowers/specs/2026-07-05-data-scope-design.md` | Story #19 | 数据权限 DataScope 详细设计 |
+| `docs/superpowers/specs/2026-07-05-system-monitor-design.md` | Story #20~#23 | 系统监控与日志详细设计 |
 
 ### 实施计划
 
@@ -180,7 +195,8 @@
 | `docs/superpowers/plans/2026-07-05-menu-management.md` | Story #9 | Story #9 实施计划 |
 | `docs/superpowers/plans/2026-07-05-dept-position.md` | Story #17 | Story #17 实施计划 |
 | `docs/superpowers/plans/2026-07-05-dict-management.md` | Story #18 | Story #18 实施计划 |
-| `docs/superpowers/plans/2026-07-05-system-monitor.md` | Story #19 | Story #19 实施计划 |
+| `docs/superpowers/plans/2026-07-05-frontend-infrastructure.md` | Story #16 | Story #16 实施计划 |
+| `docs/superpowers/plans/2026-07-05-system-monitor.md` | Story #20~#23 | 系统监控与日志实施计划 |
 
 ### 完成报告
 
@@ -202,7 +218,7 @@
 | 2026-07-05 | 完成 Story #9，同步关闭 GitHub Issues | Antigravity |
 | 2026-07-05 | 完成 Story #17，同步关闭 GitHub Issues | Antigravity |
 | 2026-07-05 | 完成 Story #18，同步关闭 GitHub Issues | Antigravity |
-| 2026-07-05 | 完成 Story #19，同步关闭 GitHub Issues | Antigravity |
+| 2026-07-05 | 完成 Story #16，同步关闭 GitHub Issues；修正 Story #19 映射（数据权限 OPEN，系统监控拆为 #20~#23 CLOSED） | Antigravity |
 
 ---
 
