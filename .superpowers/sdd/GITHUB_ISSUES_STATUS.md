@@ -107,36 +107,28 @@
 
 | Issue | 标题 | 本地完成 | GitHub 状态 | 应更新为 |
 |-------|------|---------|-----------|---------|
-| #10 | Prisma schema | ✅ 完成 | 待更新 | ✅ Done |
-| #13 | Seed 数据 | ✅ 完成 | 待更新 | ✅ Done |
-| #14 | PrismaService | ✅ 完成 | 待更新 | ✅ Done |
-| **Story #5** | **DB 初始化** | **✅ 完成** | **待关闭** | **✅ Closed** |
-| **Story #6** | **Auth 登录接口** | **✅ 完成** | **待关闭** | **✅ Closed** |
+| #10 | Prisma schema | ✅ 完成 | ✅ Closed | ✅ Closed |
+| #13 | Seed 数据 | ✅ 完成 | ✅ Closed | ✅ Closed |
+| #14 | PrismaService | ✅ 完成 | ✅ Closed | ✅ Closed |
+| **Story #5** | **DB 初始化** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #6** | **Auth 登录接口** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #7** | **User 用户管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #8** | **Role 角色管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 
 ---
 
 ## 🚀 后续 Story
 
-### Story #6: Auth 登录接口 (已完成)
+### Story #9: Menu 菜单管理 (待开始)
 
 | 维度 | 信息 |
 |------|------|
-| **Story** | #6 Auth 登录接口 |
-| **Epic** | #2 v0.1 MVP |
-| **Milestone** | v0.1 MVP |
-| **状态** | ✅ **已完成 (本地验证成功)** |
-| **相关文档** | `docs/superpowers/plans/2026-07-05-auth-login-implementation.md` |
-
-### Story #7: User 用户管理 (待开始)
-
-| 维度 | 信息 |
-|------|------|
-| **Story** | #7 User 用户管理 |
+| **Story** | #9 Menu 菜单管理 |
 | **Epic** | #2 v0.1 MVP |
 | **Milestone** | v0.1 MVP |
 | **状态** | 🟡 **未开始** |
-| **依赖** | Story #6 (Auth) ✅ 已完成 |
-| **相关文档** | `docs/SPEC.md` §4.4 (User 接口规范) |
+| **依赖** | Story #8 (Role) ✅ 已完成 |
+| **相关文档** | `docs/SPEC.md` §4.5 (Menu 接口规范) |
 
 ---
 
@@ -144,19 +136,14 @@
 
 ### 需要执行的操作
 
-- [ ] **更新 Issue #10 / #13 / #14**
-  - 修改状态为 `Closed` 并合并/同步。
-  
-- [ ] **关闭 Story #5**
-  - 标记为 `Closed` (DB 初始化完成)。
-
-- [ ] **关闭 Story #6 (Auth 登录接口)**
-  - 标记为 `Closed`
-  - 备注：8 个 Task 的实现与 DI/Redis v4 兼容性修复全部通过本地集成验证。
-  
-- [ ] **创建 Story #7: User 用户管理**
-  - 标题：`Story #7: User 用户管理`
-  - 描述：参照 `docs/SPEC.md` §4.4，包含用户列表分页、新建、编辑、启停、分配角色、重置密码等接口。
+- [x] **更新 Issue #10 / #13 / #14** (已关闭)
+- [x] **关闭 Story #5** (已关闭)
+- [x] **关闭 Story #6 (Auth 登录接口)** (已关闭)
+- [x] **关闭 Story #7 (User 用户管理)** (已关闭)
+- [x] **关闭 Story #8 (Role 角色管理)** (已关闭)
+- [ ] **创建/推进 Story #9: Menu 菜单管理**
+  - 标题：`Story #9: Menu 菜单管理`
+  - 描述：参照 `docs/SPEC.md` §4.5，返回树形菜单列表与权限增删改查。
 
 ---
 
@@ -169,6 +156,8 @@
 | `docs/superpowers/specs/2026-07-04-prisma-schema-design.md` | #10 | Prisma schema 详细设计 |
 | `docs/superpowers/specs/2026-07-05-prisma-service-and-seed-design.md` | #13, #14 | PrismaService + Seed 详细设计 |
 | `docs/superpowers/specs/2026-07-05-auth-login-design.md` | Story #6 | Auth 模块详细设计 |
+| `docs/superpowers/specs/2026-07-05-user-management-design.md` | Story #7 | User 模块详细设计 |
+| `docs/superpowers/specs/2026-07-05-role-management-design.md` | Story #8 | Role 模块详细设计 |
 
 ### 实施计划
 
@@ -176,6 +165,8 @@
 |------|-----------|------|
 | `docs/superpowers/plans/2026-07-05-prisma-service-and-seed.md` | #13, #14 | Story #5 实施计划 |
 | `docs/superpowers/plans/2026-07-05-auth-login-implementation.md` | Story #6 | Story #6 实施计划 |
+| `docs/superpowers/plans/2026-07-05-user-management.md` | Story #7 | Story #7 实施计划 |
+| `docs/superpowers/plans/2026-07-05-role-management.md` | Story #8 | Story #8 实施计划 |
 
 ### 完成报告
 
@@ -183,8 +174,7 @@
 |------|-----------|------|
 | `.superpowers/sdd/FINAL_COMPLETION_REPORT.md` | Story #5 | Story #5 最终完成总结 |
 | `.superpowers/sdd/progress.md` | Story #5 | Story #5 进度账本 |
-| `.superpowers/sdd/walkthrough.md` | Story #6 | Story #6 验证与 DI 修复说明 |
-| `.superpowers/sdd/story6-task*-report.md` | Story #6 | Story #6 各 Task 详细报告 |
+| `.superpowers/sdd/walkthrough.md` | Story #6, #7, #8 | 核心模块功能测试与 TDD 验证汇总 |
 
 ---
 
@@ -193,7 +183,8 @@
 | 日期 | 事项 | 执行人 |
 |------|------|--------|
 | 2026-07-05 | 创建本同步文档 | Zed Agent |
-| 2026-07-05 | 完成 Story #6 并更新本地 Issue 进度记录 | Antigravity |
+| 2026-07-05 | 完成 Story #6 并更新本地进度记录 | Antigravity |
+| 2026-07-05 | 完成 Story #7 与 Story #8，同步关闭 GitHub Issues | Antigravity |
 
 ---
 
@@ -206,9 +197,6 @@
 - https://github.com/eggacher/Sekiro/issues/13
 - https://github.com/eggacher/Sekiro/issues/14
 - https://github.com/eggacher/Sekiro/issues?q=is%3Aissue+label%3Astory (Story 列表)
-
-**本地完成报告**：
-- `.superpowers/sdd/FINAL_COMPLETION_REPORT.md` ← 最详细的完成总结
 
 ---
 
