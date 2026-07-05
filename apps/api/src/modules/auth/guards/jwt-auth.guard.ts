@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, UnauthorizedException, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
 import { JwtProvider } from '../providers/jwt.provider';
 
 /**
@@ -8,7 +8,7 @@ import { JwtProvider } from '../providers/jwt.provider';
  */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private jwtProvider: JwtProvider) {}
+  constructor(@Inject(JwtProvider) private jwtProvider: JwtProvider) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();

@@ -9,12 +9,14 @@ export const REDIS_CLIENT = 'REDIS_CLIENT';
   providers: [
     {
       provide: REDIS_CLIENT,
-      useFactory: async (): Promise<RedisClientType> => {
+      useFactory: async (): Promise<any> => {
         const client = createClient({
-          host: redisConfig.host,
-          port: redisConfig.port,
-          db: redisConfig.db,
-          password: redisConfig.password,
+          socket: {
+            host: redisConfig.host,
+            port: redisConfig.port,
+          },
+          database: redisConfig.db,
+          password: redisConfig.password || undefined,
         });
         await client.connect();
         return client;

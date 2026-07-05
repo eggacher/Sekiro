@@ -1,4 +1,11 @@
 import "reflect-metadata";
+import * as dotenv from "dotenv";
+import * as path from "path";
+
+// 加载环境变量，优先当前目录，次选 apps/api/.env
+dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
 import { NestFactory } from "@nestjs/core";
 import { Module, ValidationPipe } from "@nestjs/common";
 import { PrismaModule } from "./modules/prisma";

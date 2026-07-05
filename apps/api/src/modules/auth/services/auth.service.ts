@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -25,10 +25,10 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    private prismaService: PrismaService,
-    private jwtProvider: JwtProvider,
-    private redisSessionProvider: RedisSessionProvider,
-    private loginFailureProvider: LoginFailureProvider,
+    @Inject(PrismaService) private prismaService: PrismaService,
+    @Inject(JwtProvider) private jwtProvider: JwtProvider,
+    @Inject(RedisSessionProvider) private redisSessionProvider: RedisSessionProvider,
+    @Inject(LoginFailureProvider) private loginFailureProvider: LoginFailureProvider,
   ) {}
 
   /**

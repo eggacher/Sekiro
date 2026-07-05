@@ -5,6 +5,7 @@ import {
   Req,
   UseGuards,
   HttpCode,
+  Inject,
 } from "@nestjs/common";
 import { AuthService } from "./services/auth.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
@@ -13,7 +14,7 @@ import type { ApiResponse } from "@sekiro/shared";
 
 @Controller("auth")
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(@Inject(AuthService) private authService: AuthService) {}
 
   /**
    * 登录接口

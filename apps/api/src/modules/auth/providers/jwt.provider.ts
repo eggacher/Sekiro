@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { TokenPayload, RefreshTokenPayload } from '../types';
 
@@ -7,7 +7,7 @@ export class JwtProvider {
   private readonly jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
   private readonly refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || 'refresh-secret-key';
 
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(@Inject(JwtService) private readonly jwtService: JwtService) {}
 
   signToken(payload: Omit<TokenPayload, 'iat' | 'exp'>) {
     const token = this.jwtService.sign(payload, {
