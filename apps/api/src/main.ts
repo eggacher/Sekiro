@@ -11,9 +11,10 @@ import { Module, ValidationPipe } from "@nestjs/common";
 import { PrismaModule } from "./modules/prisma";
 import { RedisModule } from "./redis.module";
 import { AuthModule } from "./modules/auth";
+import { UserModule } from "./modules/user";
 
 @Module({
-  imports: [PrismaModule, RedisModule, AuthModule],
+  imports: [PrismaModule, RedisModule, AuthModule, UserModule],
 })
 class AppModule {}
 
