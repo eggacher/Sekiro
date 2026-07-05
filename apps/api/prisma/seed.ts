@@ -475,7 +475,7 @@ const roleData = [
     code: "developer",
     description: "开发人员只读权限",
     dataScope: "self" as const,
-    status: "disabled" as const,
+    status: "enabled" as const,
   },
 ];
 
@@ -1008,13 +1008,13 @@ async function main() {
     const userRoleMappings = [
       { userId: 1, roleIds: [1] }, // admin = 超级管理员
       { userId: 2, roleIds: [2] }, // zhangsan = 管理员
-      { userId: 3, roleIds: [3] }, // lisi = 财务专员
+      { userId: 3, roleIds: [3] }, // lisi = 财务专员（删除副角色）
       { userId: 4, roleIds: [4] }, // wangwu = 运营专员
       { userId: 5, roleIds: [5] }, // zhaoliu = 市场专员
       { userId: 6, roleIds: [6] }, // qianqi = 客服专员
-      { userId: 7, roleIds: [2, 7] }, // sunba = 管理员 + 开发
-      { userId: 8, roleIds: [6] }, // zhoujiu = 客服专员（代理 HR）
-      { userId: 9, roleIds: [3] }, // wushi = 财务专员
+      { userId: 7, roleIds: [2, 7] }, // sunba = 管理员 + 开发（保留）
+      { userId: 8, roleIds: [6] }, // zhoujiu = 客服专员（删除副角色）
+      { userId: 9, roleIds: [3] }, // wushi = 财务专员（删除副角色）
       { userId: 10, roleIds: [4] }, // zhengshi = 运营专员
       { userId: 11, roleIds: [5] }, // wangshier = 市场专员
       { userId: 12, roleIds: [6] }, // liushisan = 客服专员
@@ -1059,13 +1059,26 @@ async function main() {
     // Step 10: 插入角色-菜单关联（RoleMenu）
     console.log("📦 Step 10: 插入角色-菜单权限...");
     const roleMenuMappings = {
-      1: [1, 2, 21, 211, 212, 213, 22, 23, 24, 25, 26, 3, 31, 32, 33, 34], // 超级管理员 = 全部
-      2: [1, 2, 21, 211, 212, 213, 22, 23, 24, 25, 26], // 管理员 = 系统管理全部
-      3: [1, 2, 21, 24, 25, 26], // 财务专员 = 工作台 + 用户/部门/岗位/字典
-      4: [1, 2, 21, 26], // 运营专员 = 工作台 + 用户/字典
-      5: [1, 2, 26], // 市场专员 = 工作台 + 字典
-      6: [1, 3, 31, 32], // 客服专员 = 工作台 + 在线用户/登录日志
-      7: [1, 3, 31, 32, 33, 34], // 开发 = 工作台 + 全部监控
+      // 超级管理员: 全部菜单 + 全部按钮 (16 条)
+      1: [1, 2, 21, 211, 212, 213, 22, 23, 24, 25, 26, 3, 31, 32, 33, 34],
+
+      // 管理员: 系统管理全部 + 用户操作按钮（无监控） (11 条)
+      2: [1, 2, 21, 211, 212, 213, 22, 23, 24, 25, 26],
+
+      // 财务专员: 工作台 + 系统管理（仅菜单无按钮） (6 条)
+      3: [1, 2, 21, 24, 25, 26],
+
+      // 运营专员: 工作台 + 系统管理部分 (4 条)
+      4: [1, 2, 21, 26],
+
+      // 市场专员: 工作台 + 数据字典 (3 条)
+      5: [1, 2, 26],
+
+      // 客服专员: 工作台 + 监控（在线用户 + 登录日志） (4 条)
+      6: [1, 3, 31, 32],
+
+      // 开发: 工作台 + 完整监控 (5 条)
+      7: [1, 3, 31, 32, 33, 34],
     };
     let roleMenuCount = 0;
     for (const [roleId, menuIds] of Object.entries(roleMenuMappings)) {
