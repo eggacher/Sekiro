@@ -8,6 +8,11 @@ import { CreateDeptDto, UpdateDeptDto, QueryDeptDto } from "./dtos";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { ApiResponse } from "@sekiro/shared";
 
+import { UseInterceptors } from "@nestjs/common";
+import { DataScopeInterceptor } from "../auth/interceptors/data-scope.interceptor";
+import { UserScope } from "../auth/decorators/user-scope.decorator";
+import { UserDataScope } from "../auth/types";
+
 @Controller("system/dept")
 @UseGuards(JwtAuthGuard)
 export class DeptController {
@@ -16,8 +21,12 @@ export class DeptController {
   ) {}
 
   @Get()
-  async getTree(@Query() query: QueryDeptDto): Promise<ApiResponse<any>> {
-    const data = await this.deptService.getTree(query);
+  @UseInterceptors(DataScopeInterceptor)
+  async getTree(
+    @Query() query: QueryDeptDto,
+    @UserScope() scope: UserDataScope,
+  ): Promise<ApiResponse<any>> {
+    const data = await this.deptService.getTree(query, scope);
     return { code: 0, message: "查询成功", data };
   }
 

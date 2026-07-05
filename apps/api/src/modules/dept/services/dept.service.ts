@@ -1,6 +1,7 @@
 import { Injectable, Inject, UnprocessableEntityException, NotFoundException } from "@nestjs/common";
 import { DeptRepository } from "../repositories/dept.repository";
 import { CreateDeptDto, UpdateDeptDto, QueryDeptDto } from "../dtos";
+import { UserDataScope } from "../auth/types";
 import { Dept } from "@sekiro/shared";
 
 interface DeptNode extends Dept {
@@ -13,8 +14,8 @@ export class DeptService {
     @Inject(DeptRepository) private readonly deptRepo: DeptRepository,
   ) {}
 
-  async getTree(query: QueryDeptDto): Promise<DeptNode[]> {
-    const list = await this.deptRepo.findAll(query);
+  async getTree(query: QueryDeptDto, scope: UserDataScope): Promise<DeptNode[]> {
+    const list = await this.deptRepo.findAll(query, scope);
     return this.buildTree(list as DeptNode[]);
   }
 

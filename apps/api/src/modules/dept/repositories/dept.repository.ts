@@ -1,6 +1,7 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateDeptDto, UpdateDeptDto, QueryDeptDto } from "../dtos";
+import { UserDataScope } from "../../auth/types";
 
 @Injectable()
 export class DeptRepository {
@@ -8,7 +9,7 @@ export class DeptRepository {
     @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {}
 
-  async findAll(query: QueryDeptDto) {
+  async findAll(query: QueryDeptDto, scope: UserDataScope) {
     const where: any = { deletedAt: null };
     if (query.status) {
       where.status = query.status;
@@ -16,6 +17,19 @@ export class DeptRepository {
     if (query.keyword) {
       where.name = { contains: query.keyword };
     }
+
+    if (!scope.isAll) {
+      if (scope.isSelf) {
+        const user = await this.prisma.user.findFirst({
+          where: { id: scope.userId },
+          select: { deptId: true },
+        });
+        where.id = user?.deptId || -1;
+      } else {
+        where.id = { in: scope.deptIds };
+      }
+    }
+
     return this.prisma.dept.findMany({
       where,
       orderBy: { sort: "asc" },
