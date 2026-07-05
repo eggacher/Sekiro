@@ -2,15 +2,32 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronsLeft, LayoutDashboard } from "lucide-react";
+import { ChevronsLeft } from "lucide-react";
+import type { Menu } from "@sekiro/shared";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store/app-store";
-import { menuItems } from "@/lib/menu";
+import { useAuthStore } from "@/lib/store/auth-store";
+import { getMenuIcon } from "@/lib/menu-icon-map";
 import { Logo } from "./logo";
+
+function isMenuVisible(item: Menu): boolean {
+  return item.visible && item.status === "enabled" && item.type !== "button";
+}
+
+function buildSidebarMenus(menus: Menu[]): Menu[] {
+  return menus
+    .filter(isMenuVisible)
+    .map((item) => ({
+      ...item,
+      children: item.children ? buildSidebarMenus(item.children) : undefined,
+    }));
+}
 
 export function Sidebar() {
   const pathname = usePathname();
   const { collapsed, toggleCollapsed } = useAppStore();
+  const { menus } = useAuthStore();
+  const visibleMenus = buildSidebarMenus(menus);
 
   return (
     <aside
@@ -26,8 +43,8 @@ export function Sidebar() {
 
       {/* Menu */}
       <nav className="scrollbar-thin flex-1 overflow-y-auto px-2 py-3">
-        {menuItems.map((item) => (
-          <SidebarItem key={item.key} item={item} pathname={pathname} collapsed={collapsed} />
+        {visibleMenus.map((item) => (
+          <SidebarItem key={item.id} item={item} pathname={pathname} collapsed={collapsed} />
         ))}
       </nav>
 
@@ -50,20 +67,21 @@ function SidebarItem({
   pathname,
   collapsed,
 }: {
-  item: (typeof menuItems)[number];
+  item: Menu;
   pathname: string;
   collapsed: boolean;
 }) {
   const hasChildren = !!item.children?.length;
-  const isActive = pathname === item.href;
-  const isChildActive = item.children?.some((c) => pathname.startsWith(c.href));
-  const Icon = item.icon;
+  const href = item.path || "#";
+  const isActive = pathname === href;
+  const isChildActive = item.children?.some((c) => pathname.startsWith(c.path || "#"));
+  const Icon = getMenuIcon(item.icon);
 
   // 单层菜单
   if (!hasChildren) {
     return (
       <Link
-        href={item.href}
+        href={href}
         title={collapsed ? item.title : undefined}
         className={cn(
           "mb-1 flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
@@ -95,12 +113,13 @@ function SidebarItem({
       {!collapsed && (
         <div className="ml-[18px] mt-1 border-l pl-3">
           {item.children!.map((child) => {
-            const ChildIcon = child.icon;
-            const active = pathname === child.href;
+            const ChildIcon = getMenuIcon(child.icon);
+            const childHref = child.path || "#";
+            const active = pathname === childHref;
             return (
               <Link
-                key={child.key}
-                href={child.href}
+                key={child.id}
+                href={childHref}
                 className={cn(
                   "flex items-center gap-2 rounded-md px-3 py-1.5 text-[13px] transition-colors",
                   active

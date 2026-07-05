@@ -12,6 +12,8 @@ import {
   Palette,
 } from "lucide-react";
 import { findBreadcrumb } from "@/lib/menu";
+import { apiClient } from "@/lib/api/client";
+import { useAuthStore } from "@/lib/store/auth-store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +33,7 @@ export function Header() {
   const router = useRouter();
   const crumbs = findBreadcrumb(pathname);
   const { toggleCollapsed } = useAppStore();
+  const { user, clearAuth } = useAuthStore();
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4">
@@ -88,9 +91,13 @@ export function Header() {
             <button className="flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-accent">
               <Avatar className="h-8 w-8">
                 <AvatarImage src="" />
-                <AvatarFallback className="bg-primary/10 text-primary">A</AvatarFallback>
+                <AvatarFallback className="bg-primary/10 text-primary">
+                {user?.nickname?.charAt(0) || user?.username?.charAt(0) || "U"}
+              </AvatarFallback>
               </Avatar>
-              <span className="hidden text-sm font-medium md:inline">超级管理员</span>
+              <span className="hidden text-sm font-medium md:inline">
+                {user?.nickname || user?.username || "用户"}
+              </span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
@@ -111,7 +118,16 @@ export function Header() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
-              onClick={() => router.push("/login")}
+              onClick={async () => {
+                try {
+                  await apiClient.post("/auth/logout", {});
+                } catch {
+                  // 即使接口失败也继续清掉本地态并跳转登录页
+                } finally {
+                  clearAuth();
+                  router.replace("/login");
+                }
+              }}
             >
               <LogOut className="h-4 w-4" />
               退出登录
