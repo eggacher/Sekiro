@@ -26,6 +26,9 @@ class AppModule {}
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // 全局 API 前缀，与前端 /api 代理对齐
+  app.setGlobalPrefix("api");
+
   // 全局 DTO 验证管道
   app.useGlobalPipes(
     new ValidationPipe({

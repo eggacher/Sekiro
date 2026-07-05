@@ -10,9 +10,10 @@ import { LoginLogRepository } from "./repositories/login-log.repository";
 import { OpLogRepository } from "./repositories/op-log.repository";
 import { OperationLogInterceptor } from "./interceptors/operation-log.interceptor";
 import { AuthModule } from "../auth/auth.module";
+import { PrismaModule } from "../prisma";
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, PrismaModule],
   controllers: [OnlineController, LogController, ServerController],
   providers: [
     LogService,
