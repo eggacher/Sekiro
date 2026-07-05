@@ -122,7 +122,8 @@ export class AuthController {
   @HttpCode(200)
   async logout(@Req() req: any): Promise<ApiResponse<any>> {
     const userId = req.user?.sub;
-    await this.authService.logout(userId);
+    const sessionId = req.user?.sid;
+    await this.authService.logout(userId, sessionId);
     return {
       code: 0,
       message: "登出成功",

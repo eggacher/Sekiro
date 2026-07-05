@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
 import { JwtProvider } from '../providers/jwt.provider';
+import { RedisSessionProvider } from '../providers/redis-session.provider';
 
 /**
  * JWT 认证守卫
@@ -8,9 +9,12 @@ import { JwtProvider } from '../providers/jwt.provider';
  */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(@Inject(JwtProvider) private jwtProvider: JwtProvider) {}
+  constructor(
+    @Inject(JwtProvider) private jwtProvider: JwtProvider,
+    @Inject(RedisSessionProvider) private redisSessionProvider: RedisSessionProvider,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
@@ -23,6 +27,13 @@ export class JwtAuthGuard implements CanActivate {
 
     if (!payload) {
       throw new UnauthorizedException({ code: 401, message: 'Token 已过期或无效' });
+    }
+
+    if (payload.sid) {
+      const session = await this.redisSessionProvider.getSession(payload.sid);
+      if (!session) {
+        throw new UnauthorizedException({ code: 401, message: '会话已失效' });
+      }
     }
 
     request.user = payload;

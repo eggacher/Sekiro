@@ -44,4 +44,8 @@ export class RedisSessionProvider {
     const key = `sekiro:session:${sessionId}`;
     await this.redisClient.del(key);
   }
+
+  async getSessionKeys(): Promise<string[]> {
+    return this.redisClient.keys("sekiro:session:*");
+  }
 }

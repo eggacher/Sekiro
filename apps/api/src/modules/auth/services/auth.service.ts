@@ -132,11 +132,13 @@ export class AuthService {
     const permissions = await this.getUserPermissions(user.id);
     const menus = await this.buildMenuTree(user.id);
 
-    // 7. 签发 Token
+    // 7. 创建 Session ID 并签发 Token
+    const sessionId = uuidv4();
     const { token, expiresIn } = this.jwtProvider.signToken({
       sub: user.id,
       username: user.username,
       roles: permissions.map((p) => p.split(':')[0]).filter((v, i, a) => a.indexOf(v) === i),
+      sid: sessionId,
     });
 
     const { refreshToken } = this.jwtProvider.signRefreshToken({
@@ -145,7 +147,6 @@ export class AuthService {
     });
 
     // 8. 创建 Session
-    const sessionId = uuidv4();
     const session = {
       userId: user.id,
       username: user.username,
