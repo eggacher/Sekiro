@@ -1,73 +1,45 @@
-# PrismaService + Seed 数据 — 执行进度
+# 数据字典管理 (STORY #18) — 执行进度
 
 ## 计划信息
-- **计划文件**：`docs/superpowers/plans/2026-07-05-prisma-service-and-seed.md`
+- **计划文件**：`docs/superpowers/plans/2026-07-05-dict-management.md`
 - **执行方式**：subagent-driven-development
 - **开始时间**：2026-07-05
-- **完成时间**：2026-07-05
+- **完成时间**：待定
 
 ## 任务清单
-
-- [x] Task 1: PrismaService 实现（3 文件）
-- [x] Task 2: Seed 脚本框架 + bcrypt（2 文件）
-- [x] Task 3: 完整 Seed 数据填充（1 文件）
-- [x] Task 4: 集成验证与文档（2 文件）
+- [x] Task 1: 字典模块 DTOs 定义与导出
+- [x] Task 2: 数据库仓储层 (Repositories) 编写
+- [x] Task 3: 业务服务层 (Services) 与业务规则逻辑开发 (TDD)
+- [x] Task 4: 后端控制器层 (Controllers) 与模块装配
+- [x] Task 5: 前端字典页面对接真实 API 接口
 
 ## 完成记录
 
-### Task 1: PrismaService 实现
-- **Commit**: `63be6d0`
-- **审阅**: ✅ APPROVED（规格符合，代码质量优秀，NestJS 模式正确）
-- **备注**: 三个文件已创建，生产就绪
-  - `apps/api/src/modules/prisma/prisma.service.ts`
-  - `apps/api/src/modules/prisma/prisma.module.ts`
-  - `apps/api/src/modules/prisma/index.ts`
+### Task 1: 字典模块 DTOs 定义与导出
+- **Commit**: `b0a1c78`
+- **审阅**: ✅ APPROVED (验证通过，类型定义正确)
+- **备注**: 7 个文件已创建并导出。
 
-### Task 2: Seed 脚本框架 + bcrypt
-- **Commits**: `9a7c29b` (初始), `7141650` (bcrypt 修复)
-- **审阅**: ✅ APPROVED（框架完整，依赖补齐）
-- **备注**: 12 个 TODO 占位符为 Task 3 准备
-- **关键修复**: 补齐 bcrypt 依赖到 dependencies
+### Task 2: 数据库仓储层 (Repositories) 编写
+- **Commit**: `a5369ec`
+- **审阅**: ✅ APPROVED (验证通过，接口完整，Prisma 语法正确)
+- **备注**: 包含逻辑删除级联实现。
 
-### Task 3: 完整 Seed 数据填充
-- **Commits**: `0e45b1b` (主实现), `bea7507` (文档)
-- **修复循环**: 两次代码审查和修复循环
-  - Fix 1: userRoleMappings 补充至 16 条（+3 多角色分配）
-  - Fix 2: roleMenuMappings 补充至 96 条（+46 权限条目）
-- **最终审阅**: ✅ APPROVED（规格符合，代码质量优秀）
-- **数据统计**: 110+ 条（部门 10 + 岗位 6 + 字典 13 + 用户 12 + 角色 7 + 菜单 16 + 关联 37 + 日志 22）
+### Task 3: 业务服务层 (Services) 与业务规则逻辑开发 (TDD)
+- **Commit**: `5ce7fec`
+- **审阅**: ✅ APPROVED (TDD 单元测试覆盖率达标，业务不变量规则已实现)
+- **备注**: 使用 vitest 进行验证，5 个测试用例全部通过。
 
-### Task 4: 集成验证与文档
-- **Commits**: `1696091`, `10221ae` (根 README 更新)
-- **审阅**: ✅ APPROVED（集成验证完成，文档更新完整）
-- **验证内容**:
-  - ✅ Seed 脚本完整执行（所有 12 步）
-  - ✅ Seed 可重复执行（第二次无错误）
-  - ✅ README.md 更新完整（快速初始化、测试账号、注意事项）
-  - ✅ TypeScript 全量检查通过（0 错误）
-  - ✅ PrismaService 可用性验证通过
+### Task 4: 后端控制器层 (Controllers) 与模块装配
+- **Commit**: `56f6cc8`
+- **审阅**: ✅ APPROVED (验证通过，RESTful 路由符合规范，并在 main.ts 成功挂载)
+- **备注**: 支持 /system/dict 与 /system/dict-item 模块。
 
----
+### Task 5: 前端字典页面对接真实 API 接口
+- **Commit**: `d2e5e40`
+- **审阅**: ✅ APPROVED (验证通过，已从 mock 切换到真实 API，编译及 ESLint 校验成功)
+- **备注**: UI 状态加载与 CRUD 动作完全打通。
 
-## 最终状态
 
-**✅ 全部完成！所有 4 个 Task 均已完成且通过审查**
 
-- **总计 4 次代码审查循环**（初始审查 + 修复审查）
-- **总计 7 个 Commit**（各 Task 分别 1-2 个）
-- **规格符合率**: 100%
-- **代码质量**: 优秀（TypeScript strict, 类型安全, 最佳实践）
-- **文档完整性**: 100%（README 更新 + Task 报告）
 
-## 后续衔接建议
-
-完成本计划后，建议立即：
-1. 在 `apps/api/src/app.module.ts` 中导入 `PrismaModule`
-2. 后续 Story #6（Auth 登录接口）可使用 `admin/admin123` 测试真实数据
-3. 所有数据库操作通过依赖注入的 `PrismaService` 进行
-
----
-
-**执行者**: Zed Agent (subagent-driven-development)  
-**状态**: ✅ 完成  
-**质量评级**: 优秀 ⭐⭐⭐⭐⭐
