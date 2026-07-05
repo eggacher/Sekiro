@@ -249,7 +249,13 @@ export class AuthService {
    */
   async getUserPermissions(userId: number): Promise<string[]> {
     const userRoles = await this.prismaService.userRole.findMany({
-      where: { userId },
+      where: {
+        userId,
+        role: {
+          deletedAt: null,
+          status: 'enabled',
+        },
+      },
     });
 
     if (userRoles.length === 0) {
@@ -286,7 +292,13 @@ export class AuthService {
    */
   async buildMenuTree(userId: number): Promise<MenuNode[]> {
     const userRoles = await this.prismaService.userRole.findMany({
-      where: { userId },
+      where: {
+        userId,
+        role: {
+          deletedAt: null,
+          status: 'enabled',
+        },
+      },
     });
 
     if (userRoles.length === 0) {
