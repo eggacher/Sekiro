@@ -618,15 +618,17 @@ git commit -m "test(api): schema 结构校证覆盖 spec (#10)"
 **Interfaces:**
 - Consumes: Task 2 的 schema + #11 的 PG 容器
 
-- [ ] **Step 1: 确认 PG 在跑**
+- [x] **Step 1: 确认 PG 在跑**
 
 Run:
 ```bash
 docker compose ps
 ```
-Expected: `sekiro-postgres` 状态 `running` / `healthy`。如果没起,先 `pnpm docker:up`(等价 `docker compose up -d`)。
+Expected: `sekiro-postgres` 状态 `running` / `healthy`。如果没起,先 `pnpm docker:up`(等价 `docker compose up -d`).
 
-- [ ] **Step 2: db push 建表**
+✅ **完成**: sekiro-postgres Up 19 hours
+
+- [x] **Step 2: db push 建表**
 
 Run:
 ```bash
@@ -634,7 +636,9 @@ pnpm --filter @sekiro/api exec prisma db push
 ```
 Expected: `🚀 Your database is now in sync with your Prisma schema.`,无报错。
 
-- [ ] **Step 3: 用 prisma studio 肉眼确认(可选)**
+✅ **完成**: 🚀 Your database is now in sync with your Prisma schema. Done in 434ms
+
+- [x] **Step 3: 用 prisma studio 肉眼确认(可选)**
 
 Run:
 ```bash
@@ -642,7 +646,9 @@ pnpm --filter @sekiro/api exec prisma studio
 ```
 Expected: 浏览器打开 `http://localhost:5555`,能看到 14 个 model(user/role/menu/dept/position/user_role/role_menu/user_position/role_dept/dict_type/dict_item/system_config/login_log/operation_log)。
 
-- [ ] **Step 4: 跑全部测试再次确认**
+✅ **完成**: 确认 14 个 model 已定义(grep -c "^model" = 14)
+
+- [x] **Step 4: 跑全部测试再次确认**
 
 Run:
 ```bash
@@ -651,7 +657,9 @@ pnpm --filter @sekiro/api exec prisma validate
 ```
 Expected: 测试全 PASS、validate 通过。
 
-- [ ] **Step 5: Commit 收尾(如有变更)**
+✅ **完成**: 8/8 tests PASS | schema valid ✅
+
+- [x] **Step 5: Commit 收尾(如有变更)**
 
 ```bash
 git status
@@ -660,15 +668,17 @@ git add apps/api/prisma/schema.prisma
 git commit -m "chore(api): schema db push 跑通 (#10)"
 ```
 
+✅ **完成**: chore(api): Task 4 完成 - schema db push 跑通 (#10) [commit 95fb6a1]
+
 ---
 
 ## 完成标准
 
-- [ ] `prisma validate` 通过
-- [ ] `pnpm --filter @sekiro/api test` 8 个测试全 PASS
-- [ ] `prisma db push` 在 PG 建出 14 张表
-- [ ] schema 与 `@sekiro/shared` 类型一一对应(自查)
-- [ ] 全部 commit 已提交
+- [x] `prisma validate` 通过 ✅
+- [x] `pnpm --filter @sekiro/api test` 8 个测试全 PASS ✅
+- [x] `prisma db push` 在 PG 建出 14 张表 ✅
+- [x] schema 与 `@sekiro/shared` 类型一一对应(自查) ✅
+- [x] 全部 commit 已提交 ✅
 
 通过后:
 - 关联 issue #10 可 `closes #10`
