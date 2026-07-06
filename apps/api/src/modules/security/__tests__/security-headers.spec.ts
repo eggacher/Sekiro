@@ -2,9 +2,9 @@ import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { Test } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
 import request from "supertest";
-import helmet from "helmet";
 import { AppModule } from "../../../app.module";
 import { REDIS_CLIENT } from "../../../redis.module";
+import { configureApp } from "../../../config/app.config";
 
 describe("Security Headers (integration)", () => {
   let app: INestApplication;
@@ -30,33 +30,7 @@ describe("Security Headers (integration)", () => {
       .compile();
 
     app = moduleRef.createNestApplication();
-    app.setGlobalPrefix("api");
-    app.use(
-      helmet({
-        contentSecurityPolicy: {
-          directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'"],
-            styleSrc: ["'self'"],
-            imgSrc: ["'self'", "data:", "blob:"],
-            connectSrc: ["'self'"],
-            fontSrc: ["'self'"],
-            objectSrc: ["'none'"],
-            frameAncestors: ["'none'"],
-            upgradeInsecureRequests: [],
-          },
-        },
-        crossOriginEmbedderPolicy: false,
-        hsts: {
-          maxAge: 31536000,
-          includeSubDomains: true,
-          preload: true,
-        },
-        xFrameOptions: { action: "deny" },
-        xContentTypeOptions: true,
-        referrerPolicy: { policy: "strict-origin-when-cross-origin" },
-      }),
-    );
+    configureApp(app);
     await app.init();
   });
 

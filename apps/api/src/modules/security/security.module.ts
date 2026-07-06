@@ -1,6 +1,6 @@
 import { Global, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { ThrottlerModule, ThrottlerModuleOptions } from "@nestjs/throttler";
+import { ThrottlerGuard, ThrottlerModule, ThrottlerModuleOptions } from "@nestjs/throttler";
 import { RedisClientType } from "redis";
 import { encryptedConfigLoader } from "./providers/encrypted-config.loader";
 import { ThrottlerStorageRedisService } from "./providers/throttler-storage-redis.service";
@@ -34,7 +34,7 @@ import { UploadController } from "./controllers/upload.controller";
     }),
   ],
   controllers: [UploadController],
-  providers: [ThrottlerStorageRedisService],
-  exports: [ThrottlerStorageRedisService],
+  providers: [ThrottlerGuard, ThrottlerStorageRedisService],
+  exports: [ThrottlerGuard, ThrottlerStorageRedisService],
 })
 export class SecurityModule {}
