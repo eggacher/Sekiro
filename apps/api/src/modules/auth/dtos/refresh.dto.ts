@@ -1,4 +1,5 @@
 import { IsString } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
 import type { RefreshRequest, RefreshResponse } from "@sekiro/shared";
 
 /**
@@ -6,6 +7,7 @@ import type { RefreshRequest, RefreshResponse } from "@sekiro/shared";
  * 实现 @sekiro/shared 中的 RefreshRequest 接口
  */
 export class RefreshDto implements RefreshRequest {
+  @ApiProperty({ type: String, required: true, description: "刷新令牌", example: "eyJhbGc..." })
   @IsString({ message: "刷新令牵必须是字符串" })
   refreshToken!: string;
 }

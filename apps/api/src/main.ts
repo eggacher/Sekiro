@@ -8,6 +8,8 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 import { NestFactory } from "@nestjs/core";
 import { Module, ValidationPipe } from "@nestjs/common";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { apiReference } from "@scalar/nestjs-api-reference";
 import { PrismaModule } from "./modules/prisma";
 import { RedisModule } from "./redis.module";
 import { AuthModule } from "./modules/auth";
@@ -38,8 +40,32 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(3001);
-  console.log("API on http://localhost:3001");
+  // OpenAPI 文档（仅非生产环境）
+  if (process.env.NODE_ENV !== "production") {
+    const config = new DocumentBuilder()
+      .setTitle("Sekiro API")
+      .setDescription("Sekiro 中后台脚手架 API 文档")
+      .setVersion("0.1.0")
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+
+    app.use(
+      "/docs",
+      apiReference({
+        content: document,
+        theme: "default",
+        darkMode: true,
+        metaData: {
+          title: "Sekiro API Docs",
+        },
+      }),
+    );
+  }
+
+  const port = process.env.PORT ? Number(process.env.PORT) : 3001;
+  await app.listen(port);
+  console.log(`API on http://localhost:${port}`);
 }
 
 bootstrap();
