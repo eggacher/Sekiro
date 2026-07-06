@@ -319,6 +319,17 @@
     3. 新增 `FileValidationException` / `FileValidationExceptionFilter`，文件校验失败返回 HTTP 200 + 业务 code 422 的 `ApiResponse`
     4. `UploadController` Swagger 注解同步为 200 + code 422
   - **验证**: `pnpm typecheck` 通过、`pnpm lint` 通过、`pnpm --filter @sekiro/api test` 119/119 通过
+- [x] Review Fixes (2nd round)
+  - **Commit**: `4b3d57b`
+  - **修复内容**:
+    1. `encryptedConfigLoader` 解密后同步写回 `process.env`，确保 Prisma/Redis/JWT 等直接读取 `process.env` 的代码能拿到明文
+    2. `configureApp` 对 `/docs` 路由单独关闭 CSP，避免 Scalar/Swagger UI 内联脚本/样式被 helmet 拦截
+    3. 文件 MIME 校验在 `file-type` 无法识别时直接拒绝，不再回退到客户端声明的 `mimetype`
+    4. `FileValidationExceptionFilter` 返回 `data: [{ field: "file", message }]` 以符合设计规范
+    5. `SecurityModule` 校验 `THROTTLE_TTL` / `THROTTLE_LIMIT` 为正整数，非法值启动时报错
+    6. 将 `UploadController` 从 `SecurityModule` 移至新建的 `UploadModule`，解除 `SecurityModule` 对 `AuthModule` 的耦合
+    7. 安全头集成测试增加 `content-security-policy` 断言
+  - **验证**: `pnpm typecheck` 通过、`pnpm lint` 通过、`pnpm --filter @sekiro/api test` 119/119 通过
 - [ ] Final: 全量代码 review
 
 ## 完成记录
