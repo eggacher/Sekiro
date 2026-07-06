@@ -160,12 +160,13 @@ git push origin dev
 
 ### 5. 清理
 
-合并完成后移除 worktree 与本地功能分支：
+合并完成后移除 worktree 与本地功能分支。若 worktree 中存在未跟踪文件（如 `.env`、构建产物），使用 `--force`：
 
 ```bash
-git worktree remove .worktrees/feature/<name>
+git worktree remove .worktrees/feature/<name> --force
 git branch -d feature/<name>
-git push origin --delete feature/<name>
+# 若功能分支已推送到远程，再删除远程分支
+git push origin --delete feature/<name> 2>/dev/null || true
 ```
 
 ### 注意事项
@@ -173,3 +174,9 @@ git push origin --delete feature/<name>
 - 不要直接在 `dev` 分支上提交功能代码。
 - 不要在没有 worktree 隔离的情况下在 `main` 上开发。
 - 合并前必须全量验证通过，测试失败不得合并。
+- 当前仓库根目录的 `.eslintrc.json` 继承 `next/core-web-vitals`，在 worktree 中跑 `pnpm lint` 可能因嵌套配置冲突而失败。验证 API 代码时可改用：
+  ```bash
+  cd .worktrees/feature/<name>
+  pnpm exec eslint --no-eslintrc -c .eslintrc.json apps/api/src --ext .ts
+  ```
+- 新功能若涉及新增/移除依赖，务必执行 `pnpm install --lockfile-only` 并提交 `pnpm-lock.yaml`。
