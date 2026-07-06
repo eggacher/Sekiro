@@ -19,9 +19,11 @@ import { MenuModule } from "./modules/menu";
 import { DeptModule } from "./modules/dept";
 import { DictModule } from "./modules/dict";
 import { MonitorModule } from "./modules/monitor";
+import { HealthController } from "./health.controller";
 
 @Module({
   imports: [PrismaModule, RedisModule, AuthModule, UserModule, RoleModule, MenuModule, DeptModule, DictModule, MonitorModule],
+  controllers: [HealthController],
 })
 class AppModule {}
 
@@ -29,7 +31,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // 全局 API 前缀，与前端 /api 代理对齐
-  app.setGlobalPrefix("api");
+  app.setGlobalPrefix("api", { exclude: ["/health"] });
 
   // 全局 DTO 验证管道
   app.useGlobalPipes(
