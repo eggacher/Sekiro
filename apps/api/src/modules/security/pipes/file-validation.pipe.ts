@@ -1,9 +1,9 @@
 import {
   Injectable,
   PipeTransform,
-  BadRequestException,
 } from "@nestjs/common";
 import * as path from "path";
+import { FileValidationException } from "../exceptions/file-validation.exception";
 
 export interface FileValidationOptions {
   maxSize?: number;
@@ -42,30 +42,30 @@ export class FileValidationPipe implements PipeTransform {
 
   async transform(file: Express.Multer.File): Promise<Express.Multer.File> {
     if (!file) {
-      throw new BadRequestException("file is required");
+      throw new FileValidationException("file is required");
     }
 
     const ext = path.extname(file.originalname).toLowerCase();
 
     if (EXECUTABLE_EXTENSIONS.has(ext)) {
-      throw new BadRequestException(`file type ${ext} is not allowed`);
+      throw new FileValidationException(`file type ${ext} is not allowed`);
     }
 
     if (this.options.allowedExtensions?.length) {
       if (!this.options.allowedExtensions.includes(ext)) {
-        throw new BadRequestException(`file extension ${ext} is not allowed`);
+        throw new FileValidationException(`file extension ${ext} is not allowed`);
       }
     }
 
     const maxSize = this.options.maxSize ?? parseInt(process.env.UPLOAD_MAX_SIZE || "5242880", 10);
     if (file.size > maxSize) {
-      throw new BadRequestException(
+      throw new FileValidationException(
         `file size exceeds limit of ${maxSize} bytes`,
       );
     }
 
     if (hasExecutableMagic(file.buffer)) {
-      throw new BadRequestException("executable file content is not allowed");
+      throw new FileValidationException("executable file content is not allowed");
     }
 
     if (this.options.allowedTypes?.length) {
@@ -76,7 +76,7 @@ export class FileValidationPipe implements PipeTransform {
         matchMimePattern(mime, pattern),
       );
       if (!allowed) {
-        throw new BadRequestException(`file MIME type ${mime} is not allowed`);
+        throw new FileValidationException(`file MIME type ${mime} is not allowed`);
       }
     }
 

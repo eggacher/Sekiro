@@ -21,7 +21,7 @@ export class UploadController {
   @UseInterceptors(FileInterceptor("file"))
   @ApiOperation({ summary: '文件上传（示例）' })
   @ApiResponse({ status: 200, description: '成功' })
-  @ApiResponse({ status: 422, description: '文件校验失败' })
+  @ApiResponse({ status: 200, description: '文件校验失败（业务 code: 422）' })
   async upload(
     @ValidatedFile({
       maxSize: 5 * 1024 * 1024,

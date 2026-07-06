@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import helmet from "helmet";
 import { ThrottlerGuard } from "@nestjs/throttler";
 import { ThrottlerExceptionFilter } from "../modules/security/filters/throttler-exception.filter";
+import { FileValidationExceptionFilter } from "../modules/security/filters/file-validation-exception.filter";
 
 /**
  * Applies production application-level middleware, guards, pipes and filters.
@@ -40,6 +41,7 @@ export function configureApp(app: INestApplication): void {
 
   app.useGlobalGuards(app.get(ThrottlerGuard));
   app.useGlobalFilters(new ThrottlerExceptionFilter());
+  app.useGlobalFilters(new FileValidationExceptionFilter());
 
   // 全局 DTO 验证管道
   app.useGlobalPipes(
