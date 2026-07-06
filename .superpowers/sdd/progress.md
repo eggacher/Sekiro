@@ -330,6 +330,15 @@
     6. 将 `UploadController` 从 `SecurityModule` 移至新建的 `UploadModule`，解除 `SecurityModule` 对 `AuthModule` 的耦合
     7. 安全头集成测试增加 `content-security-policy` 断言
   - **验证**: `pnpm typecheck` 通过、`pnpm lint` 通过、`pnpm --filter @sekiro/api test` 119/119 通过
+- [x] Review Fixes (3rd round)
+  - **Commit**: `d977777`
+  - **修复内容**:
+    1. 更新 `security-headers.spec.ts` Redis mock 为 `eval`，与 Lua 脚本实现保持一致
+    2. 设计文档更新 `@nestjs/throttler` v6 风格的 `@Throttle` 语法
+    3. 实施计划更新为 `UploadModule` / `upload/upload.controller.ts` 的最终文件结构
+    4. `.env.example` 追加 `UPLOAD_ALLOWED_TYPES`
+  - **说明**: 关于 `security/controllers/upload.controller.ts` 死代码的指认不成立——该文件已在 `4b3d57b` 随模块拆分删除；当前工作树中不存在此文件
+  - **验证**: `pnpm typecheck` 通过、`pnpm lint` 通过、`pnpm --filter @sekiro/api test` 119/119 通过
 - [ ] Final: 全量代码 review
 
 ## 完成记录
