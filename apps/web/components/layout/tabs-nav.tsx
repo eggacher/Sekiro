@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store/app-store";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { findBreadcrumb } from "@/lib/menu";
+import { useTranslation } from "@/lib/i18n";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,7 @@ export function TabsNav() {
   const router = useRouter();
   const { tabs, addTab, removeTab, removeOtherTabs, removeAllTabs } = useAppStore();
   const { menus } = useAuthStore();
+  const { t } = useTranslation();
 
   // 同步当前路径到 tabs
   const crumbs = findBreadcrumb(menus, pathname);
@@ -78,8 +80,8 @@ export function TabsNav() {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => removeOtherTabs(pathname)}>关闭其他</DropdownMenuItem>
-          <DropdownMenuItem onClick={removeAllTabs}>关闭全部</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => removeOtherTabs(pathname)}>{t("tabs.closeOther")}</DropdownMenuItem>
+          <DropdownMenuItem onClick={removeAllTabs}>{t("tabs.closeAll")}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

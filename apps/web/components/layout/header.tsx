@@ -24,7 +24,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ThemeToggle } from "./theme-toggle";
+import { ThemeSettings } from "./theme-toggle";
+import { LangSwitcher } from "./lang-switcher";
+import { useTranslation } from "@/lib/i18n";
 import { Separator } from "@/components/ui/separator";
 import { useAppStore } from "@/lib/store/app-store";
 
@@ -33,6 +35,7 @@ export function Header() {
   const router = useRouter();
   const { toggleCollapsed } = useAppStore();
   const { user, clearAuth, menus } = useAuthStore();
+  const { t } = useTranslation();
   const crumbs = findBreadcrumb(menus, pathname);
 
   return (
@@ -40,7 +43,7 @@ export function Header() {
       <button
         onClick={toggleCollapsed}
         className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        title="折叠/展开"
+        title={t("nav.expand")}
       >
         <ChevronsRight className="h-4 w-4 rotate-180" />
       </button>
@@ -48,7 +51,7 @@ export function Header() {
       {/* 面包屑 */}
       <nav className="flex items-center gap-1 text-sm">
         {crumbs.length === 0 ? (
-          <span className="text-muted-foreground">首页</span>
+          <span className="text-muted-foreground">{t("nav.home")}</span>
         ) : (
           crumbs.map((c, i) => (
             <span key={c.href} className="flex items-center gap-1">
@@ -70,15 +73,17 @@ export function Header() {
         <div className="relative hidden md:block">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
-            placeholder="搜索…"
+            placeholder={t("nav.search")}
             className="h-9 w-44 rounded-md border border-input bg-background pl-8 pr-3 text-sm shadow-sm outline-none transition-all focus:w-56 focus-visible:ring-1 focus-visible:ring-ring"
           />
         </div>
 
-        <ThemeToggle />
+        <ThemeSettings />
+
+        <LangSwitcher />
 
         {/* 通知 */}
-        <Button variant="ghost" size="icon" className="relative" title="通知">
+        <Button variant="ghost" size="icon" className="relative" title={t("nav.notification")}>
           <Bell className="h-[1.2rem] w-[1.2rem]" />
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
         </Button>
@@ -96,24 +101,24 @@ export function Header() {
               </AvatarFallback>
               </Avatar>
               <span className="hidden text-sm font-medium md:inline">
-                {user?.nickname || user?.username || "用户"}
+                {user?.nickname || user?.username || t("auth.fallbackUser")}
               </span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>我的账户</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("auth.myAccount")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push("/profile")}>
               <User className="h-4 w-4" />
-              个人中心
+              {t("auth.profile")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push("/tool/config")}>
               <Settings className="h-4 w-4" />
-              系统配置
+              {t("auth.systemConfig")}
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Palette className="h-4 w-4" />
-              外观设置
+              {t("auth.appearance")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -130,7 +135,7 @@ export function Header() {
               }}
             >
               <LogOut className="h-4 w-4" />
-              退出登录
+              {t("auth.logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
