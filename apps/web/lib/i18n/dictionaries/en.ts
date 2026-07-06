@@ -1,0 +1,64 @@
+import { zh } from "./zh";
+
+export const en: Record<keyof typeof zh, string> = {
+  "app.name": "Sekiro Admin",
+  "app.description": "Out-of-the-box admin scaffold",
+
+  "theme.light": "Light",
+  "theme.dark": "Dark",
+  "theme.system": "System",
+  "theme.color": "Theme Color",
+  "theme.appearance": "Appearance",
+
+  "language.name": "Language",
+
+  "nav.home": "Dashboard",
+  "nav.collapse": "Collapse",
+  "nav.expand": "Expand",
+  "nav.search": "Search…",
+  "nav.notification": "Notifications",
+
+  "auth.loading": "Loading…",
+  "auth.myAccount": "My Account",
+  "auth.profile": "Profile",
+  "auth.systemConfig": "System Config",
+  "auth.appearance": "Appearance",
+  "auth.logout": "Logout",
+  "auth.fallbackUser": "User",
+
+  "login.title": "Welcome Back",
+  "login.subtitle": "Sign in to Sekiro Admin",
+  "login.username": "Username",
+  "login.password": "Password",
+  "login.rememberMe": "Remember me",
+  "login.forgotPassword": "Forgot password?",
+  "login.submit": "Sign In",
+  "login.loggingIn": "Signing in…",
+  "login.success": "Login successful, welcome back!",
+  "login.error.required": "Please enter username and password",
+  "login.error.failed": "Login failed",
+  "login.otherMethods": "Other login methods",
+  "login.copyright": "© 2026 Sekiro Admin · Built with Next.js + shadcn/ui",
+
+  "dashboard.greeting": "Good morning",
+  "dashboard.todo": "You have {count} todos today",
+  "dashboard.notifications": "{count} system notifications",
+  "dashboard.totalUsers": "Total Users",
+  "dashboard.todayActive": "Today's Active",
+  "dashboard.totalOrders": "Total Orders",
+  "dashboard.totalRevenue": "Total Revenue",
+  "dashboard.revenueTrend": "Revenue & Orders Trend",
+  "dashboard.recent12Months": "Last 12 Months",
+  "dashboard.trafficSources": "Traffic Sources",
+  "dashboard.weeklyActive": "Weekly Active Trend",
+  "dashboard.recentActivities": "Recent Activities",
+  "dashboard.revenue": "Revenue(10k)",
+  "dashboard.orders": "Orders",
+  "dashboard.activeUsers": "Active Users",
+
+  "tabs.closeOther": "Close Others",
+  "tabs.closeAll": "Close All",
+
+  "common.yes": "Yes",
+  "common.no": "No",
+};
