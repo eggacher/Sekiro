@@ -11,7 +11,9 @@ export const encryptedConfigLoader = (): Record<string, string> => {
           `CONFIG_ENCRYPTION_KEY is required to decrypt environment variable ${key}`,
         );
       }
-      decrypted[key] = decryptConfig(value, encryptionKey);
+      const plain = decryptConfig(value, encryptionKey);
+      decrypted[key] = plain;
+      process.env[key] = plain;
     } else {
       decrypted[key] = value;
     }

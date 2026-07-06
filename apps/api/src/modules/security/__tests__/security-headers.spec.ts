@@ -44,5 +44,6 @@ describe("Security Headers (integration)", () => {
     expect(response.headers["x-content-type-options"]).toBe("nosniff");
     expect(response.headers["strict-transport-security"]).toBeDefined();
     expect(response.headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+    expect(response.headers["content-security-policy"]).toBeDefined();
   });
 });

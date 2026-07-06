@@ -37,7 +37,7 @@ describe("FileValidationExceptionFilter", () => {
     expect(getBody()).toEqual({
       code: 422,
       message: "file too large",
-      data: null,
+      data: [{ field: "file", message: "file too large" }],
     });
   });
 });

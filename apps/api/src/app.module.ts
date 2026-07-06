@@ -9,10 +9,12 @@ import { DeptModule } from "./modules/dept";
 import { DictModule } from "./modules/dict";
 import { MonitorModule } from "./modules/monitor";
 import { SecurityModule } from "./modules/security";
+import { UploadModule } from "./modules/upload/upload.module";
 
 @Module({
   imports: [
     SecurityModule,
+    UploadModule,
     PrismaModule,
     RedisModule,
     AuthModule,

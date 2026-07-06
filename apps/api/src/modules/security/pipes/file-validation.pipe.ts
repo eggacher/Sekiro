@@ -71,12 +71,16 @@ export class FileValidationPipe implements PipeTransform {
     if (this.options.allowedTypes?.length) {
       const { fileTypeFromBuffer } = await import("file-type");
       const detected = await fileTypeFromBuffer(file.buffer);
-      const mime = detected?.mime || file.mimetype || "application/octet-stream";
+      if (!detected) {
+        throw new FileValidationException(
+          "unable to determine file MIME type from content",
+        );
+      }
       const allowed = this.options.allowedTypes.some((pattern) =>
-        matchMimePattern(mime, pattern),
+        matchMimePattern(detected.mime, pattern),
       );
       if (!allowed) {
-        throw new FileValidationException(`file MIME type ${mime} is not allowed`);
+        throw new FileValidationException(`file MIME type ${detected.mime} is not allowed`);
       }
     }
 

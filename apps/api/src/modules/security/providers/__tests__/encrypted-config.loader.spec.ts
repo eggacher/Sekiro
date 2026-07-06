@@ -19,12 +19,13 @@ describe("encryptedConfigLoader", () => {
     expect(config.PLAIN_VAR).toBe("plain-value");
   });
 
-  it("should decrypt ENC values", () => {
+  it("should decrypt ENC values and mutate process.env", () => {
     const key = "test-key-that-is-exactly-32-bytes-long!!";
     process.env.CONFIG_ENCRYPTION_KEY = key;
     process.env.SECRET_VAR = encryptConfig("secret-value", key);
     const config = encryptedConfigLoader();
     expect(config.SECRET_VAR).toBe("secret-value");
+    expect(process.env.SECRET_VAR).toBe("secret-value");
   });
 
   it("should throw if encryption key is missing for ENC value", () => {

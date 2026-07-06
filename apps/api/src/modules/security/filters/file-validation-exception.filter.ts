@@ -9,10 +9,10 @@ export class FileValidationExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    const payload: ApiResponse<null> = {
+    const payload: ApiResponse<Array<{ field: string; message: string }>> = {
       code: 422,
       message: exception.message,
-      data: null,
+      data: [{ field: "file", message: exception.message }],
     };
 
     response.status(200).json(payload);

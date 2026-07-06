@@ -5,8 +5,18 @@ import { RedisClientType } from "redis";
 import { encryptedConfigLoader } from "./providers/encrypted-config.loader";
 import { ThrottlerStorageRedisService } from "./providers/throttler-storage-redis.service";
 import { RedisModule, REDIS_CLIENT } from "../../redis.module";
-import { AuthModule } from "../auth";
-import { UploadController } from "./controllers/upload.controller";
+
+function parseThrottleNumber(
+  value: string | undefined,
+  fallback: string,
+  name: string,
+): number {
+  const parsed = parseInt(value || fallback, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`${name} must be a positive integer, got "${value}"`);
+  }
+  return parsed;
+}
 
 @Global()
 @Module({
@@ -16,7 +26,6 @@ import { UploadController } from "./controllers/upload.controller";
       isGlobal: true,
       load: [encryptedConfigLoader],
     }),
-    AuthModule,
     ThrottlerModule.forRootAsync({
       imports: [RedisModule],
       inject: [REDIS_CLIENT],
@@ -25,15 +34,23 @@ import { UploadController } from "./controllers/upload.controller";
       ): ThrottlerModuleOptions => ({
         throttlers: [
           {
-            ttl: parseInt(process.env.THROTTLE_TTL || "60", 10) * 1000,
-            limit: parseInt(process.env.THROTTLE_LIMIT || "10", 10),
+            ttl:
+              parseThrottleNumber(
+                process.env.THROTTLE_TTL,
+                "60",
+                "THROTTLE_TTL",
+              ) * 1000,
+            limit: parseThrottleNumber(
+              process.env.THROTTLE_LIMIT,
+              "10",
+              "THROTTLE_LIMIT",
+            ),
           },
         ],
         storage: new ThrottlerStorageRedisService(redisClient),
       }),
     }),
   ],
-  controllers: [UploadController],
   providers: [ThrottlerGuard, ThrottlerStorageRedisService],
   exports: [ThrottlerGuard, ThrottlerStorageRedisService],
 })
