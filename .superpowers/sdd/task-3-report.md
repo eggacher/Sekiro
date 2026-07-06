@@ -1,53 +1,75 @@
-# Task 3 Report: 前端个人中心页面绑定真实数据
+# Task 3 Report: Encrypted Config Loader
 
-## What I implemented
+## What was implemented
 
-Modified `apps/web/app/(dashboard)/profile/page.tsx` to wire the frontend profile page to real APIs:
+- Created `apps/api/src/modules/security/providers/encrypted-config.loader.ts` exporting `encryptedConfigLoader(): Record<string, string>`.
+- The loader scans `process.env`:
+  - Plain values are copied to the result unchanged.
+  - Values wrapped in `ENC(...)` are decrypted with `decryptConfig` from Task 2 using `process.env.CONFIG_ENCRYPTION_KEY`.
+  - Throws a clear error when an `ENC(...)` value is present but `CONFIG_ENCRYPTION_KEY` is missing.
+- Created `apps/api/src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts` with three tests covering plain passthrough, decryption, and the missing-key error.
 
-1. **Sidebar card reads from auth store**
-   - Imported `useAuthStore` and rendered `user.nickname`, `user.username`, `user.phone`, `user.email`, `user.avatar`, and `user.roles`.
-   - Avatar now uses `AvatarImage` when an avatar URL/base64 is available, falling back to initials.
+## TDD evidence
 
-2. **Basic info tab connected to `PUT /system/user/profile`**
-   - Added controlled state for `nickname`, `phone`, `email`, `avatar`.
-   - Save handler calls `apiClient.put("/system/user/profile", profile)` and shows toast feedback.
-   - Added loading state to prevent duplicate submissions.
-
-3. **Avatar upload via base64**
-   - Hidden `<input type="file" accept="image/*">` triggered by the camera button.
-   - `FileReader.readAsDataURL` stores the result in `profile.avatar`.
-
-4. **Security tab connected to `PUT /system/user/password`**
-   - Added controlled state for `oldPassword`, `newPassword`, `confirmPassword`.
-   - Validates that new password and confirmation match.
-   - On success, clears auth and redirects to `/login`.
-
-5. **Notification preferences stored in localStorage**
-   - Added `NotificationPrefs` type and default values.
-   - Initializes from `localStorage.getItem("sekiro-notification-prefs")`.
-   - Persists changes immediately on toggle.
-
-## What I tested and test results
-
-Ran the frontend typecheck:
+### RED (failing test before implementation)
 
 ```bash
-pnpm --filter @sekiro/web typecheck
+$ pnpm test src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts
+
+> @sekiro/api@0.1.0 test .../apps/api
+> vitest run src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts
+
+ RUN  v4.1.9
+
+ ❯ src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts (0 test)
+
+ FAIL ...
+Error: Cannot find module '../encrypted-config.loader' imported from ...
 ```
 
-Result: **0 errors** (exit code 0).
+The suite failed because the implementation file did not yet exist.
+
+### GREEN (passing test after implementation)
+
+```bash
+$ pnpm test src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts
+
+> @sekiro/api@0.1.0 test .../apps/api
+> vitest run src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts
+
+ RUN  v4.1.9
+
+ ✓ src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts (3 tests)
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+```
+
+## Verification
+
+- Target spec: `pnpm test src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts` → 3/3 passing.
+- Security module regression check: `pnpm test src/modules/security` → 7/7 passing (includes 4 crypto.util tests from Task 2).
+- Type check: `pnpm typecheck` in `apps/api` completed with no errors.
 
 ## Files changed
 
-- `apps/web/app/(dashboard)/profile/page.tsx`
+- `apps/api/src/modules/security/providers/encrypted-config.loader.ts` (new)
+- `apps/api/src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts` (new)
+
+## Commit
+
+- `568ffee` — `feat(security): add encrypted config loader for ENC(...) env values`
 
 ## Self-review findings
 
-- Removed the static "个人简介" field from the basic info tab because it is not part of the `UpdateUserDto` backend contract and the brief did not mention it.
-- "注册时间" and "最后登录" in the sidebar remain as static placeholders because `CurrentUser` does not expose those fields.
-- Chose not to add a `setUser` method to the auth store; the brief only specified modifying `page.tsx`.
-- No runtime testing was performed because this task only required typecheck verification.
+- **Fully implemented?** Yes. The loader satisfies all three tests and follows the planned file structure.
+- **Names clear?** `encryptedConfigLoader` matches the brief; local names are descriptive.
+- **TDD followed?** Yes — test was written and run first (RED), then implementation was added (GREEN).
+- **YAGNI respected?** Yes. Only plain passthrough, `ENC(...)` decryption, and missing-key error handling are implemented.
+- **Tests verify real behavior?** Yes. The decryption test uses the real `encryptConfig` function, and the error test asserts the actual thrown message pattern.
 
-## Issues or concerns
+## Issues / concerns
 
-None.
+- The implementation snippet in the task brief did not copy plain (non-encrypted) values into the returned config object, which would have caused the first test (`should pass plain values through`) to fail. I added a minimal `else { decrypted[key] = value; }` branch so the loader behaves as the tests specify.
+- `git status` showed unrelated modifications (`.superpowers/sdd/progress.md`, `.superpowers/sdd/task-3-brief.md`, `apps/api/prisma.config.ts`) that were already present in the worktree. These were left unstaged and not included in the commit.
+- No integration with NestJS config validation yet; this is a standalone loader as scoped by the task.
