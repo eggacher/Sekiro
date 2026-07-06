@@ -15,7 +15,7 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { UserService } from "./services/user.service";
-import { CreateUserDto, UpdateUserDto, QueryUserDto } from "./dtos";
+import { CreateUserDto, UpdateUserDto, UpdatePasswordDto, QueryUserDto } from "./dtos";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CommonStatus, ApiResponse } from "@sekiro/shared";
 import { DataScopeInterceptor } from "../auth/interceptors/data-scope.interceptor";
@@ -43,6 +43,30 @@ export class UserController {
   async getDetail(@Param("id", ParseIntPipe) id: number): Promise<ApiResponse<any>> {
     const data = await this.userService.getDetail(id);
     return { code: 0, message: "查询成功", data };
+  }
+
+  @Put("profile")
+  @HttpCode(200)
+  async updateProfile(
+    @Body() updateDto: UpdateUserDto,
+    @Req() req: any,
+  ): Promise<ApiResponse<any>> {
+    const data = await this.userService.updateProfile(req.user.sub, updateDto);
+    return { code: 0, message: "资料更新成功", data };
+  }
+
+  @Put("password")
+  @HttpCode(200)
+  async changePassword(
+    @Body() passwordDto: UpdatePasswordDto,
+    @Req() req: any,
+  ): Promise<ApiResponse<any>> {
+    await this.userService.changePassword(
+      req.user.sub,
+      passwordDto.oldPassword,
+      passwordDto.newPassword,
+    );
+    return { code: 0, message: "密码修改成功", data: null };
   }
 
   @Post()
