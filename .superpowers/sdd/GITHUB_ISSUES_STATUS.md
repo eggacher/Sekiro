@@ -218,6 +218,7 @@
 | `docs/superpowers/specs/2026-07-05-dict-management-design.md` | Story #18 | 数据字典管理详细设计 |
 | `docs/superpowers/specs/2026-07-05-data-scope-design.md` | Story #19 | 数据权限 DataScope 详细设计 |
 | `docs/superpowers/specs/2026-07-05-system-monitor-design.md` | Story #20~#23 | 系统监控与日志详细设计 |
+| `docs/superpowers/specs/2026-07-05-api-docs-design.md` | Story #24 | API 文档（OpenAPI + Scalar）详细设计 |
 
 ### 实施计划
 
@@ -232,6 +233,7 @@
 | `docs/superpowers/plans/2026-07-05-dict-management.md` | Story #18 | Story #18 实施计划 |
 | `docs/superpowers/plans/2026-07-05-frontend-infrastructure.md` | Story #16 | Story #16 实施计划 |
 | `docs/superpowers/plans/2026-07-05-system-monitor.md` | Story #20~#23 | 系统监控与日志实施计划 |
+| `docs/superpowers/plans/2026-07-05-api-docs.md` | Story #24 | Story #24 实施计划 |
 
 ### 完成报告
 
@@ -259,6 +261,7 @@
 | 2026-07-05 | 补关闭 GitHub #15、#16（此前本地已标记 Closed 但远程未关）| Agent |
 | 2026-07-06 | 确认 Story #19（数据权限 DataScope）实现已完成，同步关闭本地 GitHub Issues 状态 | Agent |
 | 2026-07-06 | 远程关闭 Epic #2、Story #19、Task #10~14（其中 #10/#13/#14 此前已关）；同步更新本地 Epic/Task 汇总 | Agent |
+| 2026-07-06 | 将 Story #24 标题从 "Swagger/OpenAPI 在线文档" 更新为 "API 文档（OpenAPI + Scalar）"，替换 Swagger UI 为 Scalar | Agent |
 
 ---
 
