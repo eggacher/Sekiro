@@ -192,3 +192,58 @@
 ### Final: 全量代码 review
 - **验证结果**: ✅ `pnpm typecheck` + `pnpm lint` + `pnpm --filter @sekiro/api test` 全部通过
 - **测试**: 101 / 101 通过
+
+---
+
+# Story #24: API 文档（OpenAPI + Scalar）— 执行进度
+
+## 计划信息
+- **规范文件**：`docs/superpowers/specs/2026-07-05-api-docs-design.md`
+- **执行方式**：isolated worktree (`feature/api-docs`) + subagent-driven-development
+- **开始时间**：2026-07-06
+- **完成时间**：2026-07-06
+
+## 任务清单
+
+- [x] Task 1: 安装并配置 @nestjs/swagger + @scalar/nestjs-api-reference
+- [x] Task 2: 在 `main.ts` 生成 OpenAPI document 并挂载 Scalar 到 `/docs`
+- [x] Task 3: 为所有 DTO 显式标注 `ApiProperty`（兼容 tsx watch 的 `isolatedModules`）
+- [x] Task 4: 为所有 Controller 添加 `ApiTags`/`ApiOperation`/`ApiBearerAuth` 等注解
+- [x] Task 5: 修复 `DictModule` 因缺少 `JwtProvider`/`RedisSessionProvider` 导致的运行时依赖错误
+- [x] Task 6: 修复 `login.dto.ts` 的 `isolatedModules` 类型重导出警告
+- [x] Task 7: 修复 `operation-log.interceptor.ts` 中 `module` 变量命中的 `@next/next/no-assign-module-variable` lint 规则
+- [x] Task 8: 清理未使用的 `swagger-ui-dist` 依赖并更新 lockfile
+- [x] Final: 全量代码 review、提交、合并到 dev、清理 worktree、关闭 GitHub Issue #24
+
+## 完成记录
+
+### Task 1: 文档依赖与入口配置
+- **相关文件**：
+  - `apps/api/package.json`
+  - `apps/api/src/main.ts`
+- **审阅**: ✅ OpenAPI document 在 `NODE_ENV !== production` 时生成；Scalar 挂载在 `/docs`，默认暗色主题
+
+### Task 2: DTO 与 Controller 注解
+- **相关文件**：
+  - `apps/api/src/modules/**/dtos/*.ts`
+  - `apps/api/src/modules/**/*controller.ts`
+- **审阅**: ✅ 所有请求/响应 DTO 均显式声明 `type`，所有 controller 均有 tag 与操作说明；`LoginDto` schema 在 Scalar 中正确渲染
+
+### Task 3: 依赖注入修复
+- **相关文件**：
+  - `apps/api/src/modules/auth/auth.module.ts`
+  - `apps/api/src/modules/dict/dict.module.ts`
+- **审阅**: ✅ `AuthModule` 导出 `JwtProvider` 与 `RedisSessionProvider`；`DictModule` 导入 `AuthModule` 以使用 session/redis 能力
+
+### Task 4: 工程化清理
+- **相关文件**：
+  - `apps/api/src/modules/auth/dtos/login.dto.ts`
+  - `apps/api/src/modules/monitor/interceptors/operation-log.interceptor.ts`
+  - `apps/api/package.json`
+  - `pnpm-lock.yaml`
+- **审阅**: ✅ 类型导出改为 `export type`；`module` 变量重命名为 `moduleName`；移除 `swagger-ui-dist`
+
+### Final: 全量代码 review
+- **验证结果**: ✅ `pnpm typecheck` 通过、`pnpm --filter @sekiro/api test` 101/101 通过、api lint 通过
+- **合并提交**: `39cbdd1`
+- **GitHub Issue**: [#24](https://github.com/eggacher/Sekiro/issues/24) 已关闭

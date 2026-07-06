@@ -124,15 +124,16 @@
 | **Story #21** | **系统监控：操作日志** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #22** | **系统监控：登录日志** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #23** | **系统监控：服务监控** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #24** | **API 文档（OpenAPI + Scalar）** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #25** | **代码生成器** | **❌ 放弃** | **✅ Closed** | **✅ Closed** |
 
 ## Epic 状态汇总
 
 | Epic | 标题 | 状态 | 说明 |
 | --- | --- | --- | --- |
-| **#1** | 后端基础设施: NestJS + Prisma + PG + Redis 全链路打通 | **OPEN** | 仍有未完成的 infra story (#24 Swagger, #26 Docker/CI, #28 i18n/主题) |
+| **#1** | 后端基础设施: NestJS + Prisma + PG + Redis 全链路打通 | **OPEN** | 仍有未完成的 infra story (#26 Docker/CI, #28 i18n/主题)；#24 已完成 |
 | **#2** | v0.1 MVP: 登录鉴权 + RBAC + 用户/角色/菜单 | **✅ Closed** | 下辖 Story #5~9、#15、#16 全部完成 |
-| **#3** | v0.5 生产就绪: 部门/字典/监控/数据权限/Swagger/代码生成器 | **OPEN** | 仍有 #19/24/26/27/28 未完成（#19 已确认完成并关闭） |
+| **#3** | v0.5 生产就绪: 部门/字典/监控/数据权限/Swagger/代码生成器 | **OPEN** | 仍有 #26/27/28 未完成（#19、#24 已确认完成并关闭） |
 | **#4** | v1.0 GA: 测试/监控/MFA/部署 | **OPEN** | 远期货，暂无下辖 story |
 
 ## Task 状态汇总（Story #5 子任务）
@@ -262,6 +263,7 @@
 | 2026-07-06 | 确认 Story #19（数据权限 DataScope）实现已完成，同步关闭本地 GitHub Issues 状态 | Agent |
 | 2026-07-06 | 远程关闭 Epic #2、Story #19、Task #10~14（其中 #10/#13/#14 此前已关）；同步更新本地 Epic/Task 汇总 | Agent |
 | 2026-07-06 | 将 Story #24 标题从 "Swagger/OpenAPI 在线文档" 更新为 "API 文档（OpenAPI + Scalar）"，替换 Swagger UI 为 Scalar | Agent |
+| 2026-07-06 | 完成 Story #24（OpenAPI + Scalar）并合并到 dev；关闭 GitHub Issue #24；更新本地 Epic 与进度状态 | Agent |
 
 ---
 
