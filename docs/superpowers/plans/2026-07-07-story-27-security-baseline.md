@@ -46,15 +46,17 @@ apps/api/src/modules/security/
 ├── filters/
 │   ├── throttler-exception.filter.ts        # 429 统一响应
 │   └── __tests__/throttler-exception.filter.spec.ts
-├── controllers/
-│   └── upload.controller.ts                 # 示例上传接口
 ├── cli/
 │   └── encrypt-config.cli.ts                # 加密 CLI
 └── __tests__/
     └── security-headers.spec.ts             # 安全头集成测试
 
+apps/api/src/modules/upload/
+├── upload.module.ts                         # 示例上传接口模块
+└── upload.controller.ts                     # 示例上传接口
+
 apps/api/src/main.ts                         # 注册 Helmet/ThrottlerGuard/Filter
-apps/api/src/app.module.ts                   # 导入 SecurityModule（由 main.ts 内联 AppModule 改为独立文件）
+apps/api/src/app.module.ts                   # 导入 SecurityModule 与 UploadModule
 apps/api/package.json                        # 新增依赖与 encrypt:config 脚本
 apps/api/.env.example                        # 新增安全相关环境变量
 apps/web/middleware.ts                       # CSP nonce 中间件
@@ -456,12 +458,11 @@ git commit -m "feat(security): add Redis-backed throttler storage"
 // apps/api/src/modules/security/security.module.ts
 import { Global, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { ThrottlerModule, ThrottlerModuleOptions } from "@nestjs/throttler";
+import { ThrottlerGuard, ThrottlerModule, ThrottlerModuleOptions } from "@nestjs/throttler";
 import { RedisClientType } from "redis";
 import { encryptedConfigLoader } from "./providers/encrypted-config.loader";
 import { ThrottlerStorageRedisService } from "./providers/throttler-storage-redis.service";
 import { RedisModule, REDIS_CLIENT } from "../../redis.module";
-import { UploadController } from "./controllers/upload.controller";
 
 @Global()
 @Module({
@@ -487,9 +488,8 @@ import { UploadController } from "./controllers/upload.controller";
       }),
     }),
   ],
-  controllers: [UploadController],
-  providers: [ThrottlerStorageRedisService],
-  exports: [ThrottlerStorageRedisService],
+  providers: [ThrottlerGuard, ThrottlerStorageRedisService],
+  exports: [ThrottlerGuard, ThrottlerStorageRedisService],
 })
 export class SecurityModule {}
 ```
@@ -774,7 +774,8 @@ git commit -m "feat(security): apply @Throttle to login and @SkipThrottle to hea
 - Create: `apps/api/src/modules/security/pipes/file-validation.pipe.ts`
 - Create: `apps/api/src/modules/security/pipes/__tests__/file-validation.pipe.spec.ts`
 - Create: `apps/api/src/modules/security/decorators/validated-file.decorator.ts`
-- Create: `apps/api/src/modules/security/controllers/upload.controller.ts`
+- Create: `apps/api/src/modules/upload/upload.controller.ts`
+- Create: `apps/api/src/modules/upload/upload.module.ts`
 
 **Interfaces:**
 - Produces: `FileValidationOptions { maxSize?, allowedTypes?, allowedExtensions? }`
@@ -967,7 +968,7 @@ export const ValidatedFile = (options?: FileValidationOptions) =>
 - [ ] **Step 5: Create sample upload controller**
 
 ```ts
-// apps/api/src/modules/security/controllers/upload.controller.ts
+// apps/api/src/modules/upload/upload.controller.ts
 import {
   Controller,
   Post,
@@ -1012,7 +1013,36 @@ export class UploadController {
 }
 ```
 
-- [ ] **Step 6: Run tests**
+```ts
+// apps/api/src/modules/upload/upload.module.ts
+import { Module } from "@nestjs/common";
+import { AuthModule } from "../auth";
+import { UploadController } from "./upload.controller";
+
+@Module({
+  imports: [AuthModule],
+  controllers: [UploadController],
+})
+export class UploadModule {}
+```
+
+- [ ] **Step 6: Register UploadModule in AppModule**
+
+```ts
+// apps/api/src/app.module.ts
+import { UploadModule } from "./modules/upload/upload.module";
+
+@Module({
+  imports: [
+    SecurityModule,
+    UploadModule,
+    // ... other modules
+  ],
+})
+export class AppModule {}
+```
+
+- [ ] **Step 7: Run tests**
 
 ```bash
 pnpm test src/modules/security/pipes/__tests__/file-validation.pipe.spec.ts
@@ -1020,10 +1050,10 @@ pnpm test src/modules/security/pipes/__tests__/file-validation.pipe.spec.ts
 
 Expected: PASS
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add apps/api/src/modules/security
+git add apps/api/src/modules/security apps/api/src/modules/upload apps/api/src/app.module.ts
 git commit -m "feat(security): add file upload validation with extension, MIME, magic and blacklist"
 ```
 

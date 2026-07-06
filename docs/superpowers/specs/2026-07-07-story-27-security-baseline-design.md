@@ -112,7 +112,7 @@ app.useGlobalGuards(app.get(ThrottlerGuard));
 
 **默认策略**：
 - 全局 10 次 / 60 秒
-- 登录接口 `POST /auth/login`：`@Throttle(5, 60)`
+- 登录接口 `POST /auth/login`：`@Throttle({ default: { limit: 5, ttl: 60 * 1000 } })`
 - 健康检查 `/health`：`@SkipThrottle()`
 - Swagger docs `/docs`：`@SkipThrottle()`（仅非生产环境）
 

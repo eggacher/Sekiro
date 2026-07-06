@@ -16,11 +16,7 @@ describe("Security Headers (integration)", () => {
       .overrideProvider(REDIS_CLIENT)
       .useValue({
         connect: vi.fn().mockResolvedValue(undefined),
-        multi: vi.fn(() => ({
-          incr: vi.fn().mockReturnThis(),
-          pExpire: vi.fn().mockReturnThis(),
-          exec: vi.fn().mockResolvedValue([1]),
-        })),
+        eval: vi.fn().mockResolvedValue([0, 0, 0, 0]),
         get: vi.fn().mockResolvedValue(null),
         setEx: vi.fn().mockResolvedValue("OK"),
         del: vi.fn().mockResolvedValue(1),
