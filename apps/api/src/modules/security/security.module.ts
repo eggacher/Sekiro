@@ -5,6 +5,7 @@ import { RedisClientType } from "redis";
 import { encryptedConfigLoader } from "./providers/encrypted-config.loader";
 import { ThrottlerStorageRedisService } from "./providers/throttler-storage-redis.service";
 import { RedisModule, REDIS_CLIENT } from "../../redis.module";
+import { AuthModule } from "../auth";
 import { UploadController } from "./controllers/upload.controller";
 
 @Global()
@@ -15,6 +16,7 @@ import { UploadController } from "./controllers/upload.controller";
       isGlobal: true,
       load: [encryptedConfigLoader],
     }),
+    AuthModule,
     ThrottlerModule.forRootAsync({
       imports: [RedisModule],
       inject: [REDIS_CLIENT],
