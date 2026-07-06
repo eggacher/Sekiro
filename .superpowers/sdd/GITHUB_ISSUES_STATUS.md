@@ -230,6 +230,8 @@
 | 2026-07-05 | 完成 Story #18，同步关闭 GitHub Issues | Antigravity |
 | 2026-07-05 | 完成 Story #16，同步关闭 GitHub Issues；修正 Story #19 映射（数据权限 OPEN，系统监控拆为 #20~#23 CLOSED） | Antigravity |
 | 2026-07-05 | 完成 Story #15，同步关闭 GitHub Issues | Agent |
+| 2026-07-05 | 关闭 Story #25（代码生成器，因 Vibe Coding 放弃）| Agent |
+| 2026-07-05 | 补关闭 GitHub #15、#16（此前本地已标记 Closed 但远程未关）| Agent |
 
 ---
 
