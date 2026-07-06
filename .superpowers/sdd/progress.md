@@ -247,3 +247,70 @@
 - **验证结果**: ✅ `pnpm typecheck` 通过、`pnpm --filter @sekiro/api test` 101/101 通过、api lint 通过
 - **合并提交**: `39cbdd1`
 - **GitHub Issue**: [#24](https://github.com/eggacher/Sekiro/issues/24) 已关闭
+
+
+---
+
+# Story #27: 安全基线（限流/安全头/上传校验）— 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-07-story-27-security-baseline.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/story/27-security-baseline`
+- **开始时间**：2026-07-07
+
+## 任务清单
+
+- [x] Task 1: Install Dependencies
+  - **Commit**: `182e0ac`
+  - **审阅**: ✅ 依赖安装正确，lockfile 已更新
+- [x] Task 2: AES-256-GCM Config Encryption Utility
+  - **Commit**: `22dde2e`
+  - **审阅**: ✅ 实现符合 brief，测试覆盖 round-trip / 非 ENC 透传 / 格式错误 / auth tag 篡改
+  - **Minor 待 final review 关注**: `decryptConfig` 对非 ENC 值做了 `.trim()`；base64/hex 优先级存在潜在歧义；测试可扩展错误密钥/篡改密文/不同 key 派生路径
+- [x] Task 3: Encrypted Config Loader
+  - **Commit**: `568ffee`
+  - **审阅**: ✅ 实现符合 brief；正确修复了 brief 中遗漏的明文透传分支
+  - **Minor 待 final review 关注**: 空字符串环境变量处理从 `!value` 改为 `=== undefined`；测试修改全局 process.env
+- [x] Task 4: Redis Throttler Storage
+  - **Commits**: `12fe783`, `fd92e63`, `5890616`
+  - **审阅**: ✅ 正确实现 @nestjs/throttler v6 合约；MULTI/EXEC 原子递增 + 阻塞键 + 秒级 TTL
+  - **Important 待后续修复或 final review 关注**: 测试未验证 Redis 命令调用（incr/pExpire/pTTL/set）；缺少 timeToBlockExpire 断言；key-prefix 测试较弱
+  - **Minor 待 final review 关注**: `ThrottlerStorageRecord` 使用 deep import；测试 mock 有冗余
+- [x] Task 5: SecurityModule Scaffold and Global Registration
+  - **Commit**: `5ff10cf`
+  - **审阅**: ✅ 模块、index、AppModule 提取、main.ts 全局注册均符合 brief
+- [x] Task 6: Throttler Exception Filter
+  - **Commits**: `1c99b57`, `82ba385`, `e2d7a16`
+  - **审阅**: ✅ 正确将 ThrottlerException 映射为 code 429；使用 `@sekiro/shared` 的 `ApiResponse` 类型
+  - **Minor 待 final review 关注**: 测试中 `as any` cast 可改进
+- [x] Task 7: Apply @Throttle and @SkipThrottle
+  - **Commits**: `5a0bafd`, `fce9f7d`
+  - **审阅**: ✅ 登录接口应用 v6 风格 @Throttle；健康检查跳过限流并返回 ApiResponse
+  - **Minor 待 final review 关注**: HealthController 内联 envelope；Swagger 未标注 429；/health 可能被操作日志拦截器记录
+- [x] Task 8: File Upload Validation
+  - **Commit**: `622de57`
+  - **审阅**: ✅ 实现符合 brief；动态导入 file-type；上传校验顺序正确
+  - **Minor 待 final review 关注**: 测试用例未完全隔离单个校验逻辑（.exe 同时触发扩展名黑名单）；可加强异常消息断言；UPLOAD_MAX_SIZE 非法值可能变为 NaN
+- [x] Task 9: Config Encryption CLI
+  - **Commit**: `79dccef`
+  - **审阅**: ✅ CLI 脚本与 package.json 脚本均符合 brief
+  - **Minor 待 final review 关注**: 通过 argv 传入明文存在历史记录泄漏风险；dotenv 信息输出可能污染管道
+- [x] Task 10: Frontend CSP Nonce Middleware
+  - **Commit**: `c53d9f6`
+  - **审阅**: ✅ middleware、layout、next.config.js 均符合 brief；CSP 开发/生产分离正确
+  - **Minor 待 final review 关注**: layout.tsx 中 AuthProvider JSX 被意外重排格式；nonce 由 UUID base64 生成，可改用随机字节
+- [x] Task 11: Environment Variables and Documentation
+  - **Commit**: `ff6f3f0`
+  - **审阅**: ✅ `.env.example` 正确追加 4 个安全相关环境变量
+- [x] Task 12: Security Headers Integration Test
+  - **Commit**: `f638311`
+  - **审阅**: ✅ 集成测试覆盖 helmet 安全头；提取 `configureApp` helper 统一生产与测试配置
+  - **Re-review 争议与结论**: reviewer 质疑 `SecurityModule` 导入 `AuthModule` 会造成循环依赖。经核查 `AuthModule` 未导入 `SecurityModule`，依赖方向为单向；`UploadController` 使用 `JwtAuthGuard` 需要 `AuthModule`，导入合理。
+- [x] Task 13: Final Verification
+  - **Commit**: `b73f6ae`
+  - **审阅**: ✅ `pnpm typecheck` 通过、`pnpm lint` 通过、`pnpm --filter @sekiro/api test` 117/117 通过
+  - **额外修复**: `.eslintrc.json` 增加 `"root": true`，避免 worktree 嵌套目录中 ESLint 解析到父目录配置导致 plugin 冲突
+- [ ] Final: 全量代码 review
+
+## 完成记录
