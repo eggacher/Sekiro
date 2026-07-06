@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
@@ -12,8 +13,10 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const nonce = headers().get("x-nonce") || undefined;
+
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang="zh-CN" suppressHydrationWarning nonce={nonce}>
       <body className="font-sans antialiased">
         <ThemeProvider
           attribute="class"
@@ -21,9 +24,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
           <Toaster position="top-center" richColors closeButton />
         </ThemeProvider>
       </body>
