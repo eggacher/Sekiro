@@ -7,9 +7,9 @@
   },
   "scripts": {
     "dev": "tsx watch src/main.ts",
-    "build": "tsc",
+    "build": "pnpm --filter @sekiro/shared build && tsc",
     "start": "node dist/main.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm --filter @sekiro/shared build && tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:format": "prisma format",
     "prisma:validate": "prisma validate",

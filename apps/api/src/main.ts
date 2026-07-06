@@ -42,28 +42,26 @@ async function bootstrap() {
     }),
   );
 
-  // OpenAPI 文档（仅非生产环境）
-  if (process.env.NODE_ENV !== "production") {
-    const config = new DocumentBuilder()
-      .setTitle("Sekiro API")
-      .setDescription("Sekiro 中后台脚手架 API 文档")
-      .setVersion("0.1.0")
-      .addBearerAuth()
-      .build();
-    const document = SwaggerModule.createDocument(app, config);
+  // OpenAPI 文档（所有环境均可用）
+  const config = new DocumentBuilder()
+    .setTitle("Sekiro API")
+    .setDescription("Sekiro 中后台脚手架 API 文档")
+    .setVersion("0.1.0")
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
 
-    app.use(
-      "/docs",
-      apiReference({
-        content: document,
-        theme: "default",
-        darkMode: true,
-        metaData: {
-          title: "Sekiro API Docs",
-        },
-      }),
-    );
-  }
+  app.use(
+    "/docs",
+    apiReference({
+      content: document,
+      theme: "default",
+      darkMode: true,
+      metaData: {
+        title: "Sekiro API Docs",
+      },
+    }),
+  );
 
   const port = process.env.PORT ? Number(process.env.PORT) : 3001;
   await app.listen(port);

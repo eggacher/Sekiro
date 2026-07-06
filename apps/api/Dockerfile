@@ -15,11 +15,8 @@ FROM deps AS builder
 WORKDIR /app
 COPY . .
 RUN pnpm --filter @sekiro/api prisma:generate
+RUN pnpm --filter @sekiro/shared build
 RUN pnpm --filter @sekiro/api build
-# The monorepo tsconfig emits apps/api/src under dist/apps/api/src; flatten it
-# so that the runtime entrypoint matches package.json's "node dist/main.js".
-RUN cp -r /app/apps/api/dist/apps/api/src/. /app/apps/api/dist/ \
-  && rm -rf /app/apps/api/dist/apps /app/apps/api/dist/packages
 
 FROM node:20-alpine AS runner
 RUN apk add --no-cache dumb-init
@@ -32,6 +29,8 @@ COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/apps/api/prisma ./prisma
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder /app/packages/shared/package.json ./packages/shared/package.json
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -qO- http://localhost:3001/health || exit 1
