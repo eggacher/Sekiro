@@ -311,6 +311,14 @@
   - **Commit**: `b73f6ae`
   - **审阅**: ✅ `pnpm typecheck` 通过、`pnpm lint` 通过、`pnpm --filter @sekiro/api test` 117/117 通过
   - **额外修复**: `.eslintrc.json` 增加 `"root": true`，避免 worktree 嵌套目录中 ESLint 解析到父目录配置导致 plugin 冲突
+- [x] Review Fixes
+  - **Commit**: `8ddb54f`
+  - **修复内容**:
+    1. `ThrottlerStorageRedisService` 改用原子 Lua 脚本，在自增前检查 block key，解决 blockDuration > ttl 时阻塞被绕过的漏洞
+    2. 将 `@nestjs/throttler/dist/...` 深导入替换为内联 `ThrottlerStorageRecord` 接口
+    3. 新增 `FileValidationException` / `FileValidationExceptionFilter`，文件校验失败返回 HTTP 200 + 业务 code 422 的 `ApiResponse`
+    4. `UploadController` Swagger 注解同步为 200 + code 422
+  - **验证**: `pnpm typecheck` 通过、`pnpm lint` 通过、`pnpm --filter @sekiro/api test` 119/119 通过
 - [ ] Final: 全量代码 review
 
 ## 完成记录
