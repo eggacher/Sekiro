@@ -78,3 +78,57 @@
 ### Final: 全量代码 review
 - **验证结果**: ✅ `pnpm typecheck` + `pnpm lint` + `pnpm --filter @sekiro/api test` 全部通过
 - **测试**: 101 / 101 通过
+
+---
+
+# Story #15: 个人中心（资料/改密/通知偏好）— 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-05-personal-center.md`
+- **执行方式**：subagent-driven-development
+- **开始时间**：2026-07-05
+- **完成时间**：2026-07-05
+
+## 任务清单
+
+- [x] Task 1: 后端修改密码 DTO 与服务方法
+  - **Commit**: `c64a320`
+  - **审阅**: ✅ typecheck + 101 测试通过
+
+- [x] Task 2: 后端新增个人中心端点
+  - **Commit**: `d18c950`
+  - **审阅**: ✅ typecheck + 101 测试通过
+
+- [x] Task 3: 前端个人中心页面绑定真实数据
+  - **Commit**: `84abba6`
+  - **审阅**: ✅ typecheck 通过
+
+- [x] Task 4: 全量验证与文档更新
+  - **Commit**: `docs(sync): update progress and issue status for Story #15`
+  - **审阅**: ✅ typecheck + lint + 101 测试全部通过
+
+- [x] Final: 全量代码 review
+  - **验证结果**: ✅ `pnpm typecheck` + `pnpm lint` + `pnpm --filter @sekiro/api test` 全部通过
+  - **测试**: 101 / 101 通过
+
+## 完成记录
+
+### Task 1: 后端修改密码 DTO 与服务方法
+- **Commit**: `c64a320`
+- **审阅**: ✅ typecheck + 101 测试通过
+
+### Task 2: 后端新增个人中心端点
+- **Commit**: `d18c950`
+- **审阅**: ✅ typecheck + 101 测试通过
+
+### Task 3: 前端个人中心页面绑定真实数据
+- **Commit**: `84abba6`
+- **审阅**: ✅ typecheck 通过
+
+### Task 4: 全量验证与文档更新
+- **Commit**: `docs(sync): update progress and issue status for Story #15`
+- **审阅**: ✅ typecheck + lint + 101 测试全部通过
+
+### Final: 全量代码 review
+- **验证结果**: ✅ `pnpm typecheck` + `pnpm lint` + `pnpm --filter @sekiro/api test` 全部通过
+- **测试**: 101 / 101 通过

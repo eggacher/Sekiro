@@ -1,59 +1,96 @@
-# Task 4 Report: Header 退出 + Sidebar 真实菜单驱动
+# Task 4 Report: 全量验证与文档更新 (Story #15)
 
-## 1. What was implemented
+## What I implemented
 
-### Header logout wiring
+Completed the final Task 4 of Story #15: 个人中心（资料/改密/通知偏好）.
 
-**`apps/web/components/layout/header.tsx`**
-- Imported `useAuthStore` and `apiClient`.
-- Replaced the logout menu item's `router.push("/login")` with an async handler that:
-  1. Calls `POST /auth/logout` via `apiClient`.
-  2. Swallows request errors so logout always completes locally.
-  3. Calls `clearAuth()` from the auth store to remove token/state.
-  4. Uses `router.replace("/login")` to redirect without leaving the protected page in history.
-- Updated the user avatar fallback and display name to read from `authStore.user` (`nickname` → `username` → fallback).
+1. **Ran full verification suite**
+   - `pnpm typecheck` — passed
+   - `pnpm lint` — passed
+   - `pnpm --filter @sekiro/api test` — 101 / 101 tests passed
 
-### Sidebar driven by auth-store menus
+2. **Updated progress ledger**
+   - File: `.superpowers/sdd/progress.md`
+   - Marked Story #15 tasks 1–4 and Final review as complete.
+   - Fixed duplicate / leftover unchecked task entries.
+   - Recorded verification results.
 
-**`apps/web/lib/menu-icon-map.ts`** (new)
-- Created a mapping from backend menu `icon` string values to `lucide-react` components.
-- Exported `getMenuIcon(name)` with a default fallback (`Circle`) for unknown/missing icons.
+3. **Updated GitHub Issues sync document**
+   - File: `.superpowers/sdd/GITHUB_ISSUES_STATUS.md`
+   - Added Story #15 to the summary status table as ✅ 完成 / Closed.
+   - Added Story #15 to the GitHub update todo list as closed.
+   - Added an update log entry.
 
-**`apps/web/components/layout/sidebar.tsx`**
-- Replaced the hardcoded `menuItems` from `@/lib/menu` with `menus` from `useAuthStore`.
-- Added `buildSidebarMenus` helper to recursively:
-  - Filter out hidden (`visible === false`), disabled (`status !== "enabled"`), and button-type nodes.
-  - Preserve the existing tree structure for directory/menu nodes.
-- Updated `SidebarItem` to use `Menu` type fields (`id`, `title`, `path`, `icon`, `children`) instead of the old `MenuItem` shape.
-- Icon rendering now resolves through `getMenuIcon(item.icon)`.
+4. **Committed the documentation changes**
+   - Commit: `docs(sync): update progress and issue status for Story #15`
+   - Included the previously-untracked Story #15 plan file `docs/superpowers/plans/2026-07-05-personal-center.md`.
 
-## 2. What was tested and test results
+## Verification command output
 
-| Command | Result |
-| --- | --- |
-| `pnpm --filter @sekiro/web typecheck` | ✅ Passed (0 errors) |
+### `pnpm typecheck`
 
-Manual verification steps performed:
-- Confirmed `header.tsx` and `sidebar.tsx` compile against the shared `Menu`/`CurrentUser` types.
-- Confirmed the new `menu-icon-map.ts` exports valid `LucideIcon` references.
-- Confirmed the logout handler's async closure type-checks with `apiClient.post`.
+```
+> sekiro@0.1.0 typecheck /Users/zero/projects/Sekiro
+> pnpm -r typecheck
 
-## 3. Files changed
+Scope: 3 of 4 workspace projects
+packages/shared typecheck$ tsc --noEmit
+packages/shared typecheck: Done
+apps/web typecheck$ tsc --noEmit
+apps/api typecheck$ tsc --noEmit
+apps/web typecheck: Done
+apps/api typecheck: Done
+```
 
-- `apps/web/components/layout/header.tsx` (modified)
-- `apps/web/components/layout/sidebar.tsx` (modified)
-- `apps/web/lib/menu-icon-map.ts` (created)
+### `pnpm lint`
 
-## 4. Self-review findings
+```
+> sekiro@0.1.0 lint /Users/zero/projects/Sekiro
+> pnpm -r lint
 
-- The implementation follows the existing code style and keeps changes minimal.
-- `clearAuth()` is called in a `finally` block so local state is always cleared even if the network request fails.
-- `router.replace` is used instead of `push` to prevent navigating back to a protected page after logout.
-- Sidebar filtering respects backend visibility/status flags and excludes button permissions, matching the backend's menu-tree intent.
-- The icon map currently covers the icons used in the legacy hardcoded menu. Additional backend icon names can be added to `menuIconMap` without touching sidebar logic.
+Scope: 3 of 4 workspace projects
+apps/web lint$ next lint
+apps/web lint: ✔ No ESLint warnings or errors
+apps/web lint: Done
+```
 
-## 5. Issues or concerns
+### `pnpm --filter @sekiro/api test`
 
-1. **Header breadcrumb still uses hardcoded menus.** `header.tsx` still imports `findBreadcrumb` from `@/lib/menu`, which is based on the old static `menuItems`. Once the backend returns real menus, breadcrumb paths that exist in auth-store menus but not in `lib/menu.ts` will display as "首页". This was not part of the explicit task scope (only sidebar menus were requested), but is a known follow-up.
-2. **Icon name convention dependency.** The icon map assumes backend `icon` values match the kebab-case names used here (e.g. `"shield-check"`, `"monitor-dot"`). If the backend stores different strings, icons will fall back to `Circle`.
-3. **No automated frontend tests.** As with previous tasks, the web package has no test suite, so verification was limited to TypeScript type checking.
+```
+> @sekiro/api@0.1.0 test /Users/zero/projects/Sekiro/apps/api
+> vitest run
+
+... (16 test files passed)
+
+Test Files  16 passed (16)
+Tests       101 passed (101)
+Start at    21:41:27
+Duration    3.15s
+```
+
+## Files changed
+
+- `.superpowers/sdd/progress.md`
+- `.superpowers/sdd/GITHUB_ISSUES_STATUS.md`
+- `.superpowers/sdd/task-3-brief.md` (carried-over task brief update)
+- `.superpowers/sdd/task-3-report.md` (carried-over Task 3 report)
+- `.superpowers/sdd/task-4-brief.md` (carried-over task brief update)
+- `docs/superpowers/plans/2026-07-05-personal-center.md` (newly tracked Story #15 plan)
+
+## Self-review findings
+
+- Spec coverage aligned with Story #15 acceptance criteria:
+  - 个人中心三个 Tab — Task 3
+  - 基本信息可改 — Task 3
+  - 安全：修改密码需旧密码 + 二次确认 — Task 1–3
+  - 修改密码后强制重新登录 — Task 3
+  - 通知偏好：4 类开关 — Task 3 (localStorage)
+  - 头像上传（base64）— Task 3
+- No TBD/TODO/"implement later" placeholders found in the touched files.
+- Type consistency checked: `UpdateUserDto` supports nickname/phone/email/avatar; `UpdatePasswordDto` defines oldPassword/newPassword; frontend form shapes match.
+- Progress ledger duplicate entries removed.
+- GitHub Issues sync document updated in the correct summary table and todo list sections.
+
+## Issues or concerns
+
+None. All verification commands passed and the documentation is consistent.

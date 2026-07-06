@@ -117,6 +117,7 @@
 | **Story #9** | **Menu 菜单管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #16** | **前端基建（mock 切真实 API + 工程化）** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #17** | **Dept & Position 部门与岗位** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #15** | **个人中心（资料/改密/通知偏好）** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #18** | **数据字典管理** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #19** | **数据权限 DataScope 完整实现** | **🟡 进行中 / OPEN** | **🟡 Open** | **🟡 Open** |
 | **Story #20** | **系统监控：在线用户** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
@@ -158,6 +159,9 @@
 - [x] **关闭 Story #16 (前端基建)**
   - 标题：`Story #16: 前端基建（mock 切真实 API + 工程化）`
   - 描述：Next.js 代理、真实 API 调用、401/403/422 统一处理、真实菜单驱动、零业务 import mock。
+- [x] **关闭 Story #15 (个人中心)** (已关闭)
+  - 标题：`Story #15: 个人中心（资料/改密/通知偏好）`
+  - 描述：个人中心三个 Tab，基本信息可改，安全改密需旧密码+二次确认并强制重新登录，通知偏好 4 类开关，头像上传（base64）。
 - [ ] **创建/推进 Story #19: 数据权限 DataScope 完整实现**
   - 标题：`Story #19: 数据权限 DataScope 完整实现`
   - 描述：角色数据范围设置、用户/部门列表按数据权限裁剪、自定义部门范围持久化。
@@ -219,6 +223,7 @@
 | 2026-07-05 | 完成 Story #17，同步关闭 GitHub Issues | Antigravity |
 | 2026-07-05 | 完成 Story #18，同步关闭 GitHub Issues | Antigravity |
 | 2026-07-05 | 完成 Story #16，同步关闭 GitHub Issues；修正 Story #19 映射（数据权限 OPEN，系统监控拆为 #20~#23 CLOSED） | Antigravity |
+| 2026-07-05 | 完成 Story #15，同步关闭 GitHub Issues | Agent |
 
 ---
 
