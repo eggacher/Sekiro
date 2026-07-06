@@ -65,6 +65,27 @@ export class UserService {
     return this.userRepo.updateStatus(id, status);
   }
 
+  async updateProfile(id: number, data: UpdateUserDto) {
+    const user = await this.userRepo.findById(id);
+    if (!user) {
+      throw new NotFoundException("用户不存在");
+    }
+    return this.userRepo.update(id, data);
+  }
+
+  async changePassword(id: number, oldPassword: string, newPassword: string) {
+    const user = await this.userRepo.findById(id);
+    if (!user) {
+      throw new NotFoundException("用户不存在");
+    }
+    const valid = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!valid) {
+      throw new UnprocessableEntityException("当前密码错误");
+    }
+    const newHash = await bcrypt.hash(newPassword, 10);
+    return this.userRepo.updatePassword(id, newHash);
+  }
+
   async resetPassword(id: number) {
     const user = await this.userRepo.findById(id);
     if (!user) {
