@@ -8,11 +8,13 @@ import {
   HttpCode,
   Inject,
 } from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from "@nestjs/swagger";
 import { AuthService } from "./services/auth.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { LoginDto, LoginResponse, RefreshDto, RefreshResponse } from "./dtos";
-import type { ApiResponse } from "@sekiro/shared";
+import type { ApiResponse as ApiResponseType } from "@sekiro/shared";
 
+@ApiTags('Auth')
 @Controller("auth")
 export class AuthController {
   constructor(@Inject(AuthService) private authService: AuthService) {}
@@ -44,10 +46,14 @@ export class AuthController {
    */
   @Post("login")
   @HttpCode(200)
+  @ApiBody({ type: LoginDto })
+  @ApiOperation({ summary: '用户登录' })
+  @ApiResponse({ status: 200, description: '成功' })
+  @ApiResponse({ status: 422, description: '参数校验失败' })
   async login(
     @Body() loginDto: LoginDto,
     @Req() req: any,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponseType<any>> {
     const ipAddress = req.ip || "0.0.0.0";
     const userAgent = req.headers["user-agent"] || "";
     const result = await this.authService.login(loginDto, ipAddress, userAgent);
@@ -86,7 +92,10 @@ export class AuthController {
    */
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getMe(@Req() req: any): Promise<ApiResponse<any>> {
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取当前登录用户信息' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async getMe(@Req() req: any): Promise<ApiResponseType<any>> {
     const result = await this.authService.getMe(req.user.sub);
     return {
       code: 0,
@@ -116,7 +125,11 @@ export class AuthController {
    */
   @Post("refresh")
   @HttpCode(200)
-  async refresh(@Body() refreshDto: RefreshDto): Promise<ApiResponse<any>> {
+  @ApiBody({ type: RefreshDto })
+  @ApiOperation({ summary: '刷新 Token' })
+  @ApiResponse({ status: 200, description: '成功' })
+  @ApiResponse({ status: 422, description: '参数校验失败' })
+  async refresh(@Body() refreshDto: RefreshDto): Promise<ApiResponseType<any>> {
     const result = await this.authService.refresh(refreshDto.refreshToken);
 
     if ("data" in result) {
@@ -150,7 +163,10 @@ export class AuthController {
   @Post("logout")
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  async logout(@Req() req: any): Promise<ApiResponse<any>> {
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '用户登出' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async logout(@Req() req: any): Promise<ApiResponseType<any>> {
     const userId = req.user?.sub;
     const sessionId = req.user?.sid;
     await this.authService.logout(userId, sessionId);
