@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store/app-store";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useTranslation } from "@/lib/i18n";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { getMenuIcon } from "@/lib/menu-icon-map";
 import { Logo } from "./logo";
 
@@ -22,6 +23,27 @@ function buildSidebarMenus(menus: Menu[]): Menu[] {
       ...item,
       children: item.children ? buildSidebarMenus(item.children) : undefined,
     }));
+}
+
+const menuTitleKeyMap: Record<string, TranslationKey> = {
+  "工作台": "menu.dashboard",
+  "系统管理": "menu.systemManagement",
+  "用户管理": "menu.userManagement",
+  "角色管理": "menu.roleManagement",
+  "菜单管理": "menu.menuManagement",
+  "部门管理": "menu.deptManagement",
+  "岗位管理": "menu.positionManagement",
+  "数据字典": "menu.dictManagement",
+  "系统监控": "menu.systemMonitor",
+  "在线用户": "menu.onlineUsers",
+  "登录日志": "menu.loginLogs",
+  "操作日志": "menu.operationLogs",
+  "服务监控": "menu.serverMonitor",
+};
+
+function translateMenuTitle(t: (key: TranslationKey) => string, title: string): string {
+  const key = menuTitleKeyMap[title];
+  return key ? t(key) : title;
 }
 
 export function Sidebar() {
@@ -79,13 +101,15 @@ function SidebarItem({
   const isActive = pathname === href;
   const isChildActive = item.children?.some((c) => pathname.startsWith(c.path || "#"));
   const Icon = getMenuIcon(item.icon);
+  const { t } = useTranslation();
+  const title = translateMenuTitle(t, item.title);
 
   // 单层菜单
   if (!hasChildren) {
     return (
       <Link
         href={href}
-        title={collapsed ? item.title : undefined}
+        title={collapsed ? title : undefined}
         className={cn(
           "mb-1 flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
           isActive
@@ -95,7 +119,7 @@ function SidebarItem({
         )}
       >
         <Icon className="h-[18px] w-[18px] shrink-0" />
-        {!collapsed && <span>{item.title}</span>}
+        {!collapsed && <span>{title}</span>}
       </Link>
     );
   }
@@ -104,14 +128,14 @@ function SidebarItem({
   return (
     <div className="mb-1">
       <div
-        title={collapsed ? item.title : undefined}
+        title={collapsed ? title : undefined}
         className={cn(
           "flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground",
           collapsed && "justify-center px-0"
         )}
       >
         <Icon className="h-[18px] w-[18px] shrink-0" />
-        {!collapsed && <span className="flex-1">{item.title}</span>}
+        {!collapsed && <span className="flex-1">{title}</span>}
       </div>
       {!collapsed && (
         <div className="ml-[18px] mt-1 border-l pl-3">
@@ -132,7 +156,7 @@ function SidebarItem({
                 )}
               >
                 <ChildIcon className="h-4 w-4 shrink-0" />
-                <span>{child.title}</span>
+                <span>{translateMenuTitle(t, child.title)}</span>
               </Link>
             );
           })}

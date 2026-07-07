@@ -11,13 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 
 export function ConfirmDialog({
   open,
   onOpenChange,
-  title = "确认操作",
-  description = "此操作不可撤销，确定继续吗？",
-  confirmText = "确定",
+  title,
+  description,
+  confirmText,
   onConfirm,
 }: {
   open: boolean;
@@ -27,7 +28,12 @@ export function ConfirmDialog({
   confirmText?: string;
   onConfirm: () => void | Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+
+  const resolvedTitle = title ?? t("common.confirmTitle");
+  const resolvedDescription = description ?? t("common.confirmDescription");
+  const resolvedConfirmText = confirmText ?? t("common.ok");
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -48,18 +54,18 @@ export function ConfirmDialog({
               <AlertTriangle className="h-5 w-5 text-destructive" />
             </div>
             <div>
-              <DialogTitle>{title}</DialogTitle>
-              <DialogDescription className="mt-1.5">{description}</DialogDescription>
+              <DialogTitle>{resolvedTitle}</DialogTitle>
+              <DialogDescription className="mt-1.5">{resolvedDescription}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-            取消
+            {t("common.cancel")}
           </Button>
           <Button variant="destructive" onClick={handleConfirm} disabled={loading}>
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {confirmText}
+            {resolvedConfirmText}
           </Button>
         </DialogFooter>
       </DialogContent>

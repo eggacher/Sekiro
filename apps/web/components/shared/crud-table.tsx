@@ -28,6 +28,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn, paginate } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 export type Column<T> = {
   key: string;
@@ -70,6 +71,7 @@ export function CrudTable<T extends { id: string | number }>({
   const [keyword, setKeyword] = React.useState("");
   const [filters, setFilters] = React.useState<Record<string, string>>({});
   const [searched, setSearched] = React.useState(false);
+  const { t } = useTranslation();
 
   // 过滤
   const filtered = React.useMemo(() => {
@@ -127,7 +129,7 @@ export function CrudTable<T extends { id: string | number }>({
                     <SelectValue placeholder={f.placeholder ?? f.label} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">全部{f.label}</SelectItem>
+                    <SelectItem value="all">{t("common.all", { label: f.label })}</SelectItem>
                     {f.options?.map((o) => (
                       <SelectItem key={o.value} value={o.value}>
                         {o.label}
@@ -140,7 +142,7 @@ export function CrudTable<T extends { id: string | number }>({
             return (
               <div key={f.key} className="relative">
                 <Input
-                  placeholder={f.placeholder ?? `请输入${f.label}`}
+                  placeholder={f.placeholder ?? t("common.pleaseEnter", { label: f.label })}
                   value={filters[f.key] ?? ""}
                   onChange={(e) =>
                     setFilters((p) => ({ ...p, [f.key]: e.target.value }))
@@ -154,11 +156,11 @@ export function CrudTable<T extends { id: string | number }>({
 
           <Button size="sm" onClick={handleSearch}>
             <Search className="h-4 w-4" />
-            搜索
+            {t("common.search")}
           </Button>
           <Button size="sm" variant="outline" onClick={handleReset}>
             <RotateCcw className="h-4 w-4" />
-            重置
+            {t("common.reset")}
           </Button>
         </div>
       )}
@@ -167,7 +169,7 @@ export function CrudTable<T extends { id: string | number }>({
       {toolbar && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            共 <span className="font-medium text-foreground">{total}</span> 条
+            {t("common.totalItems", { total })}
           </div>
           <div className="flex items-center gap-2">{toolbar}</div>
         </div>
@@ -197,13 +199,13 @@ export function CrudTable<T extends { id: string | number }>({
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
                   <Loader2 className="mr-2 inline-block h-4 w-4 animate-spin" />
-                  加载中...
+                  {t("common.loading")}
                 </TableCell>
               </TableRow>
             ) : pageData.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
-                  暂无数据
+                  {t("common.noData")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -232,8 +234,8 @@ export function CrudTable<T extends { id: string | number }>({
       {/* 分页 */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-1">
         <p className="text-xs text-muted-foreground">
-          {searched && `第 ${start}-${end} 条 / 共 ${total} 条`}
-          {!searched && `显示 ${start}-${end} 条 / 共 ${total} 条`}
+          {searched && t("common.rangeItems", { start, end, total })}
+          {!searched && t("common.showingItems", { start, end, total })}
         </p>
         <div className="flex items-center gap-1">
           <Button
