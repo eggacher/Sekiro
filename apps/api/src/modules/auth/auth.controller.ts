@@ -9,6 +9,7 @@ import {
   Inject,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import { AuthService } from "./services/auth.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { LoginDto, LoginResponse, RefreshDto, RefreshResponse } from "./dtos";
@@ -46,6 +47,7 @@ export class AuthController {
    */
   @Post("login")
   @HttpCode(200)
+  @Throttle({ default: { limit: 5, ttl: 60 * 1000 } })
   @ApiBody({ type: LoginDto })
   @ApiOperation({ summary: '用户登录' })
   @ApiResponse({ status: 200, description: '成功' })

@@ -7,38 +7,15 @@ dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 import { NestFactory } from "@nestjs/core";
-import { Module, ValidationPipe } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { apiReference } from "@scalar/nestjs-api-reference";
-import { PrismaModule } from "./modules/prisma";
-import { RedisModule } from "./redis.module";
-import { AuthModule } from "./modules/auth";
-import { UserModule } from "./modules/user";
-import { RoleModule } from "./modules/role";
-import { MenuModule } from "./modules/menu";
-import { DeptModule } from "./modules/dept";
-import { DictModule } from "./modules/dict";
-import { MonitorModule } from "./modules/monitor";
-
-@Module({
-  imports: [PrismaModule, RedisModule, AuthModule, UserModule, RoleModule, MenuModule, DeptModule, DictModule, MonitorModule],
-})
-class AppModule {}
+import { AppModule } from "./app.module";
+import { configureApp } from "./config/app.config";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 全局 API 前缀，与前端 /api 代理对齐
-  app.setGlobalPrefix("api");
-
-  // 全局 DTO 验证管道
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+  configureApp(app);
 
   // OpenAPI 文档（仅非生产环境）
   if (process.env.NODE_ENV !== "production") {
