@@ -27,7 +27,7 @@ import {
 import { ThemeSettings } from "./theme-toggle";
 import { LangSwitcher } from "./lang-switcher";
 import { useTranslation } from "@/lib/i18n";
-import { translateMenuTitle } from "./sidebar";
+import { translateMenuTitle } from "@/lib/i18n/menu-title";
 import { Separator } from "@/components/ui/separator";
 import { useAppStore } from "@/lib/store/app-store";
 

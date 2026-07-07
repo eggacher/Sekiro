@@ -37,6 +37,7 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { CheckableTree, type TreeNode } from "@/components/shared/checkable-tree";
 import { apiClient } from "@/lib/api/client";
 import { useTranslation } from "@/lib/i18n";
+import { translateMenuTitle } from "@/lib/i18n/menu-title";
 
 export default function RolePage() {
   const { t } = useTranslation();
@@ -77,7 +78,7 @@ export default function RolePage() {
       const mapNode = (nodes: any[]): TreeNode[] => {
         return nodes.map((n) => ({
           id: n.id,
-          title: n.title,
+          title: translateMenuTitle(t, n.title),
           type: n.type,
           children: n.children ? mapNode(n.children) : undefined,
         }));

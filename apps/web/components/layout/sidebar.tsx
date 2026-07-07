@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store/app-store";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useTranslation } from "@/lib/i18n";
-import type { TranslationKey } from "@/lib/i18n/types";
+import { translateMenuTitle } from "@/lib/i18n/menu-title";
 import { getMenuIcon } from "@/lib/menu-icon-map";
 import { Logo } from "./logo";
 
@@ -23,27 +23,6 @@ function buildSidebarMenus(menus: Menu[]): Menu[] {
       ...item,
       children: item.children ? buildSidebarMenus(item.children) : undefined,
     }));
-}
-
-const menuTitleKeyMap: Record<string, TranslationKey> = {
-  "工作台": "menu.dashboard",
-  "系统管理": "menu.systemManagement",
-  "用户管理": "menu.userManagement",
-  "角色管理": "menu.roleManagement",
-  "菜单管理": "menu.menuManagement",
-  "部门管理": "menu.deptManagement",
-  "岗位管理": "menu.positionManagement",
-  "数据字典": "menu.dictManagement",
-  "系统监控": "menu.systemMonitor",
-  "在线用户": "menu.onlineUsers",
-  "登录日志": "menu.loginLogs",
-  "操作日志": "menu.operationLogs",
-  "服务监控": "menu.serverMonitor",
-};
-
-export function translateMenuTitle(t: (key: TranslationKey) => string, title: string): string {
-  const key = menuTitleKeyMap[title];
-  return key ? t(key) : title;
 }
 
 export function Sidebar() {
