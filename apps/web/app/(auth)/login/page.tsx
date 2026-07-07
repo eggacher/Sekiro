@@ -13,6 +13,7 @@ import { AuroraBackground } from "@/components/aceternity/aurora";
 import { Logo } from "@/components/layout/logo";
 import { apiClient } from "@/lib/api/client";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { useTranslation } from "@/lib/i18n";
 import type { CurrentUser, LoginResponse } from "@sekiro/shared";
 
 export default function LoginPage() {
@@ -24,11 +25,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const { setAuth } = useAuthStore();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
-      toast.error("请输入账号和密码");
+      toast.error(t("login.error.required"));
       return;
     }
     setLoading(true);
@@ -51,10 +53,10 @@ export default function LoginPage() {
       };
 
       setAuth(data.token, currentUser, data.permissions, data.menus);
-      toast.success("登录成功，欢迎回来！");
+      toast.success(t("login.success"));
       router.push("/");
     } catch (err: any) {
-      toast.error(err.message || "登录失败");
+      toast.error(err.message || t("login.error.failed"));
     } finally {
       setLoading(false);
     }
@@ -80,9 +82,9 @@ export default function LoginPage() {
             >
               <Logo />
             </motion.div>
-            <h1 className="mt-6 text-2xl font-bold tracking-tight">欢迎回来</h1>
+            <h1 className="mt-6 text-2xl font-bold tracking-tight">{t("login.title")}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              登录 Sekiro 管理后台
+              {t("login.subtitle")}
             </p>
           </div>
 
@@ -94,7 +96,7 @@ export default function LoginPage() {
                 <Input
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="账号"
+                  placeholder={t("login.username")}
                   className="h-11 pl-9"
                 />
               </div>
@@ -107,7 +109,7 @@ export default function LoginPage() {
                   type={showPwd ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="密码"
+                  placeholder={t("login.password")}
                   className="h-11 pl-9 pr-9"
                 />
                 <button
@@ -123,10 +125,10 @@ export default function LoginPage() {
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={remember} onCheckedChange={(v) => setRemember(!!v)} />
-                <span className="text-muted-foreground">记住我</span>
+                <span className="text-muted-foreground">{t("login.rememberMe")}</span>
               </label>
               <a href="#" className="text-primary hover:underline">
-                忘记密码？
+                {t("login.forgotPassword")}
               </a>
             </div>
 
@@ -134,10 +136,10 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  登录中…
+                  {t("login.loggingIn")}
                 </>
               ) : (
-                "登 录"
+                t("login.submit")
               )}
             </Button>
           </form>
@@ -145,7 +147,7 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="my-6 flex items-center gap-3">
             <Separator className="flex-1" />
-            <span className="text-xs text-muted-foreground">其他登录方式</span>
+            <span className="text-xs text-muted-foreground">{t("login.otherMethods")}</span>
             <Separator className="flex-1" />
           </div>
 
@@ -163,7 +165,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          © 2026 Sekiro Admin · 基于 Next.js + shadcn/ui
+          {t("login.copyright")}
         </p>
       </motion.div>
     </div>

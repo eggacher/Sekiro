@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { CurrentUser, Menu } from "@sekiro/shared";
 import { STORAGE_KEYS } from "@sekiro/shared";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { useTranslation } from "@/lib/i18n";
 import { apiClient } from "@/lib/api/client";
 
 const PUBLIC_PATHS = ["/login"];
@@ -20,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const { setAuth, clearAuth } = useAuthStore();
+  const { t } = useTranslation();
   const isPublic = PUBLIC_PATHS.includes(pathname);
 
   useEffect(() => {
@@ -60,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   if (!ready && !isPublic) {
     return (
       <div className="flex h-screen items-center justify-center text-muted-foreground">
-        加载中…
+        {t("auth.loading")}
       </div>
     );
   }

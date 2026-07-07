@@ -7,6 +7,7 @@ import type { Menu } from "@sekiro/shared";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store/app-store";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { useTranslation } from "@/lib/i18n";
 import { getMenuIcon } from "@/lib/menu-icon-map";
 import { Logo } from "./logo";
 
@@ -27,6 +28,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { collapsed, toggleCollapsed } = useAppStore();
   const { menus } = useAuthStore();
+  const { t } = useTranslation();
   const visibleMenus = buildSidebarMenus(menus);
 
   return (
@@ -52,10 +54,11 @@ export function Sidebar() {
       <div className="border-t p-2">
         <button
           onClick={toggleCollapsed}
+          title={collapsed ? t("nav.expand") : t("nav.collapse")}
           className="flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
           <ChevronsLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
-          {!collapsed && <span>收起</span>}
+          {!collapsed && <span>{t("nav.collapse")}</span>}
         </button>
       </div>
     </aside>
