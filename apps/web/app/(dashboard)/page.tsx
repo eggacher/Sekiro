@@ -31,6 +31,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/shared/stat-card";
 import { Badge } from "@/components/ui/badge";
+import { useTheme } from "next-themes";
 import { useTranslation } from "@/lib/i18n";
 import type { TranslationKey } from "@/lib/i18n/types";
 const activityIconMap = {
@@ -43,6 +44,9 @@ const activityIconMap = {
 
 export default function DashboardPage() {
   const { t } = useTranslation();
+  const { resolvedTheme } = useTheme();
+  const axisColor = resolvedTheme === "dark" ? "#94a3b8" : "#64748b";
+  const gridColor = resolvedTheme === "dark" ? "#334155" : "#e2e8f0";
   const [dashboardStats] = useState({
     totalUsers: 12846,
     todayActive: 3842,
@@ -203,17 +207,19 @@ export default function DashboardPage() {
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyRevenue} barGap={4}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
                   <XAxis
                     dataKey="name"
                     tickFormatter={(value) => t(`dashboard.month.${value}` as TranslationKey)}
-                    stroke="hsl(var(--muted-foreground))"
+                    stroke={axisColor}
+                    tick={{ fill: axisColor }}
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
                   />
                   <YAxis
-                    stroke="hsl(var(--muted-foreground))"
+                    stroke={axisColor}
+                    tick={{ fill: axisColor }}
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
@@ -226,7 +232,7 @@ export default function DashboardPage() {
                       fontSize: "12px",
                     }}
                   />
-                  <Legend wrapperStyle={{ fontSize: "12px" }} />
+                  <Legend wrapperStyle={{ color: axisColor, fontSize: "12px" }} />
                   <Bar
                     dataKey="revenue"
                     name={t("dashboard.revenue")}
@@ -318,17 +324,19 @@ export default function DashboardPage() {
                       <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
                   <XAxis
                     dataKey="name"
                     tickFormatter={(value) => t(`dashboard.day.${value}` as TranslationKey)}
-                    stroke="hsl(var(--muted-foreground))"
+                    stroke={axisColor}
+                    tick={{ fill: axisColor }}
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
                   />
                   <YAxis
-                    stroke="hsl(var(--muted-foreground))"
+                    stroke={axisColor}
+                    tick={{ fill: axisColor }}
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
