@@ -10,8 +10,10 @@ import { PageHeader } from "@/components/shared/page-header";
 import { CrudTable, type Column } from "@/components/shared/crud-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { apiClient } from "@/lib/api/client";
+import { useTranslation } from "@/lib/i18n";
 
 export default function OnlineUserPage() {
+  const { t } = useTranslation();
   const [list, setList] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [forceOut, setForceOut] = React.useState<string | null>(null);
@@ -22,11 +24,11 @@ export default function OnlineUserPage() {
       const res = await apiClient.get<any[]>("/monitor/online");
       setList(res);
     } catch (err: any) {
-      toast.error(err.message || "加载在线用户失败");
+      toast.error(err.message || t("monitor.online.fetchFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   React.useEffect(() => {
     fetchList();
@@ -36,18 +38,18 @@ export default function OnlineUserPage() {
     if (forceOut == null) return;
     try {
       await apiClient.delete(`/monitor/online/${forceOut}`);
-      toast.success("强退成功");
+      toast.success(t("monitor.online.forceOutSuccess"));
       setForceOut(null);
       await fetchList();
     } catch (err: any) {
-      toast.error(err.message || "操作失败");
+      toast.error(err.message || t("monitor.online.forceOutFailed"));
     }
   };
 
   const columns: Column<any>[] = [
     {
       key: "username",
-      title: "用户",
+      title: t("monitor.online.column.user"),
       render: (r) => (
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
@@ -64,7 +66,7 @@ export default function OnlineUserPage() {
     },
     {
       key: "ip",
-      title: "IP / 地点",
+      title: t("monitor.online.column.ipLocation"),
       render: (r) => (
         <div>
           <div className="flex items-center gap-1.5">
@@ -77,7 +79,7 @@ export default function OnlineUserPage() {
     },
     {
       key: "browser",
-      title: "浏览器 / 系统",
+      title: t("monitor.online.column.browserOs"),
       render: (r) => (
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Monitor className="h-3.5 w-3.5" />
@@ -87,12 +89,12 @@ export default function OnlineUserPage() {
     },
     {
       key: "loginTime",
-      title: "登录时间",
+      title: t("monitor.online.column.loginTime"),
       render: (r) => <span className="text-muted-foreground">{new Date(r.loginTime).toLocaleString()}</span>,
     },
     {
       key: "lastActive",
-      title: "最后活跃",
+      title: t("monitor.online.column.lastActive"),
       render: (r) => (
         <Badge variant="success" className="gap-1">
           <Clock className="h-3 w-3" />
@@ -102,14 +104,14 @@ export default function OnlineUserPage() {
     },
     {
       key: "actions",
-      title: "操作",
+      title: t("monitor.online.column.actions"),
       width: 130,
       align: "right",
       render: (r) => (
         <Button variant="outline" size="sm" className="h-8 gap-1 text-destructive hover:text-destructive"
           onClick={() => setForceOut(r.id)}>
           <LogOut className="h-3.5 w-3.5" />
-          强制下线
+          {t("monitor.online.forceOut")}
         </Button>
       ),
     },
@@ -117,26 +119,26 @@ export default function OnlineUserPage() {
 
   return (
     <div>
-      <PageHeader title="在线用户" description={`当前共有 ${list.length} 位用户在线`}>
+      <PageHeader title={t("monitor.online.title")} description={t("monitor.online.description", { count: list.length })}>
         <Badge variant="success" className="gap-1">
           <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
-          实时
+          {t("monitor.online.realtime")}
         </Badge>
       </PageHeader>
 
       {loading ? (
-        <div className="flex h-[300px] items-center justify-center text-muted-foreground">加载中...</div>
+        <div className="flex h-[300px] items-center justify-center text-muted-foreground">{t("monitor.online.loading")}</div>
       ) : (
         <CrudTable columns={columns} data={list}
           searchFields={[
-            { key: "username", label: "用户名", placeholder: "请输入用户名" },
-            { key: "ip", label: "IP", placeholder: "请输入 IP 地址" },
+            { key: "username", label: t("monitor.online.search.username"), placeholder: t("monitor.online.search.usernamePlaceholder") },
+            { key: "ip", label: t("monitor.online.search.ip"), placeholder: t("monitor.online.search.ipPlaceholder") },
           ]} />
       )}
 
       <ConfirmDialog open={forceOut != null} onOpenChange={(v) => !v && setForceOut(null)}
-        title="强制下线" description="该用户的会话将立即失效，需要重新登录。确定继续吗？"
-        confirmText="强制下线" onConfirm={handleForceOut} />
+        title={t("monitor.online.forceOutTitle")} description={t("monitor.online.forceOutDescription")}
+        confirmText={t("monitor.online.forceOutConfirm")} onConfirm={handleForceOut} />
     </div>
   );
 }
