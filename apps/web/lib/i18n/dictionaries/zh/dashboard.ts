@@ -7,6 +7,7 @@ export const dashboard = {
   "dashboard.totalOrders": "订单总数",
   "dashboard.totalRevenue": "总营收",
   "dashboard.revenueTrend": "营收与订单趋势",
+  "dashboard.vsLastWeek": "较上周",
   "dashboard.recent12Months": "近 12 个月",
   "dashboard.trafficSources": "流量来源",
   "dashboard.weeklyActive": "近 7 天活跃趋势",

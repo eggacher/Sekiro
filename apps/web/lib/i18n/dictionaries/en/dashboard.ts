@@ -7,6 +7,7 @@ export const dashboard = {
   "dashboard.totalOrders": "Total Orders",
   "dashboard.totalRevenue": "Total Revenue",
   "dashboard.revenueTrend": "Revenue & Orders Trend",
+  "dashboard.vsLastWeek": "vs last week",
   "dashboard.recent12Months": "Last 12 Months",
   "dashboard.trafficSources": "Traffic Sources",
   "dashboard.weeklyActive": "Weekly Active Trend",

@@ -5,6 +5,7 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 export type TreeNode = {
   id: string | number;
@@ -69,6 +70,7 @@ function TreeRow({
   level: number;
 }) {
   const [expanded, setExpanded] = React.useState(true);
+  const { t } = useTranslation();
   const hasChildren = !!node.children?.length;
   const allKeys = collectKeys(node);
   const checkedCount = allKeys.filter((k) => checkedKeys.has(k)).length;
@@ -107,7 +109,11 @@ function TreeRow({
         <span className="text-sm">{node.title}</span>
         {showType && node.type && (
           <Badge variant={typeColor[node.type] ?? "outline"} className="ml-1 text-[10px]">
-            {node.type === "directory" ? "目录" : node.type === "menu" ? "菜单" : "按钮"}
+            {node.type === "directory"
+              ? t("system.menu.type.directory")
+              : node.type === "menu"
+                ? t("system.menu.type.menu")
+                : t("system.menu.type.button")}
           </Badge>
         )}
       </div>

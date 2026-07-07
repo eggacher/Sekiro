@@ -5,6 +5,7 @@ import { ArrowDownRight, ArrowUpRight, type LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CountUp } from "@/components/aceternity/aurora";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 export function StatCard({
   title,
@@ -27,6 +28,7 @@ export function StatCard({
   index?: number;
   accent?: "blue" | "purple" | "cyan" | "amber";
 }) {
+  const { t } = useTranslation();
   const accentMap = {
     blue: "from-blue-500/20 to-blue-500/5 text-blue-600 dark:text-blue-400",
     purple: "from-purple-500/20 to-purple-500/5 text-purple-600 dark:text-purple-400",
@@ -72,7 +74,7 @@ export function StatCard({
               )}
               {Math.abs(growth)}%
             </span>
-            <span className="text-muted-foreground">较上周</span>
+            <span className="text-muted-foreground">{t("dashboard.vsLastWeek")}</span>
           </div>
         </CardContent>
       </Card>
