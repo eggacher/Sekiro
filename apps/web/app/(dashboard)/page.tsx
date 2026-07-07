@@ -32,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/shared/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/lib/i18n";
+import type { TranslationKey } from "@/lib/i18n/types";
 const activityIconMap = {
   create: { icon: Plus, color: "text-success" },
   update: { icon: FileEdit, color: "text-blue-500" },
@@ -56,81 +57,81 @@ export default function DashboardPage() {
   });
 
   const [weeklyActiveTrend] = useState([
-    { name: "周一", value: 2400 },
-    { name: "周二", value: 3100 },
-    { name: "周三", value: 2800 },
-    { name: "周四", value: 3900 },
-    { name: "周五", value: 4200 },
-    { name: "周六", value: 3600 },
-    { name: "周日", value: 3842 },
+    { name: "mon", value: 2400 },
+    { name: "tue", value: 3100 },
+    { name: "wed", value: 2800 },
+    { name: "thu", value: 3900 },
+    { name: "fri", value: 4200 },
+    { name: "sat", value: 3600 },
+    { name: "sun", value: 3842 },
   ]);
 
   const [monthlyRevenue] = useState([
-    { name: "1月", revenue: 86, orders: 6200 },
-    { name: "2月", revenue: 72, orders: 5400 },
-    { name: "3月", revenue: 95, orders: 7100 },
-    { name: "4月", revenue: 108, orders: 7800 },
-    { name: "5月", revenue: 124, orders: 8500 },
-    { name: "6月", revenue: 118, orders: 8200 },
-    { name: "7月", revenue: 132, orders: 8900 },
-    { name: "8月", revenue: 145, orders: 9400 },
-    { name: "9月", revenue: 138, orders: 9100 },
-    { name: "10月", revenue: 156, orders: 9800 },
-    { name: "11月", revenue: 168, orders: 10200 },
-    { name: "12月", revenue: 175, orders: 10800 },
+    { name: "jan", revenue: 86, orders: 6200 },
+    { name: "feb", revenue: 72, orders: 5400 },
+    { name: "mar", revenue: 95, orders: 7100 },
+    { name: "apr", revenue: 108, orders: 7800 },
+    { name: "may", revenue: 124, orders: 8500 },
+    { name: "jun", revenue: 118, orders: 8200 },
+    { name: "jul", revenue: 132, orders: 8900 },
+    { name: "aug", revenue: 145, orders: 9400 },
+    { name: "sep", revenue: 138, orders: 9100 },
+    { name: "oct", revenue: 156, orders: 9800 },
+    { name: "nov", revenue: 168, orders: 10200 },
+    { name: "dec", revenue: 175, orders: 10800 },
   ]);
 
   const [trafficSources] = useState([
-    { name: "直接访问", value: 4200, color: "#3b82f6" },
-    { name: "搜索引擎", value: 3100, color: "#8b5cf6" },
-    { name: "社交媒体", value: 1800, color: "#06b6d4" },
-    { name: "外部链接", value: 900, color: "#f59e0b" },
+    { key: "direct", value: 4200, color: "#3b82f6" },
+    { key: "search", value: 3100, color: "#8b5cf6" },
+    { key: "social", value: 1800, color: "#06b6d4" },
+    { key: "referral", value: 900, color: "#f59e0b" },
   ]);
 
   const [recentActivities] = useState([
     {
       id: 1,
-      user: "张三",
-      action: "更新了",
-      target: "用户管理",
-      role: "管理员",
-      time: "2 分钟前",
+      userKey: "zhangSan",
+      actionKey: "updated",
+      targetKey: "userManagement",
+      roleKey: "admin",
+      time: { key: "minutesAgo", params: { count: 2 } },
       type: "update",
     },
     {
       id: 2,
-      user: "李四",
-      action: "新增了",
-      target: "财务部",
-      role: "管理员",
-      time: "12 分钟前",
+      userKey: "liSi",
+      actionKey: "created",
+      targetKey: "financeDept",
+      roleKey: "admin",
+      time: { key: "minutesAgo", params: { count: 12 } },
       type: "create",
     },
     {
       id: 3,
-      user: "王五",
-      action: "删除了",
-      target: "test 账号",
-      role: "管理员",
-      time: "1 小时前",
+      userKey: "wangWu",
+      actionKey: "deleted",
+      targetKey: "testAccount",
+      roleKey: "admin",
+      time: { key: "hoursAgo", params: { count: 1 } },
       type: "delete",
     },
     {
       id: 4,
-      user: "赵六",
-      action: "登录了系统",
-      target: "",
-      role: "普通用户",
-      time: "3 小时前",
+      userKey: "zhaoLiu",
+      actionKey: "loggedIn",
+      targetKey: null,
+      roleKey: "user",
+      time: { key: "hoursAgo", params: { count: 3 } },
       type: "login",
     },
     {
       id: 5,
-      user: "系统",
-      action: "完成定时任务",
-      target: "数据备份",
-      role: "system",
-      time: "今天 06:00",
+      userKey: "system",
+      actionKey: "completedTask",
+      targetKey: "dataBackup",
+      roleKey: "system",
+      time: { key: "todayAt", params: { time: "06:00" } },
       type: "system",
     },
   ]);
@@ -205,6 +206,7 @@ export default function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                   <XAxis
                     dataKey="name"
+                    tickFormatter={(value) => t(`dashboard.month.${value}` as TranslationKey)}
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                     tickLine={false}
@@ -255,7 +257,10 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={trafficSources}
+                    data={trafficSources.map((s) => ({
+                      ...s,
+                      name: t(`dashboard.traffic.${s.key}` as TranslationKey),
+                    }))}
                     dataKey="value"
                     nameKey="name"
                     cx="50%"
@@ -266,7 +271,7 @@ export default function DashboardPage() {
                     animationDuration={900}
                   >
                     {trafficSources.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
+                      <Cell key={entry.key} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip
@@ -282,12 +287,12 @@ export default function DashboardPage() {
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
               {trafficSources.map((s) => (
-                <div key={s.name} className="flex items-center gap-1.5">
+                <div key={s.key} className="flex items-center gap-1.5">
                   <span
                     className="h-2 w-2 rounded-full"
                     style={{ background: s.color }}
                   />
-                  <span className="text-muted-foreground">{s.name}</span>
+                  <span className="text-muted-foreground">{t(`dashboard.traffic.${s.key}` as TranslationKey)}</span>
                   <span className="ml-auto font-medium">{s.value}</span>
                 </div>
               ))}
@@ -316,6 +321,7 @@ export default function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                   <XAxis
                     dataKey="name"
+                    tickFormatter={(value) => t(`dashboard.day.${value}` as TranslationKey)}
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                     tickLine={false}
@@ -371,11 +377,15 @@ export default function DashboardPage() {
                   </div>
                   <div className="min-w-0 flex-1 text-sm">
                     <p className="leading-snug">
-                      <span className="font-medium">{a.user}</span>
-                      <span className="text-muted-foreground"> {a.action} </span>
-                      {a.target && <span className="font-medium">{a.target}</span>}
+                      <span className="font-medium">{t(`dashboard.activity.user.${a.userKey}` as TranslationKey)}</span>
+                      <span className="text-muted-foreground"> {t(`dashboard.activity.action.${a.actionKey}` as TranslationKey)} </span>
+                      {a.targetKey && (
+                        <span className="font-medium">{t(`dashboard.activity.target.${a.targetKey}` as TranslationKey)}</span>
+                      )}
                     </p>
-                    <p className="text-xs text-muted-foreground">{a.time}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t(`dashboard.activity.time.${a.time.key}` as TranslationKey, a.time.params as unknown as Record<string, string | number>)}
+                    </p>
                   </div>
                 </motion.div>
               );
