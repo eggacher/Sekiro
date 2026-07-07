@@ -10,6 +10,7 @@ import { DictModule } from "./modules/dict";
 import { MonitorModule } from "./modules/monitor";
 import { SecurityModule } from "./modules/security";
 import { UploadModule } from "./modules/upload/upload.module";
+import { HealthController } from "./health.controller";
 
 @Module({
   imports: [
@@ -25,5 +26,6 @@ import { UploadModule } from "./modules/upload/upload.module";
     DictModule,
     MonitorModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}

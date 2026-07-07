@@ -196,12 +196,18 @@ docker compose pull
 docker compose up -d
 ```
 
-首次部署前需要执行数据库迁移：
+首次部署前需要在宿主机执行数据库迁移（API 容器为精简运行时镜像，不含 pnpm/tsx，无法直接运行迁移）：
 
 ```bash
-docker compose exec api pnpm db:migrate
-# 或本地：pnpm db:migrate
+# 在宿主机（或任何装有 pnpm + tsx 的环境）执行
+pnpm docker:up          # 只起 postgres + redis
+pnpm db:migrate         # 或 pnpm --filter @sekiro/api db:migrate
+pnpm --filter @sekiro/api exec prisma db seed
+# 然后启动完整服务
+pnpm docker:up:all
 ```
+
+> 说明： runner 阶段仅保留 `node`、编译产物、`prisma/schema.prisma` 等运行时所需文件，不安装 `pnpm` 与 `tsx`。因此迁移命令必须在宿主机或具备完整开发依赖的环境中执行，不能通过 `docker compose exec api pnpm db:migrate` 运行。
 
 ---
 

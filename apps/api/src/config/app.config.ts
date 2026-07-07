@@ -10,8 +10,8 @@ import { FileValidationExceptionFilter } from "../modules/security/filters/file-
  * Extracted so integration tests can reuse the real bootstrap configuration.
  */
 export function configureApp(app: INestApplication): void {
-  // 全局 API 前缀，与前端 /api 代理对齐
-  app.setGlobalPrefix("api");
+  // 全局 API 前缀，与前端 /api 代理对齐；/health 用于 Docker 健康检查，保持在根路径
+  app.setGlobalPrefix("api", { exclude: ["/health"] });
 
   // 对 /docs 路由放宽 CSP，避免 Scalar/Swagger UI 内联脚本/样式被拦截
   const strictHelmet = helmet({
