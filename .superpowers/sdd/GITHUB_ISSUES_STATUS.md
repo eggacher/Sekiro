@@ -1,6 +1,6 @@
 # GitHub Issues 同步状态
 
-**同步日期**：2026-07-05  
+**同步日期**：2026-07-07  
 **执行人**：Zed Agent (subagent-driven-development)  
 **目的**：追踪 GitHub Issue 与本地工作的关联关系
 
@@ -126,6 +126,7 @@
 | **Story #23** | **系统监控：服务监控** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #24** | **API 文档（OpenAPI + Scalar）** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #26** | **Docker 部署 + CI/CD** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #27** | **安全基线（限流/安全头/上传校验）** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #25** | **代码生成器** | **❌ 放弃** | **✅ Closed** | **✅ Closed** |
 
 ## Epic 状态汇总
@@ -134,7 +135,7 @@
 | --- | --- | --- | --- |
 | **#1** | 后端基础设施: NestJS + Prisma + PG + Redis 全链路打通 | **OPEN** | 仍有 #28 i18n/主题未完成；#24/#26 已完成 |
 | **#2** | v0.1 MVP: 登录鉴权 + RBAC + 用户/角色/菜单 | **✅ Closed** | 下辖 Story #5~9、#15、#16 全部完成 |
-| **#3** | v0.5 生产就绪: 部门/字典/监控/数据权限/Swagger/代码生成器 | **OPEN** | 仍有 #28 未完成（#19、#24、#26 已确认完成并关闭） |
+| **#3** | v0.5 生产就绪: 部门/字典/监控/数据权限/Swagger/代码生成器 | **OPEN** | 仍有 #28 未完成（#19、#24、#26、#27 已确认完成并关闭） |
 | **#4** | v1.0 GA: 测试/监控/MFA/部署 | **OPEN** | 远期货，暂无下辖 story |
 
 ## Task 状态汇总（Story #5 子任务）
@@ -198,6 +199,12 @@
 - [x] **关闭 Story #20~#23 (系统监控与日志)**
   - 标题：`Story #20~#23: 系统监控与日志`
   - 描述：在线用户、操作日志、登录日志、服务监控模块已随 Story #18 之前实现并关闭。
+- [x] **关闭 Story #26 (Docker 部署 + CI/CD)** (已关闭)
+  - 标题：`Story #26: Docker 部署 + CI/CD`
+  - 描述：API/Web 生产级 Dockerfile、docker-compose 编排、/health 健康检查、宿主机迁移路径。
+- [x] **关闭 Story #27 (安全基线)** (已关闭)
+  - 标题：`Story #27: 安全基线(限流/安全头/上传校验)`
+  - 描述：接口限流、helmet 安全头、文件上传校验、加密配置、SecurityModule/UploadModule。
 - [x] **关闭 Story #25 (代码生成器)** (已放弃)
   - 标题：`Story #25: 代码生成器（脚手架杀手锏）`
   - 描述：在 Vibe Coding / AI 辅助开发时代，手动代码生成器维护成本高于收益，不再实现。
@@ -221,6 +228,8 @@
 | `docs/superpowers/specs/2026-07-05-data-scope-design.md` | Story #19 | 数据权限 DataScope 详细设计 |
 | `docs/superpowers/specs/2026-07-05-system-monitor-design.md` | Story #20~#23 | 系统监控与日志详细设计 |
 | `docs/superpowers/specs/2026-07-05-api-docs-design.md` | Story #24 | API 文档（OpenAPI + Scalar）详细设计 |
+| `docs/superpowers/specs/2026-07-07-docker-ci-design.md` | Story #26 | Docker 部署 + CI/CD 详细设计 |
+| `docs/superpowers/specs/2026-07-07-story-27-security-baseline-design.md` | Story #27 | 安全基线（限流/安全头/上传校验）详细设计 |
 
 ### 实施计划
 
@@ -236,6 +245,8 @@
 | `docs/superpowers/plans/2026-07-05-frontend-infrastructure.md` | Story #16 | Story #16 实施计划 |
 | `docs/superpowers/plans/2026-07-05-system-monitor.md` | Story #20~#23 | 系统监控与日志实施计划 |
 | `docs/superpowers/plans/2026-07-05-api-docs.md` | Story #24 | Story #24 实施计划 |
+| `docs/superpowers/plans/2026-07-07-docker-ci.md` | Story #26 | Story #26 实施计划 |
+| `docs/superpowers/plans/2026-07-07-story-27-security-baseline.md` | Story #27 | Story #27 实施计划 |
 
 ### 完成报告
 
@@ -266,6 +277,7 @@
 | 2026-07-06 | 将 Story #24 标题从 "Swagger/OpenAPI 在线文档" 更新为 "API 文档（OpenAPI + Scalar）"，替换 Swagger UI 为 Scalar | Agent |
 | 2026-07-06 | 完成 Story #24（OpenAPI + Scalar）并合并到 dev；关闭 GitHub Issue #24；更新本地 Epic 与进度状态 | Agent |
 | 2026-07-07 | 完成 Story #26（Docker 部署）并合并到 dev；关闭 GitHub Issue #26；更新本地 Epic 与进度状态 | Agent |
+| 2026-07-07 | 检测并同步 Story #27 状态：关闭 GitHub Issue #27，更新本地 GITHUB_ISSUES_STATUS.md 与文档映射表 | Agent |
 
 ---
 
