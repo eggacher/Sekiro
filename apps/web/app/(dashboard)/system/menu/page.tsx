@@ -27,15 +27,21 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { TreeTable, type TreeRow } from "@/components/shared/tree-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { apiClient } from "@/lib/api/client";
+import { useTranslation } from "@/lib/i18n";
 import type { Menu } from "@sekiro/shared";
 
-const typeMeta = {
-  directory: { label: "目录", icon: Folder, color: "text-blue-500" },
-  menu: { label: "菜单", icon: FileText, color: "text-purple-500" },
-  button: { label: "按钮", icon: MousePointerClick, color: "text-amber-500" },
-} as const;
-
 export default function MenuPage() {
+  const { t } = useTranslation();
+
+  const typeMeta = React.useMemo(
+    () => ({
+      directory: { label: t("system.menu.type.directory"), icon: Folder, color: "text-blue-500" },
+      menu: { label: t("system.menu.type.menu"), icon: FileText, color: "text-purple-500" },
+      button: { label: t("system.menu.type.button"), icon: MousePointerClick, color: "text-amber-500" },
+    }),
+    [t]
+  );
+
   const [menus, setMenus] = React.useState<Menu[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [formOpen, setFormOpen] = React.useState(false);
@@ -49,7 +55,7 @@ export default function MenuPage() {
       const res = await apiClient.get<Menu[]>("/system/menu");
       setMenus(res);
     } catch (err: any) {
-      toast.error(err.message || "加载菜单列表失败");
+      toast.error(err.message || t("system.menu.fetchListFailed"));
     } finally {
       setLoading(false);
     }
@@ -64,17 +70,17 @@ export default function MenuPage() {
     try {
       if (editing) {
         await apiClient.put<Menu>(`/system/menu/${editing.id}`, { ...data, parentId });
-        toast.success("菜单更新成功");
+        toast.success(t("system.menu.updateSuccess"));
       } else {
         await apiClient.post<Menu>("/system/menu", { ...data, parentId });
-        toast.success("菜单新增成功");
+        toast.success(t("system.menu.createSuccess"));
       }
       setFormOpen(false);
       setEditing(null);
       setParentId(null);
       await fetchTree();
     } catch (err: any) {
-      toast.error(err.message || "保存菜单失败");
+      toast.error(err.message || t("system.menu.saveFailed"));
     }
   };
 
@@ -82,11 +88,11 @@ export default function MenuPage() {
     if (delId == null) return;
     try {
       await apiClient.delete(`/system/menu/${delId}`);
-      toast.success("已删除该菜单");
+      toast.success(t("system.menu.deleteSuccess"));
       setDelId(null);
       await fetchTree();
     } catch (err: any) {
-      toast.error(err.message || "删除菜单失败");
+      toast.error(err.message || t("system.menu.deleteFailed"));
     }
   };
 
@@ -96,7 +102,7 @@ export default function MenuPage() {
   const columns = [
     {
       key: "title",
-      title: "菜单名称",
+      title: t("system.menu.column.title"),
       render: (row: Menu, level: number) => {
         const meta = typeMeta[row.type];
         const Icon = meta.icon;
@@ -110,7 +116,7 @@ export default function MenuPage() {
     },
     {
       key: "type",
-      title: "类型",
+      title: t("system.menu.column.type"),
       width: 90,
       render: (row: Menu) => {
         const meta = typeMeta[row.type];
@@ -119,30 +125,30 @@ export default function MenuPage() {
     },
     {
       key: "path",
-      title: "路由/权限标识",
+      title: t("system.menu.column.path"),
       render: (row: Menu) => (
         <code className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
           {row.path || row.permission || "—"}
         </code>
       ),
     },
-    { key: "icon", title: "图标", width: 100, render: (row: Menu) => row.icon || "—" },
+    { key: "icon", title: t("system.menu.column.icon"), width: 100, render: (row: Menu) => row.icon || "—" },
     {
       key: "sort",
-      title: "排序",
+      title: t("system.menu.column.sort"),
       width: 80,
       align: "center" as const,
       render: (row: Menu) => <span className="text-muted-foreground">{row.sort}</span>,
     },
     {
       key: "status",
-      title: "状态",
+      title: t("common.status"),
       width: 100,
       render: (row: Menu) => <StatusBadge status={row.status} />,
     },
     {
       key: "actions",
-      title: "操作",
+      title: t("common.operation"),
       width: 220,
       render: (row: Menu) => (
         <div className="flex items-center gap-1">
@@ -158,7 +164,7 @@ export default function MenuPage() {
               }}
             >
               <Plus className="h-3.5 w-3.5" />
-              新增
+              {t("common.create")}
             </Button>
           )}
           <Button
@@ -172,7 +178,7 @@ export default function MenuPage() {
             }}
           >
             <Edit2 className="h-3.5 w-3.5" />
-            编辑
+            {t("common.edit")}
           </Button>
           <Button
             variant="ghost"
@@ -189,19 +195,22 @@ export default function MenuPage() {
 
   return (
     <div>
-      <PageHeader title="菜单管理" description="配置系统菜单与按钮权限，驱动侧边栏与权限控制">
+      <PageHeader title={t("system.menu.title")} description={t("system.menu.description")}>
         <Button onClick={() => { setEditing(null); setParentId(null); setFormOpen(true); }}>
           <Plus className="h-4 w-4" />
-          新增菜单
+          {t("system.menu.createMenu")}
         </Button>
       </PageHeader>
 
       <div className="rounded-lg border bg-card p-3 mb-3">
         <p className="text-xs text-muted-foreground">
-          共 {flatten(menus).length} 个节点 ·
-          目录 <Badge variant="default" className="mx-1 text-[10px]">目录</Badge>承载层级 ·
-          菜单 <Badge variant="secondary" className="mx-1 text-[10px]">菜单</Badge>对应页面 ·
-          按钮 <Badge variant="outline" className="mx-1 text-[10px]">按钮</Badge>对应操作权限
+          {t("system.menu.stats.total", { count: flatten(menus).length })} ·{" "}
+          {t("system.menu.stats.directory")} <Badge variant="default" className="mx-1 text-[10px]">{t("system.menu.stats.directory")}</Badge>
+          {t("system.menu.stats.directoryDesc")} ·{" "}
+          {t("system.menu.stats.menu")} <Badge variant="secondary" className="mx-1 text-[10px]">{t("system.menu.stats.menu")}</Badge>
+          {t("system.menu.stats.menuDesc")} ·{" "}
+          {t("system.menu.stats.button")} <Badge variant="outline" className="mx-1 text-[10px]">{t("system.menu.stats.button")}</Badge>
+          {t("system.menu.stats.buttonDesc")}
         </p>
       </div>
 
@@ -219,9 +228,9 @@ export default function MenuPage() {
       <ConfirmDialog
         open={delId != null}
         onOpenChange={(v) => !v && setDelId(null)}
-        title="删除菜单"
-        description="删除菜单会同时删除其下所有子菜单与按钮权限，确定继续吗？"
-        confirmText="确认删除"
+        title={t("system.menu.deleteTitle")}
+        description={t("system.menu.deleteDescription")}
+        confirmText={t("system.menu.deleteConfirm")}
         onConfirm={handleDelete}
       />
     </div>
@@ -254,6 +263,7 @@ function MenuFormDialog({
   allMenus: Menu[];
   onSave: (data: Partial<Menu>) => void;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = React.useState<Partial<Menu>>({});
 
   React.useEffect(() => {
@@ -271,7 +281,7 @@ function MenuFormDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title) {
-      toast.error("请输入菜单名称");
+      toast.error(t("system.menu.form.nameRequired"));
       return;
     }
     onSave(form);
@@ -281,15 +291,15 @@ function MenuFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editing ? "编辑菜单" : "新增菜单"}</DialogTitle>
+          <DialogTitle>{editing ? t("system.menu.editMenu") : t("system.menu.createMenu")}</DialogTitle>
           <DialogDescription>
-            {editing ? `修改菜单「${editing.title}」` : "配置一个新菜单或按钮权限"}
+            {editing ? t("system.menu.editDescription", { title: editing.title }) : t("system.menu.createDescription")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>类型</Label>
+              <Label>{t("system.menu.form.type")}</Label>
               <Select
                 value={form.type ?? "menu"}
                 onValueChange={(v) => setForm({ ...form, type: v as Menu["type"] })}
@@ -298,23 +308,23 @@ function MenuFormDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="directory">目录</SelectItem>
-                  <SelectItem value="menu">菜单</SelectItem>
-                  <SelectItem value="button">按钮</SelectItem>
+                  <SelectItem value="directory">{t("system.menu.type.directory")}</SelectItem>
+                  <SelectItem value="menu">{t("system.menu.type.menu")}</SelectItem>
+                  <SelectItem value="button">{t("system.menu.type.button")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>上级菜单</Label>
+              <Label>{t("system.menu.form.parent")}</Label>
               <Select
                 value={String(parentId ?? "")}
                 onValueChange={(v) => setForm({ ...form })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="根目录" />
+                  <SelectValue placeholder={t("system.menu.form.parentPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">根目录</SelectItem>
+                  <SelectItem value="">{t("system.menu.form.parentPlaceholder")}</SelectItem>
                   {flattenForSelect(allMenus).map((m) => (
                     <SelectItem key={m.id} value={String(m.id)}>
                       {"　".repeat(m.level)}{m.title}
@@ -324,15 +334,15 @@ function MenuFormDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>名称 *</Label>
+              <Label>{t("system.menu.form.name")}</Label>
               <Input
                 value={form.title ?? ""}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="菜单显示名称"
+                placeholder={t("system.menu.form.namePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>排序</Label>
+              <Label>{t("system.menu.form.sort")}</Label>
               <Input
                 type="number"
                 value={form.sort ?? 1}
@@ -342,35 +352,35 @@ function MenuFormDialog({
             {form.type !== "button" && (
               <>
                 <div className="space-y-2">
-                  <Label>路由路径</Label>
+                  <Label>{t("system.menu.form.route")}</Label>
                   <Input
                     value={form.path ?? ""}
                     onChange={(e) => setForm({ ...form, path: e.target.value })}
-                    placeholder="/system/user"
+                    placeholder={t("system.menu.form.routePlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>图标</Label>
+                  <Label>{t("system.menu.form.icon")}</Label>
                   <Input
                     value={form.icon ?? ""}
                     onChange={(e) => setForm({ ...form, icon: e.target.value })}
-                    placeholder="lucide 图标名"
+                    placeholder={t("system.menu.form.iconPlaceholder")}
                   />
                 </div>
               </>
             )}
             {form.type === "button" && (
               <div className="col-span-2 space-y-2">
-                <Label>权限标识</Label>
+                <Label>{t("system.menu.form.permission")}</Label>
                 <Input
                   value={form.permission ?? ""}
                   onChange={(e) => setForm({ ...form, permission: e.target.value })}
-                  placeholder="system:user:create"
+                  placeholder={t("system.menu.form.permissionPlaceholder")}
                 />
               </div>
             )}
             <div className="space-y-2">
-              <Label>状态</Label>
+              <Label>{t("common.status")}</Label>
               <Select
                 value={form.status ?? "enabled"}
                 onValueChange={(v) => setForm({ ...form, status: v as Menu["status"] })}
@@ -379,17 +389,17 @@ function MenuFormDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="enabled">启用</SelectItem>
-                  <SelectItem value="disabled">停用</SelectItem>
+                  <SelectItem value="enabled">{t("system.status.enabled")}</SelectItem>
+                  <SelectItem value="disabled">{t("system.status.disabled")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter className="pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              取消
+              {t("common.cancel")}
             </Button>
-            <Button type="submit">{editing ? "保存" : "创建"}</Button>
+            <Button type="submit">{editing ? t("common.save") : t("common.create")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

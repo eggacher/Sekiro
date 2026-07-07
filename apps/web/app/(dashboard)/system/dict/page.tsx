@@ -21,9 +21,11 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api/client";
+import { useTranslation } from "@/lib/i18n";
 import type { DictType, DictItem, PageResult } from "@sekiro/shared";
 
 export default function DictPage() {
+  const { t } = useTranslation();
   const [dicts, setDicts] = React.useState<DictType[]>([]);
   const [activeId, setActiveId] = React.useState<number | null>(null);
   const [items, setItems] = React.useState<DictItem[]>([]);
@@ -53,7 +55,7 @@ export default function DictPage() {
         setActiveId(res.list[0].id);
       }
     } catch (err: any) {
-      toast.error(err.message || "加载字典类型失败");
+      toast.error(err.message || t("system.dict.fetchTypesFailed"));
     } finally {
       setLoading(false);
     }
@@ -65,7 +67,7 @@ export default function DictPage() {
       const res = await apiClient.get<PageResult<DictItem>>(`/system/dict-item?typeId=${typeId}&page=1&pageSize=1000`);
       setItems(res.list);
     } catch (err: any) {
-      toast.error(err.message || "加载字典项失败");
+      toast.error(err.message || t("system.dict.fetchItemsFailed"));
     } finally {
       setItemsLoading(false);
     }
@@ -93,7 +95,7 @@ export default function DictPage() {
           status: data.status,
           remark: data.remark,
         });
-        toast.success("字典类型更新成功");
+        toast.success(t("system.dict.typeUpdateSuccess"));
       } else {
         const res = await apiClient.post<DictType>("/system/dict", {
           name: data.name,
@@ -102,13 +104,13 @@ export default function DictPage() {
           remark: data.remark,
         });
         setActiveId(res.id);
-        toast.success("字典类型新增成功");
+        toast.success(t("system.dict.typeCreateSuccess"));
       }
       setTypeFormOpen(false);
       setEditingType(null);
       await fetchTypes();
     } catch (err: any) {
-      toast.error(err.message || "保存字典类型失败");
+      toast.error(err.message || t("system.dict.typeSaveFailed"));
     }
   };
 
@@ -116,7 +118,7 @@ export default function DictPage() {
     if (delType === null) return;
     try {
       await apiClient.delete(`/system/dict/${delType}`);
-      toast.success("已删除字典类型");
+      toast.success(t("system.dict.typeDeleteSuccess"));
       setDelType(null);
       const remaining = dicts.filter((d) => d.id !== delType);
       if (activeId === delType) {
@@ -124,7 +126,7 @@ export default function DictPage() {
       }
       await fetchTypes();
     } catch (err: any) {
-      toast.error(err.message || "删除字典类型失败");
+      toast.error(err.message || t("system.dict.typeDeleteFailed"));
     }
   };
 
@@ -138,7 +140,7 @@ export default function DictPage() {
           sort: data.sort,
           status: data.status,
         });
-        toast.success("字典项更新成功");
+        toast.success(t("system.dict.itemUpdateSuccess"));
       } else {
         await apiClient.post("/system/dict-item", {
           typeId: activeId,
@@ -147,13 +149,13 @@ export default function DictPage() {
           sort: data.sort,
           status: data.status,
         });
-        toast.success("字典项新增成功");
+        toast.success(t("system.dict.itemCreateSuccess"));
       }
       setItemFormOpen(false);
       setEditingItem(null);
       await fetchItems(activeId);
     } catch (err: any) {
-      toast.error(err.message || "保存字典项失败");
+      toast.error(err.message || t("system.dict.itemSaveFailed"));
     }
   };
 
@@ -163,40 +165,40 @@ export default function DictPage() {
     if (!itemToDelete) return;
     try {
       await apiClient.delete(`/system/dict-item/${itemToDelete.id}`);
-      toast.success("已删除字典项");
+      toast.success(t("system.dict.itemDeleteSuccess"));
       setDelItemValue(null);
       if (activeId !== null) {
         await fetchItems(activeId);
       }
     } catch (err: any) {
-      toast.error(err.message || "删除字典项失败");
+      toast.error(err.message || t("system.dict.itemDeleteFailed"));
     }
   };
 
   return (
     <div>
-      <PageHeader title="数据字典" description="维护系统中常用的枚举与常量，供下拉、标签复用" />
+      <PageHeader title={t("system.dict.title")} description={t("system.dict.description")} />
 
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         {/* 左侧：字典类型 */}
         <div className="rounded-lg border bg-card">
           <div className="flex items-center justify-between border-b p-3">
-            <span className="text-sm font-medium">字典类型</span>
+            <span className="text-sm font-medium">{t("system.dict.typeTitle")}</span>
             <Button size="sm" variant="ghost" className="h-7"
               onClick={() => { setEditingType(null); setTypeFormOpen(true); }}>
-              <Plus className="h-3.5 w-3.5" />新增
+              <Plus className="h-3.5 w-3.5" />{t("common.create")}
             </Button>
           </div>
           <div className="p-2">
             <div className="relative mb-2">
               <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={kw} onChange={(e) => setKw(e.target.value)} placeholder="搜索字典" className="h-8 pl-8" />
+              <Input value={kw} onChange={(e) => setKw(e.target.value)} placeholder={t("system.dict.searchPlaceholder")} className="h-8 pl-8" />
             </div>
             <div className="scrollbar-thin max-h-[560px] space-y-0.5 overflow-y-auto">
               {loading ? (
-                <div className="py-8 text-center text-sm text-muted-foreground">加载中...</div>
+                <div className="py-8 text-center text-sm text-muted-foreground">{t("system.dict.loading")}</div>
               ) : filteredTypes.length === 0 ? (
-                <div className="py-8 text-center text-sm text-muted-foreground">无匹配字典</div>
+                <div className="py-8 text-center text-sm text-muted-foreground">{t("system.dict.noMatch")}</div>
               ) : (
                 filteredTypes.map((d) => (
                   <button
@@ -224,7 +226,7 @@ export default function DictPage() {
           {!active ? (
             <div className="flex h-[300px] flex-col items-center justify-center text-muted-foreground">
               <BookMarked className="mb-2 h-8 w-8 opacity-50" />
-              请选择或创建一个字典类型
+              {t("system.dict.emptyState")}
             </div>
           ) : (
             <>
@@ -239,40 +241,40 @@ export default function DictPage() {
                 <div className="flex gap-1">
                   <Button size="sm" variant="ghost" className="h-7"
                     onClick={() => { setEditingType(active); setTypeFormOpen(true); }}>
-                    <Edit2 className="h-3.5 w-3.5" />编辑类型
+                    <Edit2 className="h-3.5 w-3.5" />{t("system.dict.editType")}
                   </Button>
                   <Button size="sm" variant="ghost" className="h-7 text-destructive"
                     onClick={() => setDelType(active.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />删除类型
+                    <Trash2 className="h-3.5 w-3.5" />{t("system.dict.deleteType")}
                   </Button>
                   <Button size="sm"
                     onClick={() => { setEditingItem(null); setItemFormOpen(true); }}>
-                    <Plus className="h-3.5 w-3.5" />新增字典项
+                    <Plus className="h-3.5 w-3.5" />{t("system.dict.createItem")}
                   </Button>
                 </div>
               </div>
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/40 hover:bg-muted/40">
-                    <TableHead className="w-16">序号</TableHead>
-                    <TableHead>字典标签</TableHead>
-                    <TableHead>字典值</TableHead>
-                    <TableHead className="w-20 text-center">排序</TableHead>
-                    <TableHead className="w-24">状态</TableHead>
-                    <TableHead className="w-28 text-right">操作</TableHead>
+                    <TableHead className="w-16">{t("system.dict.column.index")}</TableHead>
+                    <TableHead>{t("system.dict.column.label")}</TableHead>
+                    <TableHead>{t("system.dict.column.value")}</TableHead>
+                    <TableHead className="w-20 text-center">{t("system.dict.column.sort")}</TableHead>
+                    <TableHead className="w-24">{t("common.status")}</TableHead>
+                    <TableHead className="w-28 text-right">{t("system.dict.column.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {itemsLoading ? (
                     <TableRow>
                       <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                        加载中...
+                        {t("system.dict.itemsLoading")}
                       </TableCell>
                     </TableRow>
                   ) : items.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                        暂无字典项，点击右上角&quot;新增字典项&quot;
+                        {t("system.dict.noItems")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -313,10 +315,11 @@ export default function DictPage() {
         editing={editingItem} onSave={saveItem} />
 
       <ConfirmDialog open={delType != null} onOpenChange={(v) => !v && setDelType(null)}
-        title="删除字典类型" description="删除后该类型下所有字典项将一并逻辑删除，确定继续吗？"
-        confirmText="确认删除" onConfirm={deleteType} />
+        title={t("system.dict.deleteTypeTitle")} description={t("system.dict.deleteTypeDescription")}
+        confirmText={t("system.dict.deleteConfirm")} onConfirm={deleteType} />
       <ConfirmDialog open={delItemValue != null} onOpenChange={(v) => !v && setDelItemValue(null)}
-        title="删除字典项" description="确定要删除该字典项吗？" confirmText="确认删除" onConfirm={deleteItem} />
+        title={t("system.dict.deleteItemTitle")} description={t("system.dict.deleteItemDescription")}
+        confirmText={t("system.dict.deleteConfirm")} onConfirm={deleteItem} />
     </div>
   );
 }
@@ -325,12 +328,13 @@ function DictTypeDialog({ open, onOpenChange, editing, onSave }: {
   open: boolean; onOpenChange: (v: boolean) => void;
   editing: DictType | null; onSave: (data: Partial<DictType>) => void;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = React.useState<Partial<DictType>>({});
   React.useEffect(() => { if (open) setForm(editing ?? { status: "enabled" }); }, [open, editing]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.code) { toast.error("请填写字典名称与编码"); return; }
+    if (!form.name || !form.code) { toast.error(t("system.dict.typeDialog.formError")); return; }
     onSave(form);
   };
 
@@ -338,37 +342,37 @@ function DictTypeDialog({ open, onOpenChange, editing, onSave }: {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editing ? "编辑字典类型" : "新增字典类型"}</DialogTitle>
-          <DialogDescription>{editing ? `修改「${editing.name}」` : "创建一个新的字典分类"}</DialogDescription>
+          <DialogTitle>{editing ? t("system.dict.typeDialog.editTitle") : t("system.dict.typeDialog.createTitle")}</DialogTitle>
+          <DialogDescription>{editing ? t("system.dict.typeDialog.editDescription", { name: editing.name }) : t("system.dict.typeDialog.createDescription")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>字典名称 *</Label>
+              <Label>{t("system.dict.typeDialog.nameLabel")}</Label>
               <Input value={form.name ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>字典编码 *</Label>
-              <Input value={form.code ?? ""} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="sys_xxx" disabled={!!editing} />
+              <Label>{t("system.dict.typeDialog.codeLabel")}</Label>
+              <Input value={form.code ?? ""} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder={t("system.dict.typeDialog.codePlaceholder")} disabled={!!editing} />
             </div>
             <div className="space-y-2">
-              <Label>状态</Label>
+              <Label>{t("common.status")}</Label>
               <Select value={form.status ?? "enabled"} onValueChange={(v) => setForm({ ...form, status: v as DictType["status"] })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="enabled">启用</SelectItem>
-                  <SelectItem value="disabled">停用</SelectItem>
+                  <SelectItem value="enabled">{t("system.status.enabled")}</SelectItem>
+                  <SelectItem value="disabled">{t("system.status.disabled")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="space-y-2">
-            <Label>备注</Label>
-            <Input value={form.remark ?? ""} onChange={(e) => setForm({ ...form, remark: e.target.value })} placeholder="字典用途说明" />
+            <Label>{t("system.dict.typeDialog.remarkLabel")}</Label>
+            <Input value={form.remark ?? ""} onChange={(e) => setForm({ ...form, remark: e.target.value })} placeholder={t("system.dict.typeDialog.remarkPlaceholder")} />
           </div>
           <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
-            <Button type="submit">{editing ? "保存" : "创建"}</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+            <Button type="submit">{editing ? t("common.save") : t("common.create")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -380,12 +384,13 @@ function DictItemDialog({ open, onOpenChange, editing, onSave }: {
   open: boolean; onOpenChange: (v: boolean) => void;
   editing: DictItem | null; onSave: (data: Partial<DictItem>) => void;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = React.useState<Partial<DictItem>>({});
   React.useEffect(() => { if (open) setForm(editing ?? { status: "enabled", sort: 1 }); }, [open, editing]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.label || form.value == null) { toast.error("请填写字典标签与值"); return; }
+    if (!form.label || form.value == null) { toast.error(t("system.dict.itemDialog.formError")); return; }
     onSave(form);
   };
 
@@ -393,37 +398,37 @@ function DictItemDialog({ open, onOpenChange, editing, onSave }: {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editing ? "编辑字典项" : "新增字典项"}</DialogTitle>
-          <DialogDescription>{editing ? `修改「${editing.label}」` : "为当前字典类型添加一个选项"}</DialogDescription>
+          <DialogTitle>{editing ? t("system.dict.itemDialog.editTitle") : t("system.dict.itemDialog.createTitle")}</DialogTitle>
+          <DialogDescription>{editing ? t("system.dict.itemDialog.editDescription", { label: editing.label }) : t("system.dict.itemDialog.createDescription")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>字典标签 *</Label>
-              <Input value={form.label ?? ""} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="显示文本，如：男" />
+              <Label>{t("system.dict.itemDialog.labelLabel")}</Label>
+              <Input value={form.label ?? ""} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder={t("system.dict.itemDialog.labelPlaceholder")} />
             </div>
             <div className="space-y-2">
-              <Label>字典值 *</Label>
-              <Input value={form.value ?? ""} onChange={(e) => setForm({ ...form, value: e.target.value })} placeholder="存储值，如：0" disabled={!!editing} />
+              <Label>{t("system.dict.itemDialog.valueLabel")}</Label>
+              <Input value={form.value ?? ""} onChange={(e) => setForm({ ...form, value: e.target.value })} placeholder={t("system.dict.itemDialog.valuePlaceholder")} disabled={!!editing} />
             </div>
             <div className="space-y-2">
-              <Label>排序</Label>
+              <Label>{t("system.dict.itemDialog.sortLabel")}</Label>
               <Input type="number" value={form.sort ?? 1} onChange={(e) => setForm({ ...form, sort: Number(e.target.value) })} />
             </div>
             <div className="space-y-2">
-              <Label>状态</Label>
+              <Label>{t("common.status")}</Label>
               <Select value={form.status ?? "enabled"} onValueChange={(v) => setForm({ ...form, status: v as DictItem["status"] })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="enabled">启用</SelectItem>
-                  <SelectItem value="disabled">停用</SelectItem>
+                  <SelectItem value="enabled">{t("system.status.enabled")}</SelectItem>
+                  <SelectItem value="disabled">{t("system.status.disabled")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
-            <Button type="submit">{editing ? "保存" : "创建"}</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+            <Button type="submit">{editing ? t("common.save") : t("common.create")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

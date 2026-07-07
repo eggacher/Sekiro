@@ -36,9 +36,11 @@ import { CrudTable, type Column } from "@/components/shared/crud-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { apiClient } from "@/lib/api/client";
+import { useTranslation } from "@/lib/i18n";
 import type { User, Dept, Role, PageResult } from "@sekiro/shared";
 
 export default function UserPage() {
+  const { t } = useTranslation();
   const [users, setUsers] = React.useState<User[]>([]);
   const [depts, setDepts] = React.useState<Dept[]>([]);
   const [roles, setRoles] = React.useState<Role[]>([]);
@@ -56,7 +58,7 @@ export default function UserPage() {
       const res = await apiClient.get<PageResult<User>>("/system/user?page=1&pageSize=1000");
       setUsers(res.list);
     } catch (err: any) {
-      toast.error(err.message || "加载用户列表失败");
+      toast.error(err.message || t("system.user.fetchListFailed"));
     } finally {
       setLoading(false);
     }
@@ -67,7 +69,7 @@ export default function UserPage() {
       const res = await apiClient.get<Dept[]>("/system/dept");
       setDepts(res);
     } catch (err: any) {
-      toast.error(err.message || "加载部门列表失败");
+      toast.error(err.message || t("system.user.fetchDeptsFailed"));
     }
   };
 
@@ -76,7 +78,7 @@ export default function UserPage() {
       const res = await apiClient.get<PageResult<Role>>("/system/role?page=1&pageSize=1000");
       setRoles(res.list || []);
     } catch (err: any) {
-      toast.error(err.message || "加载角色列表失败");
+      toast.error(err.message || t("system.user.fetchRolesFailed"));
     }
   };
 
@@ -91,16 +93,16 @@ export default function UserPage() {
     try {
       if (editing) {
         await apiClient.put<User>(`/system/user/${editing.id}`, data);
-        toast.success("用户更新成功");
+        toast.success(t("system.user.updateSuccess"));
       } else {
         await apiClient.post<User>("/system/user", data);
-        toast.success("用户新增成功");
+        toast.success(t("system.user.createSuccess"));
       }
       setFormOpen(false);
       setEditing(null);
       await fetchUsers();
     } catch (err: any) {
-      toast.error(err.message || "保存用户失败");
+      toast.error(err.message || t("system.user.saveFailed"));
     }
   };
 
@@ -108,11 +110,11 @@ export default function UserPage() {
     if (delId == null) return;
     try {
       await apiClient.delete(`/system/user/${delId}`);
-      toast.success("已删除该用户");
+      toast.success(t("system.user.deleteSuccess"));
       setDelId(null);
       await fetchUsers();
     } catch (err: any) {
-      toast.error(err.message || "删除用户失败");
+      toast.error(err.message || t("system.user.deleteFailed"));
     }
   };
 
@@ -120,10 +122,10 @@ export default function UserPage() {
     if (!resetTarget) return;
     try {
       await apiClient.put(`/system/user/${resetTarget.id}/reset-password`, {});
-      toast.success("密码重置成功");
+      toast.success(t("system.user.resetPasswordSuccess"));
       setResetTarget(null);
     } catch (err: any) {
-      toast.error(err.message || "重置密码失败");
+      toast.error(err.message || t("system.user.resetPasswordFailed"));
     }
   };
 
@@ -135,13 +137,13 @@ export default function UserPage() {
   const columns: Column<User>[] = [
     {
       key: "id",
-      title: "编号",
+      title: t("system.user.column.id"),
       width: 70,
       render: (row) => <span className="text-muted-foreground">{row.id}</span>,
     },
     {
       key: "username",
-      title: "用户信息",
+      title: t("system.user.column.userInfo"),
       render: (row) => (
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
@@ -156,34 +158,34 @@ export default function UserPage() {
         </div>
       ),
     },
-    { key: "deptName", title: "部门" },
+    { key: "deptName", title: t("system.user.column.dept") },
     {
       key: "roleNames",
-      title: "角色",
+      title: t("system.user.column.roles"),
       render: (row) => (
         <div className="flex flex-wrap gap-1">
           {(row.roleNames || row.roleIds || []).map((r, i) => (
             <Badge key={i} variant="secondary" className="font-normal">
-              {typeof r === "string" ? r : `角色 ${r}`}
+              {typeof r === "string" ? r : t("system.user.roleFallback", { id: r })}
             </Badge>
           ))}
         </div>
       ),
     },
-    { key: "phone", title: "手机" },
+    { key: "phone", title: t("system.user.column.phone") },
     {
       key: "status",
-      title: "状态",
+      title: t("common.status"),
       render: (row) => <StatusBadge status={row.status} />,
     },
     {
       key: "lastLoginTime",
-      title: "最后登录",
+      title: t("system.user.column.lastLogin"),
       render: (row) => <span className="text-muted-foreground">{row.lastLoginTime ?? "—"}</span>,
     },
     {
       key: "actions",
-      title: "操作",
+      title: t("common.operation"),
       width: 180,
       align: "right",
       render: (row) => (
@@ -198,7 +200,7 @@ export default function UserPage() {
             }}
           >
             <Edit2 className="h-3.5 w-3.5" />
-            编辑
+            {t("common.edit")}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -209,11 +211,11 @@ export default function UserPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setResetTarget(row)}>
                 <KeyRound className="h-4 w-4" />
-                重置密码
+                {t("system.user.resetPassword")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => openAssignRoles(row)}>
                 <ShieldCheck className="h-4 w-4" />
-                分配角色
+                {t("system.user.assignRoles")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -221,7 +223,7 @@ export default function UserPage() {
                 onClick={() => setDelId(row.id)}
               >
                 <Trash2 className="h-4 w-4" />
-                删除
+                {t("common.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -232,14 +234,14 @@ export default function UserPage() {
 
   return (
     <div>
-      <PageHeader title="用户管理" description="维护系统用户，分配角色与权限">
+      <PageHeader title={t("system.user.title")} description={t("system.user.description")}>
         <Button variant="outline">
           <Upload className="h-4 w-4" />
-          导入
+          {t("system.user.import")}
         </Button>
         <Button variant="outline">
           <Download className="h-4 w-4" />
-          导出
+          {t("system.user.export")}
         </Button>
         <Button
           onClick={() => {
@@ -248,7 +250,7 @@ export default function UserPage() {
           }}
         >
           <Plus className="h-4 w-4" />
-          新增用户
+          {t("system.user.createUser")}
         </Button>
       </PageHeader>
 
@@ -257,22 +259,22 @@ export default function UserPage() {
         data={users}
         loading={loading}
         searchFields={[
-          { key: "username", label: "用户名", placeholder: "请输入用户名" },
-          { key: "phone", label: "手机号", placeholder: "请输入手机号" },
+          { key: "username", label: t("system.user.search.username"), placeholder: t("system.user.search.usernamePlaceholder") },
+          { key: "phone", label: t("system.user.search.phone"), placeholder: t("system.user.search.phonePlaceholder") },
           {
             key: "status",
-            label: "状态",
+            label: t("common.status"),
             type: "select",
             options: [
-              { label: "启用", value: "enabled" },
-              { label: "停用", value: "disabled" },
+              { label: t("system.status.enabled"), value: "enabled" },
+              { label: t("system.status.disabled"), value: "disabled" },
             ],
           },
         ]}
         toolbar={
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4" />
-            导出数据
+            {t("system.user.exportData")}
           </Button>
         }
       />
@@ -295,12 +297,12 @@ export default function UserPage() {
           if (!roleTarget) return;
           try {
             await apiClient.put(`/system/user/${roleTarget.id}/roles`, { roleIds });
-            toast.success("分配角色成功");
+            toast.success(t("system.user.assignRolesSuccess"));
             setRoleOpen(false);
             setRoleTarget(null);
             await fetchUsers();
           } catch (err: any) {
-            toast.error(err.message || "分配角色失败");
+            toast.error(err.message || t("system.user.assignRolesFailed"));
           }
         }}
       />
@@ -308,18 +310,18 @@ export default function UserPage() {
       <ConfirmDialog
         open={delId != null}
         onOpenChange={(v) => !v && setDelId(null)}
-        title="删除用户"
-        description="删除后该用户将无法登录系统，且相关数据将被清除。此操作不可撤销，确定继续吗？"
-        confirmText="确认删除"
+        title={t("system.user.deleteTitle")}
+        description={t("system.user.deleteDescription")}
+        confirmText={t("system.user.deleteConfirm")}
         onConfirm={handleDelete}
       />
 
       <ConfirmDialog
         open={resetTarget != null}
         onOpenChange={(v) => !v && setResetTarget(null)}
-        title="重置密码"
-        description={resetTarget ? `确定要重置用户「${resetTarget.nickname}」的登录密码吗？` : ""}
-        confirmText="确认重置"
+        title={t("system.user.resetPasswordTitle")}
+        description={resetTarget ? t("system.user.resetPasswordDescription", { name: resetTarget.nickname }) : ""}
+        confirmText={t("system.user.resetConfirm")}
         onConfirm={handleResetPassword}
       />
     </div>
@@ -341,6 +343,7 @@ function UserFormDialog({
   roles: Role[];
   onSave: (data: Partial<User>) => void;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = React.useState<Partial<User>>({});
 
   React.useEffect(() => {
@@ -358,7 +361,7 @@ function UserFormDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.username) {
-      toast.error("请输入用户名");
+      toast.error(t("system.user.form.usernameRequired"));
       return;
     }
     onSave(form);
@@ -377,40 +380,40 @@ function UserFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{editing ? "编辑用户" : "新增用户"}</DialogTitle>
+          <DialogTitle>{editing ? t("system.user.editUser") : t("system.user.createUser")}</DialogTitle>
           <DialogDescription>
-            {editing ? `修改用户 ${editing.nickname} 的信息` : "创建一个新的系统用户"}
+            {editing ? t("system.user.editDescription", { name: editing.nickname }) : t("system.user.createDescription")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>用户名 *</Label>
+              <Label>{t("system.user.form.username")}</Label>
               <Input
                 value={form.username ?? ""}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
-                placeholder="登录账号"
+                placeholder={t("system.user.form.usernamePlaceholder")}
                 disabled={!!editing}
               />
             </div>
             <div className="space-y-2">
-              <Label>昵称</Label>
+              <Label>{t("system.user.form.nickname")}</Label>
               <Input
                 value={form.nickname ?? ""}
                 onChange={(e) => setForm({ ...form, nickname: e.target.value })}
-                placeholder="显示名称"
+                placeholder={t("system.user.form.nicknamePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>手机号</Label>
+              <Label>{t("system.user.form.phone")}</Label>
               <Input
                 value={form.phone ?? ""}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="11 位手机号"
+                placeholder={t("system.user.form.phonePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>邮箱</Label>
+              <Label>{t("system.user.form.email")}</Label>
               <Input
                 type="email"
                 value={form.email ?? ""}
@@ -419,7 +422,7 @@ function UserFormDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>部门</Label>
+              <Label>{t("system.user.form.dept")}</Label>
               <Select
                 value={String(form.deptId ?? "")}
                 onValueChange={(v) => setForm({ ...form, deptId: Number(v) })}
@@ -437,7 +440,7 @@ function UserFormDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>状态</Label>
+              <Label>{t("common.status")}</Label>
               <Select
                 value={form.status ?? "enabled"}
                 onValueChange={(v) => setForm({ ...form, status: v as User["status"] })}
@@ -446,13 +449,13 @@ function UserFormDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="enabled">启用</SelectItem>
-                  <SelectItem value="disabled">停用</SelectItem>
+                  <SelectItem value="enabled">{t("system.status.enabled")}</SelectItem>
+                  <SelectItem value="disabled">{t("system.status.disabled")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="col-span-2 space-y-2">
-              <Label>角色</Label>
+              <Label>{t("system.user.form.roles")}</Label>
               <div className="flex flex-wrap gap-3 rounded-md border p-3">
                 {roles.map((r) => (
                   <label key={r.id} className="flex items-center gap-2 text-sm">
@@ -468,9 +471,9 @@ function UserFormDialog({
           </div>
           <DialogFooter className="pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              取消
+              {t("common.cancel")}
             </Button>
-            <Button type="submit">{editing ? "保存" : "创建"}</Button>
+            <Button type="submit">{editing ? t("common.save") : t("common.create")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -491,6 +494,7 @@ function RoleAssignDialog({
   roles: Role[];
   onSave: (roleIds: number[]) => void;
 }) {
+  const { t } = useTranslation();
   const [selected, setSelected] = React.useState<number[]>([]);
 
   React.useEffect(() => {
@@ -507,8 +511,8 @@ function RoleAssignDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>分配角色 · {target?.nickname ?? ""}</DialogTitle>
-          <DialogDescription>勾选需要分配给该用户的角色</DialogDescription>
+          <DialogTitle>{t("system.user.assignRolesTitle", { name: target?.nickname ?? "" })}</DialogTitle>
+          <DialogDescription>{t("system.user.assignRolesDescription")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-2 py-2">
           {roles.map((r) => (
@@ -529,9 +533,9 @@ function RoleAssignDialog({
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            取消
+            {t("common.cancel")}
           </Button>
-          <Button onClick={() => onSave(selected)}>保存</Button>
+          <Button onClick={() => onSave(selected)}>{t("common.save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -26,9 +26,11 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { TreeTable, type TreeRow } from "@/components/shared/tree-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { apiClient } from "@/lib/api/client";
+import { useTranslation } from "@/lib/i18n";
 import type { Dept } from "@sekiro/shared";
 
 export default function DeptPage() {
+  const { t } = useTranslation();
   const [depts, setDepts] = React.useState<Dept[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [formOpen, setFormOpen] = React.useState(false);
@@ -42,7 +44,7 @@ export default function DeptPage() {
       const res = await apiClient.get<Dept[]>("/system/dept");
       setDepts(res);
     } catch (err: any) {
-      toast.error(err.message || "加载部门列表失败");
+      toast.error(err.message || t("system.dept.fetchListFailed"));
     } finally {
       setLoading(false);
     }
@@ -57,17 +59,17 @@ export default function DeptPage() {
     try {
       if (editing) {
         await apiClient.put<Dept>(`/system/dept/${editing.id}`, { ...data, parentId });
-        toast.success("部门更新成功");
+        toast.success(t("system.dept.updateSuccess"));
       } else {
         await apiClient.post<Dept>("/system/dept", { ...data, parentId });
-        toast.success("部门新增成功");
+        toast.success(t("system.dept.createSuccess"));
       }
       setFormOpen(false);
       setEditing(null);
       setParentId(null);
       await fetchTree();
     } catch (err: any) {
-      toast.error(err.message || "保存部门失败");
+      toast.error(err.message || t("system.dept.saveFailed"));
     }
   };
 
@@ -75,18 +77,18 @@ export default function DeptPage() {
     if (delId == null) return;
     try {
       await apiClient.delete(`/system/dept/${delId}`);
-      toast.success("已删除该部门");
+      toast.success(t("system.dept.deleteSuccess"));
       setDelId(null);
       await fetchTree();
     } catch (err: any) {
-      toast.error(err.message || "删除部门失败");
+      toast.error(err.message || t("system.dept.deleteFailed"));
     }
   };
 
   const columns = [
     {
       key: "name",
-      title: "部门名称",
+      title: t("system.dept.column.name"),
       render: (row: Dept, level: number) => (
         <span className="flex items-center gap-2">
           <Building2 className={`h-4 w-4 ${level === 0 ? "text-primary" : "text-muted-foreground"}`} />
@@ -96,7 +98,7 @@ export default function DeptPage() {
     },
     {
       key: "leader",
-      title: "负责人",
+      title: t("system.dept.column.leader"),
       width: 140,
       render: (row: Dept) =>
         row.leader ? (
@@ -110,7 +112,7 @@ export default function DeptPage() {
     },
     {
       key: "phone",
-      title: "联系电话",
+      title: t("system.dept.column.phone"),
       width: 160,
       render: (row: Dept) =>
         row.phone ? (
@@ -124,20 +126,20 @@ export default function DeptPage() {
     },
     {
       key: "sort",
-      title: "排序",
+      title: t("system.dept.column.sort"),
       width: 80,
       align: "center" as const,
       render: (row: Dept) => <span className="text-muted-foreground">{row.sort}</span>,
     },
     {
       key: "status",
-      title: "状态",
+      title: t("common.status"),
       width: 100,
       render: (row: Dept) => <StatusBadge status={row.status} />,
     },
     {
       key: "actions",
-      title: "操作",
+      title: t("common.operation"),
       width: 220,
       render: (row: Dept) => (
         <div className="flex items-center gap-1">
@@ -148,7 +150,7 @@ export default function DeptPage() {
             onClick={() => { setEditing(null); setParentId(row.id); setFormOpen(true); }}
           >
             <Plus className="h-3.5 w-3.5" />
-            新增
+            {t("common.create")}
           </Button>
           <Button
             variant="ghost"
@@ -157,7 +159,7 @@ export default function DeptPage() {
             onClick={() => { setEditing(row); setParentId(findParentId(depts, row.id)); setFormOpen(true); }}
           >
             <Edit2 className="h-3.5 w-3.5" />
-            编辑
+            {t("common.edit")}
           </Button>
           <Button
             variant="ghost"
@@ -174,10 +176,10 @@ export default function DeptPage() {
 
   return (
     <div>
-      <PageHeader title="部门管理" description="维护组织架构，配置数据权限范围">
+      <PageHeader title={t("system.dept.title")} description={t("system.dept.description")}>
         <Button onClick={() => { setEditing(null); setParentId(null); setFormOpen(true); }}>
           <Plus className="h-4 w-4" />
-          新增部门
+          {t("system.dept.createDept")}
         </Button>
       </PageHeader>
 
@@ -195,9 +197,9 @@ export default function DeptPage() {
       <ConfirmDialog
         open={delId != null}
         onOpenChange={(v) => !v && setDelId(null)}
-        title="删除部门"
-        description="删除部门会同时删除其下所有子部门，确定继续吗？"
-        confirmText="确认删除"
+        title={t("system.dept.deleteTitle")}
+        description={t("system.dept.deleteDescription")}
+        confirmText={t("system.dept.deleteConfirm")}
         onConfirm={handleDelete}
       />
     </div>
@@ -232,6 +234,7 @@ function DeptFormDialog({
   allDepts: Dept[];
   onSave: (data: Partial<Dept>) => void;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = React.useState<Partial<Dept>>({});
 
   React.useEffect(() => {
@@ -241,7 +244,7 @@ function DeptFormDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name) {
-      toast.error("请输入部门名称");
+      toast.error(t("system.dept.form.nameRequired"));
       return;
     }
     onSave(form);
@@ -251,19 +254,19 @@ function DeptFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editing ? "编辑部门" : "新增部门"}</DialogTitle>
+          <DialogTitle>{editing ? t("system.dept.editDept") : t("system.dept.createDept")}</DialogTitle>
           <DialogDescription>
-            {editing ? `修改部门「${editing.name}」` : "在组织架构中新增一个部门"}
+            {editing ? t("system.dept.editDescription", { name: editing.name }) : t("system.dept.createDescription")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>上级部门</Label>
+              <Label>{t("system.dept.form.parent")}</Label>
               <Select value={String(parentId ?? "")} onValueChange={() => setForm({ ...form })}>
-                <SelectTrigger><SelectValue placeholder="顶级部门" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("system.dept.form.parentPlaceholder")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">顶级部门</SelectItem>
+                  <SelectItem value="">{t("system.dept.form.parentPlaceholder")}</SelectItem>
                   {flattenForSelect(allDepts).map((m) => (
                     <SelectItem key={m.id} value={String(m.id)}>
                       {"　".repeat(m.level)}{m.name}
@@ -273,31 +276,31 @@ function DeptFormDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>部门名称 *</Label>
+              <Label>{t("system.dept.form.name")}</Label>
               <Input
                 value={form.name ?? ""}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="部门名称"
+                placeholder={t("system.dept.form.namePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>负责人</Label>
+              <Label>{t("system.dept.form.leader")}</Label>
               <Input
                 value={form.leader ?? ""}
                 onChange={(e) => setForm({ ...form, leader: e.target.value })}
-                placeholder="负责人姓名"
+                placeholder={t("system.dept.form.leaderPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>联系电话</Label>
+              <Label>{t("system.dept.form.phone")}</Label>
               <Input
                 value={form.phone ?? ""}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="联系电话"
+                placeholder={t("system.dept.form.phonePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>排序</Label>
+              <Label>{t("system.dept.form.sort")}</Label>
               <Input
                 type="number"
                 value={form.sort ?? 1}
@@ -305,22 +308,22 @@ function DeptFormDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>状态</Label>
+              <Label>{t("common.status")}</Label>
               <Select
                 value={form.status ?? "enabled"}
                 onValueChange={(v) => setForm({ ...form, status: v as Dept["status"] })}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="enabled">启用</SelectItem>
-                  <SelectItem value="disabled">停用</SelectItem>
+                  <SelectItem value="enabled">{t("system.status.enabled")}</SelectItem>
+                  <SelectItem value="disabled">{t("system.status.disabled")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
-            <Button type="submit">{editing ? "保存" : "创建"}</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+            <Button type="submit">{editing ? t("common.save") : t("common.create")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
