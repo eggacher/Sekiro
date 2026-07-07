@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/shared/page-header";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { apiClient } from "@/lib/api/client";
+import { useTranslation } from "@/lib/i18n";
 
 type NotificationPrefs = {
   system: boolean;
@@ -23,14 +24,14 @@ type NotificationPrefs = {
   email: boolean;
 };
 
-const NOTIFICATION_LABELS: Record<
+const NOTIFICATION_LABEL_KEYS: Record<
   keyof NotificationPrefs,
-  { label: string; desc: string }
+  { label: "profile.notification.system.label" | "profile.notification.operation.label" | "profile.notification.security.label" | "profile.notification.email.label"; desc: "profile.notification.system.desc" | "profile.notification.operation.desc" | "profile.notification.security.desc" | "profile.notification.email.desc" }
 > = {
-  system: { label: "系统消息", desc: "版本更新、维护公告" },
-  operation: { label: "操作提醒", desc: "重要操作的通知" },
-  security: { label: "安全告警", desc: "异常登录、权限变更" },
-  email: { label: "邮件订阅", desc: "每周数据汇总邮件" },
+  system: { label: "profile.notification.system.label", desc: "profile.notification.system.desc" },
+  operation: { label: "profile.notification.operation.label", desc: "profile.notification.operation.desc" },
+  security: { label: "profile.notification.security.label", desc: "profile.notification.security.desc" },
+  email: { label: "profile.notification.email.label", desc: "profile.notification.email.desc" },
 };
 
 const DEFAULT_PREFS: NotificationPrefs = {
@@ -41,6 +42,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
 };
 
 export default function ProfilePage() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
 
   const [profile, setProfile] = React.useState({
@@ -100,9 +102,9 @@ export default function ProfilePage() {
     setIsSavingProfile(true);
     try {
       await apiClient.put("/system/user/profile", profile);
-      toast.success("资料已更新");
+      toast.success(t("profile.toast.profileUpdated"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "资料更新失败");
+      toast.error(error instanceof Error ? error.message : t("profile.toast.profileUpdateFailed"));
     } finally {
       setIsSavingProfile(false);
     }
@@ -110,7 +112,7 @@ export default function ProfilePage() {
 
   const handleChangePassword = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error("两次输入的新密码不一致");
+      toast.error(t("profile.toast.passwordMismatch"));
       return;
     }
 
@@ -120,11 +122,11 @@ export default function ProfilePage() {
         oldPassword: passwordForm.oldPassword,
         newPassword: passwordForm.newPassword,
       });
-      toast.success("密码修改成功，请重新登录");
+      toast.success(t("profile.toast.passwordChanged"));
       useAuthStore.getState().clearAuth();
       window.location.href = "/login";
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "密码修改失败");
+      toast.error(error instanceof Error ? error.message : t("profile.toast.passwordChangeFailed"));
       setIsChangingPassword(false);
     }
   };
@@ -141,7 +143,7 @@ export default function ProfilePage() {
 
   return (
     <div>
-      <PageHeader title="个人中心" description="管理你的账户信息、安全与偏好设置" />
+      <PageHeader title={t("profile.title")} description={t("profile.description")} />
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         {/* 侧边个人卡 */}
         <Card className="h-fit">
@@ -168,31 +170,31 @@ export default function ProfilePage() {
                 onChange={handleFileChange}
               />
             </div>
-            <h3 className="mt-4 text-lg font-semibold">{user?.nickname || "未设置昵称"}</h3>
+            <h3 className="mt-4 text-lg font-semibold">{user?.nickname || t("profile.unsetNickname")}</h3>
             <p className="text-sm text-muted-foreground">@{user?.username || "-"}</p>
             <div className="mt-2 flex flex-wrap justify-center gap-1">
               {user?.roles?.map((role) => (
                 <Badge key={role}>{role}</Badge>
               ))}
-              {!user?.roles?.length && <Badge variant="secondary">普通用户</Badge>}
+              {!user?.roles?.length && <Badge variant="secondary">{t("profile.regularUser")}</Badge>}
             </div>
             <Separator className="my-4" />
             <div className="space-y-2 text-left text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">手机</span>
+                <span className="text-muted-foreground">{t("profile.phone")}</span>
                 <span>{user?.phone || "-"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">邮箱</span>
+                <span className="text-muted-foreground">{t("profile.email")}</span>
                 <span className="truncate">{user?.email || "-"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">注册时间</span>
+                <span className="text-muted-foreground">{t("profile.registerTime")}</span>
                 <span>-</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">最后登录</span>
-                <span>刚刚</span>
+                <span className="text-muted-foreground">{t("profile.lastLogin")}</span>
+                <span>{t("profile.justNow")}</span>
               </div>
             </div>
           </CardContent>
@@ -204,15 +206,15 @@ export default function ProfilePage() {
           <CardContent>
             <Tabs defaultValue="basic">
               <TabsList>
-                <TabsTrigger value="basic"><User className="mr-1 h-3.5 w-3.5" />基本信息</TabsTrigger>
-                <TabsTrigger value="security"><Lock className="mr-1 h-3.5 w-3.5" />安全设置</TabsTrigger>
-                <TabsTrigger value="notify"><Bell className="mr-1 h-3.5 w-3.5" />通知偏好</TabsTrigger>
+                <TabsTrigger value="basic"><User className="mr-1 h-3.5 w-3.5" />{t("profile.basicInfo")}</TabsTrigger>
+                <TabsTrigger value="security"><Lock className="mr-1 h-3.5 w-3.5" />{t("profile.security")}</TabsTrigger>
+                <TabsTrigger value="notify"><Bell className="mr-1 h-3.5 w-3.5" />{t("profile.notifications")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="mt-4">
                 <div className="grid max-w-2xl grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="nickname">昵称</Label>
+                    <Label htmlFor="nickname">{t("profile.nickname")}</Label>
                     <Input
                       id="nickname"
                       value={profile.nickname}
@@ -220,11 +222,11 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="username">用户名</Label>
+                    <Label htmlFor="username">{t("profile.username")}</Label>
                     <Input id="username" value={user?.username || ""} disabled />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">手机号</Label>
+                    <Label htmlFor="phone">{t("profile.mobile")}</Label>
                     <Input
                       id="phone"
                       value={profile.phone}
@@ -232,7 +234,7 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">邮箱</Label>
+                    <Label htmlFor="email">{t("profile.email")}</Label>
                     <Input
                       id="email"
                       type="email"
@@ -242,18 +244,18 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <Button className="mt-4" onClick={handleSaveProfile} disabled={isSavingProfile}>
-                  <Check className="h-4 w-4" />{isSavingProfile ? "保存中..." : "保存修改"}
+                  <Check className="h-4 w-4" />{isSavingProfile ? t("profile.saving") : t("profile.save")}
                 </Button>
               </TabsContent>
 
               <TabsContent value="security" className="mt-4">
                 <div className="max-w-md space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="oldPassword">当前密码</Label>
+                    <Label htmlFor="oldPassword">{t("profile.currentPassword")}</Label>
                     <Input
                       id="oldPassword"
                       type="password"
-                      placeholder="请输入当前密码"
+                      placeholder={t("profile.currentPasswordPlaceholder")}
                       value={passwordForm.oldPassword}
                       onChange={(e) =>
                         setPasswordForm((prev) => ({ ...prev, oldPassword: e.target.value }))
@@ -261,11 +263,11 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="newPassword">新密码</Label>
+                    <Label htmlFor="newPassword">{t("profile.newPassword")}</Label>
                     <Input
                       id="newPassword"
                       type="password"
-                      placeholder="至少 8 位，含字母与数字"
+                      placeholder={t("profile.newPasswordPlaceholder")}
                       value={passwordForm.newPassword}
                       onChange={(e) =>
                         setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))
@@ -273,11 +275,11 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">确认新密码</Label>
+                    <Label htmlFor="confirmPassword">{t("profile.confirmPassword")}</Label>
                     <Input
                       id="confirmPassword"
                       type="password"
-                      placeholder="再次输入新密码"
+                      placeholder={t("profile.confirmPasswordPlaceholder")}
                       value={passwordForm.confirmPassword}
                       onChange={(e) =>
                         setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
@@ -285,15 +287,15 @@ export default function ProfilePage() {
                     />
                   </div>
                   <Button onClick={handleChangePassword} disabled={isChangingPassword}>
-                    <Lock className="h-4 w-4" />{isChangingPassword ? "修改中..." : "修改密码"}
+                    <Lock className="h-4 w-4" />{isChangingPassword ? t("profile.changingPassword") : t("profile.changePassword")}
                   </Button>
                   <Separator />
                   <div className="flex items-center justify-between rounded-lg border p-3">
                     <div className="flex items-start gap-2">
                       <Shield className="mt-0.5 h-4 w-4 text-primary" />
                       <div>
-                        <div className="text-sm font-medium">两步验证 (MFA)</div>
-                        <div className="text-xs text-muted-foreground">使用 TOTP 应用增强账户安全</div>
+                        <div className="text-sm font-medium">{t("profile.mfaTitle")}</div>
+                        <div className="text-xs text-muted-foreground">{t("profile.mfaDescription")}</div>
                       </div>
                     </div>
                     <Switch />
@@ -303,11 +305,11 @@ export default function ProfilePage() {
 
               <TabsContent value="notify" className="mt-4">
                 <div className="max-w-md space-y-3">
-                  {(Object.keys(NOTIFICATION_LABELS) as (keyof NotificationPrefs)[]).map((key) => (
+                  {(Object.keys(NOTIFICATION_LABEL_KEYS) as (keyof NotificationPrefs)[]).map((key) => (
                     <div key={key} className="flex items-center justify-between rounded-lg border p-3">
                       <div>
-                        <div className="text-sm font-medium">{NOTIFICATION_LABELS[key].label}</div>
-                        <div className="text-xs text-muted-foreground">{NOTIFICATION_LABELS[key].desc}</div>
+                        <div className="text-sm font-medium">{t(NOTIFICATION_LABEL_KEYS[key].label)}</div>
+                        <div className="text-xs text-muted-foreground">{t(NOTIFICATION_LABEL_KEYS[key].desc)}</div>
                       </div>
                       <Switch
                         checked={prefs[key]}
