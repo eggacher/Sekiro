@@ -16,8 +16,8 @@
     "typecheck": "pnpm -r typecheck",
     "clean": "pnpm -r exec rm -rf node_modules .next dist .turbo && rm -rf node_modules",
     "docker:build": "docker compose build",
-    "docker:up": "docker compose up -d",
-    "docker:up:infra": "docker compose up -d postgres redis",
+    "docker:up": "docker compose up -d postgres redis",
+    "docker:up:all": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f"
   },
