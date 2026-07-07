@@ -1,0 +1,17 @@
+export const dashboard = {
+  "dashboard.greeting": "早上好",
+  "dashboard.todo": "今日有 {count} 项待办",
+  "dashboard.notifications": "{count} 条系统通知",
+  "dashboard.totalUsers": "用户总数",
+  "dashboard.todayActive": "今日活跃",
+  "dashboard.totalOrders": "订单总数",
+  "dashboard.totalRevenue": "总营收",
+  "dashboard.revenueTrend": "营收与订单趋势",
+  "dashboard.recent12Months": "近 12 个月",
+  "dashboard.trafficSources": "流量来源",
+  "dashboard.weeklyActive": "近 7 天活跃趋势",
+  "dashboard.recentActivities": "最近动态",
+  "dashboard.revenue": "营收(万)",
+  "dashboard.orders": "订单",
+  "dashboard.activeUsers": "活跃用户",
+} as const;

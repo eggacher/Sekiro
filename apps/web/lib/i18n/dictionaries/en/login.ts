@@ -1,0 +1,15 @@
+export const login = {
+  "login.title": "Welcome Back",
+  "login.subtitle": "Sign in to Sekiro Admin",
+  "login.username": "Username",
+  "login.password": "Password",
+  "login.rememberMe": "Remember me",
+  "login.forgotPassword": "Forgot password?",
+  "login.submit": "Sign In",
+  "login.loggingIn": "Signing in…",
+  "login.success": "Login successful, welcome back!",
+  "login.error.required": "Please enter username and password",
+  "login.error.failed": "Login failed",
+  "login.otherMethods": "Other login methods",
+  "login.copyright": "© 2026 Sekiro Admin · Built with Next.js + shadcn/ui",
+} as const;

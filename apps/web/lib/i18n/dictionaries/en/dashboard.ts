@@ -1,0 +1,17 @@
+export const dashboard = {
+  "dashboard.greeting": "Good morning",
+  "dashboard.todo": "You have {count} todos today",
+  "dashboard.notifications": "{count} system notifications",
+  "dashboard.totalUsers": "Total Users",
+  "dashboard.todayActive": "Today's Active",
+  "dashboard.totalOrders": "Total Orders",
+  "dashboard.totalRevenue": "Total Revenue",
+  "dashboard.revenueTrend": "Revenue & Orders Trend",
+  "dashboard.recent12Months": "Last 12 Months",
+  "dashboard.trafficSources": "Traffic Sources",
+  "dashboard.weeklyActive": "Weekly Active Trend",
+  "dashboard.recentActivities": "Recent Activities",
+  "dashboard.revenue": "Revenue(10k)",
+  "dashboard.orders": "Orders",
+  "dashboard.activeUsers": "Active Users",
+} as const;
