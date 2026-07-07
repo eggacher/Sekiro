@@ -342,3 +342,61 @@
 - [ ] Final: 全量代码 review
 
 ## 完成记录
+
+---
+
+# Story #26: Docker 部署 + CI/CD — 执行进度
+
+## 计划信息
+- **规范文件**：`docs/superpowers/specs/2026-07-07-docker-ci-design.md`
+- **执行方式**：isolated worktree (`feature/docker-ci`) + subagent-driven-development
+- **开始时间**：2026-07-07
+- **完成时间**：2026-07-07
+
+## 任务清单
+
+- [x] Task 1: 实现 API `/health` 健康检查端点
+- [x] Task 2: Next.js 启用 standalone 输出
+- [x] Task 3: 编写 API 多阶段 Dockerfile
+- [x] Task 4: 编写 Web 多阶段 Dockerfile
+- [x] Task 5: 扩展 `docker-compose.yml` 增加 api / web 服务
+- [x] Task 6: 增加 docker helper scripts
+- [x] Task 7: 处理与 dev 分支（Story #27）的合并冲突并完成合并
+
+## 关键决策与调整
+
+### 与 Story #27 的冲突
+合并时 dev 分支已包含 Story #27（安全基线），导致 `apps/api/package.json`、`apps/api/src/main.ts`、`apps/web/next.config.js` 冲突。处理方式：
+- `package.json`：保留 Story #27 新增的安全依赖与 `encrypt:config` 脚本，采用本 Story 的 `typecheck` 脚本（先 build shared）
+- `main.ts`：保留 Story #27 的 `AppModule` import 与 `configureApp(app)`，将 `/docs` 挂载逻辑保留在 `main.ts`，`HealthController` 注册到 `AppModule`
+- `app.config.ts`：在 `configureApp` 中让 `/health` 排除全局 `/api` 前缀
+- `next.config.js`：保留 Story #27 的安全 headers，同时保留 standalone 与 `API_URL` rewrites
+
+### 运行时调整
+- `@sekiro/shared` 改为先编译再被 API 消费（`packages/shared/dist`），因为 API `tsconfig.json` 增加了 `rootDir: "./src"`
+- API Dockerfile 不再复制整个 workspace `node_modules`，仅复制运行所需的最小集合
+- `/docs` 在所有环境下可用（移除 `NODE_ENV !== "production"` 守卫）
+- `docker:up` 恢复为只起 postgres + redis，`docker:up:all` 起完整服务
+- 迁移/seed 必须在宿主机执行（runner 镜像精简，不含 tsx/pnpm）
+
+## 完成记录
+
+### API 健康检查
+- **文件**：`apps/api/src/health.controller.ts`、`apps/api/src/app.module.ts`、`apps/api/src/config/app.config.ts`
+- **审阅**: ✅ `GET /health` 返回 `{ status: "ok", timestamp }`，位于根路径
+
+### Docker 镜像
+- **文件**：`apps/api/Dockerfile`、`apps/web/Dockerfile`
+- **审阅**: ✅ 多阶段构建，`node:20-alpine`，运行用户 `node`，带 `HEALTHCHECK`
+
+### 服务编排
+- **文件**：`docker-compose.yml`、`.dockerignore`、`package.json`
+- **审阅**: ✅ 单一 compose 文件同时支持 infra-only 和 full-stack 启动
+
+### Final 验证
+- **验证结果**: ✅ `pnpm typecheck` 通过、`pnpm --filter @sekiro/api test` 119/119 通过
+- **Docker 验证**: ✅ `docker compose up -d` 后 `/health`、`/docs`、web root 均 200
+- **合并提交**: `a5440eb`
+- **GitHub Issue**: [#26](https://github.com/eggacher/Sekiro/issues/26) 已关闭
+
+---
