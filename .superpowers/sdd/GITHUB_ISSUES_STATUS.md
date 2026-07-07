@@ -124,7 +124,28 @@
 | **Story #21** | **系统监控：操作日志** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #22** | **系统监控：登录日志** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #23** | **系统监控：服务监控** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #24** | **API 文档（OpenAPI + Scalar）** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #26** | **Docker 部署 + CI/CD** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #25** | **代码生成器** | **❌ 放弃** | **✅ Closed** | **✅ Closed** |
+
+## Epic 状态汇总
+
+| Epic | 标题 | 状态 | 说明 |
+| --- | --- | --- | --- |
+| **#1** | 后端基础设施: NestJS + Prisma + PG + Redis 全链路打通 | **OPEN** | 仍有 #28 i18n/主题未完成；#24/#26 已完成 |
+| **#2** | v0.1 MVP: 登录鉴权 + RBAC + 用户/角色/菜单 | **✅ Closed** | 下辖 Story #5~9、#15、#16 全部完成 |
+| **#3** | v0.5 生产就绪: 部门/字典/监控/数据权限/Swagger/代码生成器 | **OPEN** | 仍有 #28 未完成（#19、#24、#26 已确认完成并关闭） |
+| **#4** | v1.0 GA: 测试/监控/MFA/部署 | **OPEN** | 远期货，暂无下辖 story |
+
+## Task 状态汇总（Story #5 子任务）
+
+| Task | 标题 | 状态 |
+| --- | --- | --- |
+| #10 | Prisma 初始化与 schema.prisma 起草 | ✅ Closed |
+| #11 | docker-compose 起 PG/Redis + 连接验证 | ✅ Closed |
+| #12 | 迁移脚本与 pnpm db:* 命令 | ✅ Closed |
+| #13 | seed 种子数据(超管+角色+菜单+部门+字典) | ✅ Closed |
+| #14 | PrismaService 全局封装 + /ping 打通全链路 | ✅ Closed |
 
 > **Story #25 放弃原因**：在 Vibe Coding / AI 辅助开发成为主流的背景下，手动代码生成器的维护成本高于收益。AI 已能根据 schema 和 prompt 直接生成符合项目规范的 CRUD 代码，且更灵活。
 
@@ -168,6 +189,12 @@
 - [x] **关闭 Story #19: 数据权限 DataScope 完整实现** (已关闭)
   - 标题：`Story #19: 数据权限 DataScope 完整实现`
   - 描述：角色数据范围设置、用户/部门列表按数据权限裁剪、自定义部门范围持久化。
+- [x] **关闭 Epic #2: v0.1 MVP** (已关闭)
+  - 标题：`🎯 [Epic] v0.1 MVP: 登录鉴权 + RBAC + 用户/角色/菜单`
+  - 说明：下辖 Story #5~9、#15、#16 全部完成。
+- [x] **关闭 Story #5 子任务 Task #10~14** (已关闭)
+  - 标题：`Task: Prisma 初始化 / docker-compose / 迁移脚本 / seed / PrismaService`
+  - 说明：这些 task 随 Story #5 完成，已在 GitHub 同步关闭。
 - [x] **关闭 Story #20~#23 (系统监控与日志)**
   - 标题：`Story #20~#23: 系统监控与日志`
   - 描述：在线用户、操作日志、登录日志、服务监控模块已随 Story #18 之前实现并关闭。
@@ -193,6 +220,7 @@
 | `docs/superpowers/specs/2026-07-05-dict-management-design.md` | Story #18 | 数据字典管理详细设计 |
 | `docs/superpowers/specs/2026-07-05-data-scope-design.md` | Story #19 | 数据权限 DataScope 详细设计 |
 | `docs/superpowers/specs/2026-07-05-system-monitor-design.md` | Story #20~#23 | 系统监控与日志详细设计 |
+| `docs/superpowers/specs/2026-07-05-api-docs-design.md` | Story #24 | API 文档（OpenAPI + Scalar）详细设计 |
 
 ### 实施计划
 
@@ -207,6 +235,7 @@
 | `docs/superpowers/plans/2026-07-05-dict-management.md` | Story #18 | Story #18 实施计划 |
 | `docs/superpowers/plans/2026-07-05-frontend-infrastructure.md` | Story #16 | Story #16 实施计划 |
 | `docs/superpowers/plans/2026-07-05-system-monitor.md` | Story #20~#23 | 系统监控与日志实施计划 |
+| `docs/superpowers/plans/2026-07-05-api-docs.md` | Story #24 | Story #24 实施计划 |
 
 ### 完成报告
 
@@ -233,6 +262,10 @@
 | 2026-07-05 | 关闭 Story #25（代码生成器，因 Vibe Coding 放弃）| Agent |
 | 2026-07-05 | 补关闭 GitHub #15、#16（此前本地已标记 Closed 但远程未关）| Agent |
 | 2026-07-06 | 确认 Story #19（数据权限 DataScope）实现已完成，同步关闭本地 GitHub Issues 状态 | Agent |
+| 2026-07-06 | 远程关闭 Epic #2、Story #19、Task #10~14（其中 #10/#13/#14 此前已关）；同步更新本地 Epic/Task 汇总 | Agent |
+| 2026-07-06 | 将 Story #24 标题从 "Swagger/OpenAPI 在线文档" 更新为 "API 文档（OpenAPI + Scalar）"，替换 Swagger UI 为 Scalar | Agent |
+| 2026-07-06 | 完成 Story #24（OpenAPI + Scalar）并合并到 dev；关闭 GitHub Issue #24；更新本地 Epic 与进度状态 | Agent |
+| 2026-07-07 | 完成 Story #26（Docker 部署）并合并到 dev；关闭 GitHub Issue #26；更新本地 Epic 与进度状态 | Agent |
 
 ---
 

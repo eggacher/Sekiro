@@ -104,3 +104,79 @@ When planning and executing tasks under the Superpowers framework, you MUST adhe
      * `superpowers:requesting-code-review` / `superpowers:receiving-code-review` (代码评审的发起与意见接收)
      * Running shell commands, code formatting, and simple queries.
    - **Instruction**: The main conversation loop and lightweight/review tasks use Gemini 3.5 Flash by default.
+
+## Feature Development Workflow (功能开发工作流)
+
+本项目的功能开发遵循 **dev 分支集成 + git worktree 隔离** 的工作流。
+
+### 1. 分支模型
+
+- **`main`**: 发布分支，仅接受来自 `dev` 的合并。
+- **`dev`**: 活跃开发分支，所有新功能在此集成。
+- **`feature/<name>`**: 从 `dev` 切出的功能分支，在独立 worktree 中开发。
+
+### 2. 启动新功能
+
+1. 确保当前在 `dev` 分支且工作区干净：
+   ```bash
+   git checkout dev
+   git pull origin dev
+   ```
+
+2. 使用 `using-git-worktrees` skill 创建独立工作区。默认目录为 `.worktrees/`（已加入 `.gitignore`）：
+   ```bash
+   git worktree add .worktrees/feature/<name> -b feature/<name>
+   cd .worktrees/feature/<name>
+   ```
+
+3. 在新工作区安装依赖并验证干净基线：
+   ```bash
+   pnpm install
+   pnpm typecheck
+   pnpm lint
+   pnpm --filter @sekiro/api test
+   ```
+
+### 3. 开发与验证
+
+- 遵循项目现有 skill：`superpowers:brainstorming` → `superpowers:writing-plans` → `superpowers:subagent-driven-development` / `superpowers:test-driven-development`。
+- 开发完成后必须跑通全量验证：
+  ```bash
+  pnpm typecheck
+  pnpm lint
+  pnpm --filter @sekiro/api test
+  ```
+
+### 4. 验收与合并
+
+功能完成后，向人类伙伴展示完整 diff 并请求验收。验收通过后，将功能分支合并回 `dev`：
+
+```bash
+git checkout dev
+git pull origin dev
+git merge --no-ff feature/<name>
+git push origin dev
+```
+
+### 5. 清理
+
+合并完成后移除 worktree 与本地功能分支。若 worktree 中存在未跟踪文件（如 `.env`、构建产物），使用 `--force`：
+
+```bash
+git worktree remove .worktrees/feature/<name> --force
+git branch -d feature/<name>
+# 若功能分支已推送到远程，再删除远程分支
+git push origin --delete feature/<name> 2>/dev/null || true
+```
+
+### 注意事项
+
+- 不要直接在 `dev` 分支上提交功能代码。
+- 不要在没有 worktree 隔离的情况下在 `main` 上开发。
+- 合并前必须全量验证通过，测试失败不得合并。
+- 当前仓库根目录的 `.eslintrc.json` 继承 `next/core-web-vitals`，在 worktree 中跑 `pnpm lint` 可能因嵌套配置冲突而失败。验证 API 代码时可改用：
+  ```bash
+  cd .worktrees/feature/<name>
+  pnpm exec eslint --no-eslintrc -c .eslintrc.json apps/api/src --ext .ts
+  ```
+- 新功能若涉及新增/移除依赖，务必执行 `pnpm install --lockfile-only` 并提交 `pnpm-lock.yaml`。

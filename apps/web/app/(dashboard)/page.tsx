@@ -31,6 +31,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/shared/stat-card";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/lib/i18n";
 const activityIconMap = {
   create: { icon: Plus, color: "text-success" },
   update: { icon: FileEdit, color: "text-blue-500" },
@@ -40,6 +41,7 @@ const activityIconMap = {
 } as const;
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const [dashboardStats] = useState({
     totalUsers: 12846,
     todayActive: 3842,
@@ -143,10 +145,10 @@ export default function DashboardPage() {
       >
         <div className="bg-grid absolute inset-0 opacity-20" />
         <div className="relative">
-          <h1 className="text-2xl font-bold">早上好，Admin 👋</h1>
+          <h1 className="text-2xl font-bold">{t("dashboard.greeting")}, Admin 👋</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            今日有 <span className="font-semibold text-primary">12</span> 项待办，
-            <span className="font-semibold text-primary">3</span> 条系统通知
+            {t("dashboard.todo", { count: 12 })}，
+            {t("dashboard.notifications", { count: 3 })}
           </p>
         </div>
       </motion.div>
@@ -154,7 +156,7 @@ export default function DashboardPage() {
       {/* 统计卡片 */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="用户总数"
+          title={t("dashboard.totalUsers")}
           value={dashboardStats.totalUsers}
           icon={Users}
           growth={dashboardStats.growthRates.users}
@@ -162,7 +164,7 @@ export default function DashboardPage() {
           accent="blue"
         />
         <StatCard
-          title="今日活跃"
+          title={t("dashboard.todayActive")}
           value={dashboardStats.todayActive}
           icon={Activity}
           growth={dashboardStats.growthRates.active}
@@ -170,7 +172,7 @@ export default function DashboardPage() {
           accent="cyan"
         />
         <StatCard
-          title="订单总数"
+          title={t("dashboard.totalOrders")}
           value={dashboardStats.totalOrders}
           icon={ShoppingCart}
           growth={dashboardStats.growthRates.orders}
@@ -178,7 +180,7 @@ export default function DashboardPage() {
           accent="purple"
         />
         <StatCard
-          title="总营收"
+          title={t("dashboard.totalRevenue")}
           value={dashboardStats.totalRevenue}
           prefix="¥"
           icon={DollarSign}
@@ -193,8 +195,8 @@ export default function DashboardPage() {
         {/* 营收趋势 */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-base">营收与订单趋势</CardTitle>
-            <Badge variant="secondary">近 12 个月</Badge>
+            <CardTitle className="text-base">{t("dashboard.revenueTrend")}</CardTitle>
+            <Badge variant="secondary">{t("dashboard.recent12Months")}</Badge>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full">
@@ -225,14 +227,14 @@ export default function DashboardPage() {
                   <Legend wrapperStyle={{ fontSize: "12px" }} />
                   <Bar
                     dataKey="revenue"
-                    name="营收(万)"
+                    name={t("dashboard.revenue")}
                     fill="hsl(var(--primary))"
                     radius={[4, 4, 0, 0]}
                     animationDuration={900}
                   />
                   <Bar
                     dataKey="orders"
-                    name="订单"
+                    name={t("dashboard.orders")}
                     fill="#8b5cf6"
                     radius={[4, 4, 0, 0]}
                     animationDuration={1100}
@@ -246,7 +248,7 @@ export default function DashboardPage() {
         {/* 流量来源 */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">流量来源</CardTitle>
+            <CardTitle className="text-base">{t("dashboard.trafficSources")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[220px] w-full">
@@ -299,7 +301,7 @@ export default function DashboardPage() {
         {/* 活跃趋势 */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">近 7 天活跃趋势</CardTitle>
+            <CardTitle className="text-base">{t("dashboard.weeklyActive")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[240px] w-full">
@@ -336,7 +338,7 @@ export default function DashboardPage() {
                   <Area
                     type="monotone"
                     dataKey="value"
-                    name="活跃用户"
+                    name={t("dashboard.activeUsers")}
                     stroke="hsl(var(--primary))"
                     strokeWidth={2}
                     fill="url(#colorActive)"
@@ -351,7 +353,7 @@ export default function DashboardPage() {
         {/* 最近动态 */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">最近动态</CardTitle>
+            <CardTitle className="text-base">{t("dashboard.recentActivities")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentActivities.map((a, i) => {

@@ -7,39 +7,40 @@ dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 import { NestFactory } from "@nestjs/core";
-import { Module, ValidationPipe } from "@nestjs/common";
-import { PrismaModule } from "./modules/prisma";
-import { RedisModule } from "./redis.module";
-import { AuthModule } from "./modules/auth";
-import { UserModule } from "./modules/user";
-import { RoleModule } from "./modules/role";
-import { MenuModule } from "./modules/menu";
-import { DeptModule } from "./modules/dept";
-import { DictModule } from "./modules/dict";
-import { MonitorModule } from "./modules/monitor";
-
-@Module({
-  imports: [PrismaModule, RedisModule, AuthModule, UserModule, RoleModule, MenuModule, DeptModule, DictModule, MonitorModule],
-})
-class AppModule {}
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { apiReference } from "@scalar/nestjs-api-reference";
+import { AppModule } from "./app.module";
+import { configureApp } from "./config/app.config";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 全局 API 前缀，与前端 /api 代理对齐
-  app.setGlobalPrefix("api");
+  configureApp(app);
 
-  // 全局 DTO 验证管道
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
+  // OpenAPI 文档（所有环境均可用）
+  const config = new DocumentBuilder()
+    .setTitle("Sekiro API")
+    .setDescription("Sekiro 中后台脚手架 API 文档")
+    .setVersion("0.1.0")
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+
+  app.use(
+    "/docs",
+    apiReference({
+      content: document,
+      theme: "default",
+      darkMode: true,
+      metaData: {
+        title: "Sekiro API Docs",
+      },
     }),
   );
 
-  await app.listen(3001);
-  console.log("API on http://localhost:3001");
+  const port = process.env.PORT ? Number(process.env.PORT) : 3001;
+  await app.listen(port);
+  console.log(`API on http://localhost:${port}`);
 }
 
 bootstrap();

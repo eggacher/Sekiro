@@ -37,34 +37,34 @@ export class OperationLogInterceptor implements NestInterceptor {
     const startTime = Date.now();
     const auditMeta = this.reflector.get<AuditLogOptions>(AUDIT_LOG_KEY, context.getHandler());
 
-    let module = auditMeta?.module || "未知模块";
+    let moduleName = auditMeta?.module || "未知模块";
     let type = auditMeta?.type || "other";
     let description = auditMeta?.description || "";
 
     if (!auditMeta) {
       const url = request.url;
       if (url.includes("/system/user")) {
-        module = "用户管理";
+        moduleName = "用户管理";
         type = method === "POST" ? "create" : method === "PUT" ? "update" : "delete";
         description = `${method === "POST" ? "新增" : method === "PUT" ? "修改" : "删除"}用户`;
       } else if (url.includes("/system/role")) {
-        module = "角色管理";
+        moduleName = "角色管理";
         type = method === "POST" ? "create" : method === "PUT" ? "update" : "delete";
         description = `${method === "POST" ? "新增" : method === "PUT" ? "修改" : "删除"}角色`;
       } else if (url.includes("/system/menu")) {
-        module = "菜单管理";
+        moduleName = "菜单管理";
         type = method === "POST" ? "create" : method === "PUT" ? "update" : "delete";
         description = `${method === "POST" ? "新增" : method === "PUT" ? "修改" : "删除"}菜单`;
       } else if (url.includes("/system/dept")) {
-        module = "部门管理";
+        moduleName = "部门管理";
         type = method === "POST" ? "create" : method === "PUT" ? "update" : "delete";
         description = `${method === "POST" ? "新增" : method === "PUT" ? "修改" : "删除"}部门`;
       } else if (url.includes("/system/dict")) {
-        module = "字典管理";
+        moduleName = "字典管理";
         type = method === "POST" ? "create" : method === "PUT" ? "update" : "delete";
         description = `${method === "POST" ? "新增" : method === "PUT" ? "修改" : "删除"}字典`;
       } else {
-        module = "系统管理";
+        moduleName = "系统管理";
         type = "other";
         description = `${method} ${url}`;
       }
@@ -79,7 +79,7 @@ export class OperationLogInterceptor implements NestInterceptor {
         const cost = Date.now() - startTime;
         this.logService.createOpLog({
           operator,
-          module,
+          module: moduleName,
           type,
           description,
           method,
@@ -93,7 +93,7 @@ export class OperationLogInterceptor implements NestInterceptor {
         const cost = Date.now() - startTime;
         this.logService.createOpLog({
           operator,
-          module,
+          module: moduleName,
           type,
           description,
           method,
