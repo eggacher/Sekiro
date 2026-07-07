@@ -39,6 +39,7 @@ export const monitor = {
   "monitor.operationLog.column.request": "请求",
   "monitor.operationLog.column.ip": "IP",
   "monitor.operationLog.column.cost": "耗时",
+  "monitor.operationLog.costValue": "{ms}ms",
   "monitor.operationLog.column.status": "状态",
   "monitor.operationLog.column.time": "时间",
   "monitor.operationLog.search.operator": "操作人",

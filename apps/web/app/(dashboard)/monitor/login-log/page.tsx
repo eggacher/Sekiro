@@ -52,7 +52,7 @@ export default function LoginLogPage() {
       render: (r) => (
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Monitor className="h-3.5 w-3.5" />
-          {r.browser || "Unknown"} · {r.os || "Unknown"}
+          {r.browser || t("monitor.loginLog.unknown")} · {r.os || t("monitor.loginLog.unknown")}
         </div>
       ),
     },

@@ -39,6 +39,7 @@ export const monitor = {
   "monitor.operationLog.column.request": "Request",
   "monitor.operationLog.column.ip": "IP",
   "monitor.operationLog.column.cost": "Cost",
+  "monitor.operationLog.costValue": "{ms}ms",
   "monitor.operationLog.column.status": "Status",
   "monitor.operationLog.column.time": "Time",
   "monitor.operationLog.search.operator": "Operator",

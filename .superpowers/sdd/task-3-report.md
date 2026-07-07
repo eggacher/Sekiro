@@ -1,75 +1,53 @@
-# Task 3 Report: Encrypted Config Loader
+# Task 3 Report: Internationalize Dashboard
 
-## What was implemented
+## Status
 
-- Created `apps/api/src/modules/security/providers/encrypted-config.loader.ts` exporting `encryptedConfigLoader(): Record<string, string>`.
-- The loader scans `process.env`:
-  - Plain values are copied to the result unchanged.
-  - Values wrapped in `ENC(...)` are decrypted with `decryptConfig` from Task 2 using `process.env.CONFIG_ENCRYPTION_KEY`.
-  - Throws a clear error when an `ENC(...)` value is present but `CONFIG_ENCRYPTION_KEY` is missing.
-- Created `apps/api/src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts` with three tests covering plain passthrough, decryption, and the missing-key error.
+DONE
 
-## TDD evidence
+## Commits Made
 
-### RED (failing test before implementation)
+- `55d5e06` feat(i18n): translate dashboard page
 
-```bash
-$ pnpm test src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts
+## Changes Summary
 
-> @sekiro/api@0.1.0 test .../apps/api
-> vitest run src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts
+- `apps/web/app/(dashboard)/page.tsx`
+  - Imported `TranslationKey` type for typed `t()` calls.
+  - Replaced hardcoded Chinese days of week in `weeklyActiveTrend` with translation keys (`mon`..`sun`) and added `tickFormatter` to the AreaChart XAxis.
+  - Replaced hardcoded Chinese months in `monthlyRevenue` with translation keys (`jan`..`dec`) and added `tickFormatter` to the BarChart XAxis.
+  - Replaced hardcoded Chinese traffic source names with translation keys (`direct`, `search`, `social`, `referral`) and translated them for the PieChart and legend.
+  - Replaced hardcoded Chinese recent-activity text (user names, actions, targets, times) with translation keys and `t()` calls.
 
- RUN  v4.1.9
+- `apps/web/lib/i18n/dictionaries/zh/dashboard.ts`
+  - Added Chinese translations for days, months, traffic sources, activity actions/targets/roles/users, and relative times.
 
- ❯ src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts (0 test)
+- `apps/web/lib/i18n/dictionaries/en/dashboard.ts`
+  - Added matching English translations for all new keys.
 
- FAIL ...
-Error: Cannot find module '../encrypted-config.loader' imported from ...
+## Verification Results
+
+### `pnpm --filter @sekiro/web build`
+
+PASSED
+
+```
+✓ Compiled successfully
+✓ Generating static pages (18/18)
 ```
 
-The suite failed because the implementation file did not yet exist.
+### `pnpm typecheck`
 
-### GREEN (passing test after implementation)
+PARTIAL / WEB PASSED, API FAILED DUE TO UNRELATED PRISMA ISSUES
 
-```bash
-$ pnpm test src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts
+- `apps/web` typecheck: **Done** (no errors in modified files).
+- `apps/api` typecheck: **Failed** with pre-existing Prisma client errors such as:
+  - `Property 'user' does not exist on type 'PrismaService'`
+  - `Module '"@prisma/client"' has no exported member 'PrismaClient'`
 
-> @sekiro/api@0.1.0 test .../apps/api
-> vitest run src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts
+These errors are unrelated to the dashboard internationalization work and indicate the Prisma client has not been generated in this worktree.
 
- RUN  v4.1.9
+## Concerns
 
- ✓ src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts (3 tests)
-
- Test Files  1 passed (1)
-      Tests  3 passed (3)
-```
-
-## Verification
-
-- Target spec: `pnpm test src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts` → 3/3 passing.
-- Security module regression check: `pnpm test src/modules/security` → 7/7 passing (includes 4 crypto.util tests from Task 2).
-- Type check: `pnpm typecheck` in `apps/api` completed with no errors.
-
-## Files changed
-
-- `apps/api/src/modules/security/providers/encrypted-config.loader.ts` (new)
-- `apps/api/src/modules/security/providers/__tests__/encrypted-config.loader.spec.ts` (new)
-
-## Commit
-
-- `568ffee` — `feat(security): add encrypted config loader for ENC(...) env values`
-
-## Self-review findings
-
-- **Fully implemented?** Yes. The loader satisfies all three tests and follows the planned file structure.
-- **Names clear?** `encryptedConfigLoader` matches the brief; local names are descriptive.
-- **TDD followed?** Yes — test was written and run first (RED), then implementation was added (GREEN).
-- **YAGNI respected?** Yes. Only plain passthrough, `ENC(...)` decryption, and missing-key error handling are implemented.
-- **Tests verify real behavior?** Yes. The decryption test uses the real `encryptConfig` function, and the error test asserts the actual thrown message pattern.
-
-## Issues / concerns
-
-- The implementation snippet in the task brief did not copy plain (non-encrypted) values into the returned config object, which would have caused the first test (`should pass plain values through`) to fail. I added a minimal `else { decrypted[key] = value; }` branch so the loader behaves as the tests specify.
-- `git status` showed unrelated modifications (`.superpowers/sdd/progress.md`, `.superpowers/sdd/task-3-brief.md`, `apps/api/prisma.config.ts`) that were already present in the worktree. These were left unstaged and not included in the commit.
-- No integration with NestJS config validation yet; this is a standalone loader as scoped by the task.
+1. **Pre-existing API typecheck failure**: The repository-wide `pnpm typecheck` fails in `apps/api` because `@prisma/client` types are missing. This is an environment/setup issue in the worktree, not caused by this task.
+2. **Mock-data structure change**: The `recentActivities` mock data now uses key references (`userKey`, `actionKey`, etc.) instead of raw strings. This is consistent with i18n but is a slightly larger data-shape change than a pure string replacement.
+3. **Untranslated comments**: Chinese JSX comments (`{/* 欢迎横幅 */}`, etc.) remain; they are developer-only and were intentionally left unchanged to keep the diff focused.
+4. **Unused `roleKey` field**: Each activity object still carries a `roleKey` field matching the original `role` field, which is not rendered on the dashboard. It was retained to preserve the original data shape.

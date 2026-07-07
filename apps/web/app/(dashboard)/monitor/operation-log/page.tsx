@@ -78,7 +78,7 @@ export default function OperationLogPage() {
       align: "center",
       render: (r) => (
         <Badge variant={r.cost > 1000 ? "warning" : "outline"} className="font-mono">
-          {r.cost}ms
+          {t("monitor.operationLog.costValue", { ms: r.cost })}
         </Badge>
       ),
     },
