@@ -41,7 +41,7 @@ const menuTitleKeyMap: Record<string, TranslationKey> = {
   "服务监控": "menu.serverMonitor",
 };
 
-function translateMenuTitle(t: (key: TranslationKey) => string, title: string): string {
+export function translateMenuTitle(t: (key: TranslationKey) => string, title: string): string {
   const key = menuTitleKeyMap[title];
   return key ? t(key) : title;
 }
