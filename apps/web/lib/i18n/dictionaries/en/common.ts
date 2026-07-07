@@ -6,6 +6,12 @@ export const common = {
   "theme.dark": "Dark",
   "theme.system": "System",
   "theme.color": "Theme Color",
+  "theme.color.default": "Default",
+  "theme.color.purple": "Purple",
+  "theme.color.green": "Green",
+  "theme.color.orange": "Orange",
+  "theme.color.rose": "Rose",
+  "theme.color.zinc": "Zinc",
   "theme.appearance": "Appearance",
 
   "language.name": "Language",
@@ -71,4 +77,7 @@ export const common = {
   "menu.loginLogs": "Login Logs",
   "menu.operationLogs": "Operation Logs",
   "menu.serverMonitor": "Server Monitor",
+  "menu.create": "Create",
+  "menu.edit": "Edit",
+  "menu.delete": "Delete",
 } as const;

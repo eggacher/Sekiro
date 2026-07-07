@@ -6,6 +6,12 @@ export const common = {
   "theme.dark": "深色",
   "theme.system": "跟随系统",
   "theme.color": "主题色",
+  "theme.color.default": "默认",
+  "theme.color.purple": "紫色",
+  "theme.color.green": "绿色",
+  "theme.color.orange": "橙色",
+  "theme.color.rose": "玫瑰",
+  "theme.color.zinc": "锌灰",
   "theme.appearance": "外观设置",
 
   "language.name": "语言",
@@ -71,4 +77,7 @@ export const common = {
   "menu.loginLogs": "登录日志",
   "menu.operationLogs": "操作日志",
   "menu.serverMonitor": "服务监控",
+  "menu.create": "新增",
+  "menu.edit": "编辑",
+  "menu.delete": "删除",
 } as const;

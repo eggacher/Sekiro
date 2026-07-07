@@ -14,6 +14,9 @@ const menuTitleKeyMap: Record<string, TranslationKey> = {
   "登录日志": "menu.loginLogs",
   "操作日志": "menu.operationLogs",
   "服务监控": "menu.serverMonitor",
+  "新增": "menu.create",
+  "编辑": "menu.edit",
+  "删除": "menu.delete",
 };
 
 export function translateMenuTitle(t: (key: TranslationKey) => string, title: string): string {
