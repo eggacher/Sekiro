@@ -24,7 +24,7 @@ export class DictItemRepository {
     const where: any = { deletedAt: null };
 
     if (query.typeId) {
-      where.typeId = query.typeId;
+      where.typeId = Number(query.typeId);
     }
     if (query.status) {
       where.status = query.status;

@@ -12,8 +12,8 @@ export class LoginLogRepository {
   }
 
   async findPage(query: QueryLoginLogDto) {
-    const page = query.page || 1;
-    const pageSize = query.pageSize || 10;
+    const page = Number(query.page) || 1;
+    const pageSize = Number(query.pageSize) || 10;
     const where: Prisma.LoginLogWhereInput = {};
 
     if (query.username) {

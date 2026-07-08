@@ -12,8 +12,8 @@ export class OpLogRepository {
   }
 
   async findPage(query: QueryOpLogDto) {
-    const page = query.page || 1;
-    const pageSize = query.pageSize || 10;
+    const page = Number(query.page) || 1;
+    const pageSize = Number(query.pageSize) || 10;
     const where: Prisma.OperationLogWhereInput = {};
 
     if (query.operator) {
