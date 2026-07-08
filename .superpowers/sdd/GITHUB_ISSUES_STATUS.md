@@ -1,7 +1,7 @@
 # GitHub Issues 同步状态
 
-**同步日期**：2026-07-07  
-**执行人**：Zed Agent (subagent-driven-development)  
+**同步日期**：2026-07-08  
+**执行人**：Kimi Code CLI (superpowers:subagent-driven-development)  
 **目的**：追踪 GitHub Issue 与本地工作的关联关系
 
 ---
@@ -128,14 +128,15 @@
 | **Story #26** | **Docker 部署 + CI/CD** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #27** | **安全基线（限流/安全头/上传校验）** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #25** | **代码生成器** | **❌ 放弃** | **✅ Closed** | **✅ Closed** |
+| **Story #28** | **i18n 国际化 + 主题切换** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 
 ## Epic 状态汇总
 
 | Epic | 标题 | 状态 | 说明 |
 | --- | --- | --- | --- |
-| **#1** | 后端基础设施: NestJS + Prisma + PG + Redis 全链路打通 | **OPEN** | 仍有 #28 i18n/主题未完成；#24/#26 已完成 |
+| **#1** | 后端基础设施: NestJS + Prisma + PG + Redis 全链路打通 | **✅ Closed** | #24/#26/#28 已完成 |
 | **#2** | v0.1 MVP: 登录鉴权 + RBAC + 用户/角色/菜单 | **✅ Closed** | 下辖 Story #5~9、#15、#16 全部完成 |
-| **#3** | v0.5 生产就绪: 部门/字典/监控/数据权限/Swagger/代码生成器 | **OPEN** | 仍有 #28 未完成（#19、#24、#26、#27 已确认完成并关闭） |
+| **#3** | v0.5 生产就绪: 部门/字典/监控/数据权限/Swagger/代码生成器 | **✅ Closed** | #19、#24、#26、#27、#28 已全部完成并关闭 |
 | **#4** | v1.0 GA: 测试/监控/MFA/部署 | **OPEN** | 远期货，暂无下辖 story |
 
 ## Task 状态汇总（Story #5 子任务）
