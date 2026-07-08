@@ -1,4 +1,4 @@
-import { Controller, Get, Delete, Query, Param, UseGuards, HttpCode } from "@nestjs/common";
+import { Controller, Get, Delete, Query, Param, UseGuards, HttpCode, Inject } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { OnlineService } from "../services/online.service";
@@ -9,7 +9,9 @@ import { ApiResponse as ApiResponseType } from "@sekiro/shared";
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class OnlineController {
-  constructor(private readonly onlineService: OnlineService) {}
+  constructor(
+    @Inject(OnlineService) private readonly onlineService: OnlineService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: '查询在线用户' })

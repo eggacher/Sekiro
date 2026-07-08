@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, UseGuards, Inject } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiResponse } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { LogService } from "../services/log.service";
@@ -10,7 +10,9 @@ import { ApiResponse as ApiResponseType } from "@sekiro/shared";
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class LogController {
-  constructor(private readonly logService: LogService) {}
+  constructor(
+    @Inject(LogService) private readonly logService: LogService,
+  ) {}
 
   @Get("login-log")
   @ApiQuery({ type: QueryLoginLogDto })

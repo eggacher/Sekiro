@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Controller, Get, UseGuards, Inject } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { ServerService } from "../services/server.service";
@@ -9,7 +9,9 @@ import { ApiResponse as ApiResponseType } from "@sekiro/shared";
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class ServerController {
-  constructor(private readonly serverService: ServerService) {}
+  constructor(
+    @Inject(ServerService) private readonly serverService: ServerService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: '获取服务器监控信息' })

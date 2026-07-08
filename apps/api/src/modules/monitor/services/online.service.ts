@@ -1,12 +1,12 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 import { RedisSessionProvider } from "../../auth/providers/redis-session.provider";
 import { PrismaService } from "../../prisma/prisma.service";
 
 @Injectable()
 export class OnlineService {
   constructor(
-    private readonly redisSession: RedisSessionProvider,
-    private readonly prisma: PrismaService,
+    @Inject(RedisSessionProvider) private readonly redisSession: RedisSessionProvider,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {}
 
   async getOnlineUsers(query: { username?: string; ip?: string }) {

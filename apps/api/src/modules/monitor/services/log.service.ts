@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 import { LoginLogRepository } from "../repositories/login-log.repository";
 import { OpLogRepository } from "../repositories/op-log.repository";
 import { QueryLoginLogDto, QueryOpLogDto } from "../dtos";
@@ -7,8 +7,8 @@ import { Prisma } from "@prisma/client";
 @Injectable()
 export class LogService {
   constructor(
-    private readonly loginLogRepo: LoginLogRepository,
-    private readonly opLogRepo: OpLogRepository,
+    @Inject(LoginLogRepository) private readonly loginLogRepo: LoginLogRepository,
+    @Inject(OpLogRepository) private readonly opLogRepo: OpLogRepository,
   ) {}
 
   async createLoginLog(data: Prisma.LoginLogCreateInput) {

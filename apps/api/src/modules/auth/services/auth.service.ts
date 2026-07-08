@@ -63,8 +63,8 @@ export class AuthService {
           result: 'fail',
           message: '账号不存在',
           ip: ipAddress,
-          browser: userAgent,
-          os: userAgent,
+          browser: this.parseBrowser(userAgent),
+          os: this.parseOs(userAgent),
         },
       });
       return { code: 1, message: '账号或密码错误' };
@@ -78,8 +78,8 @@ export class AuthService {
           result: 'fail',
           message: '账号已停用',
           ip: ipAddress,
-          browser: userAgent,
-          os: userAgent,
+          browser: this.parseBrowser(userAgent),
+          os: this.parseOs(userAgent),
         },
       });
       return { code: 1, message: '账号已停用' };
@@ -94,8 +94,8 @@ export class AuthService {
           result: 'fail',
           message: '账号已锁定',
           ip: ipAddress,
-          browser: userAgent,
-          os: userAgent,
+          browser: this.parseBrowser(userAgent),
+          os: this.parseOs(userAgent),
         },
       });
       return { code: 1, message: '账号已锁定 30 分钟' };
@@ -119,8 +119,8 @@ export class AuthService {
           result: 'fail',
           message: '密码错误',
           ip: ipAddress,
-          browser: userAgent,
-          os: userAgent,
+          browser: this.parseBrowser(userAgent),
+          os: this.parseOs(userAgent),
         },
       });
 
@@ -171,14 +171,16 @@ export class AuthService {
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
+    const parsedBrowser = this.parseBrowser(userAgent);
+    const parsedOs = this.parseOs(userAgent);
     await this.prismaService.loginLog.create({
       data: {
         username,
         result: 'success',
         message: '登录成功',
         ip: ipAddress,
-        browser: userAgent,
-        os: userAgent,
+        browser: parsedBrowser,
+        os: parsedOs,
       },
     });
 
@@ -390,5 +392,54 @@ export class AuthService {
         ...item,
         children: this.buildTree(items, item.id),
       }));
+  }
+
+  /**
+   * 从 User-Agent 字符串中解析浏览器名称
+   */
+  private parseBrowser(ua: string): string {
+    if (!ua) return 'Unknown';
+    const patterns: [RegExp, string][] = [
+      [/Edg(?:e|A)?\/([\d.]+)/, 'Edge'],
+      [/OPR\/([\d.]+)/, 'Opera'],
+      [/Chrome\/([\d.]+)/, 'Chrome'],
+      [/Firefox\/([\d.]+)/, 'Firefox'],
+      [/Version\/([\d.]+).*Safari/, 'Safari'],
+    ];
+    for (const [regex, name] of patterns) {
+      const match = ua.match(regex);
+      if (match) {
+        const version = match[1].split('.')[0];
+        return `${name} ${version}`;
+      }
+    }
+    return ua.substring(0, 64);
+  }
+
+  /**
+   * 从 User-Agent 字符串中解析操作系统名称
+   */
+  private parseOs(ua: string): string {
+    if (!ua) return 'Unknown';
+    const patterns: [RegExp, string][] = [
+      [/Windows NT 10\.0/, 'Windows 10'],
+      [/Windows NT 6\.3/, 'Windows 8.1'],
+      [/Windows NT 6\.1/, 'Windows 7'],
+      [/Mac OS X ([\d._]+)/, 'macOS'],
+      [/Android ([\d.]+)/, 'Android'],
+      [/iPhone OS ([\d_]+)/, 'iOS'],
+      [/Linux/, 'Linux'],
+    ];
+    for (const [regex, name] of patterns) {
+      const match = ua.match(regex);
+      if (match) {
+        if (match[1]) {
+          const version = match[1].replace(/_/g, '.');
+          return `${name} ${version}`;
+        }
+        return name;
+      }
+    }
+    return ua.substring(0, 64);
   }
 }

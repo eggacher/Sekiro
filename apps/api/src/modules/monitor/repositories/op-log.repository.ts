@@ -1,11 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { QueryOpLogDto } from "../dtos";
 import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class OpLogRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async create(data: Prisma.OperationLogCreateInput) {
     return this.prisma.operationLog.create({ data });

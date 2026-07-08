@@ -303,6 +303,41 @@ describe("AuthService", () => {
       expect(successLog.result).toBe("success");
       expect(successLog.username).toBe("admin");
     });
+
+    it("should parse and truncate long User-Agent correctly to protect DB constraints", async () => {
+      const loginRequest = { username: "admin", password: "admin123" };
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+
+      prismaService.user.findUnique.mockResolvedValueOnce({
+        id: 1,
+        username: "admin",
+        passwordHash: hashedPassword,
+        nickname: "Admin",
+        email: "admin@example.com",
+        phone: null,
+        avatar: null,
+        status: "enabled",
+        deptId: 1,
+      });
+
+      prismaService.userRole.findMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+      prismaService.menu.findMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const longUa = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
+      await service.login(loginRequest, "127.0.0.1", longUa);
+
+      const logs = prismaService.loginLog.create.mock.calls;
+      const successLog = logs[logs.length - 1][0].data;
+      expect(successLog.result).toBe("success");
+      expect(successLog.browser).toBe("Chrome 150");
+      expect(successLog.os).toBe("macOS 10.15.7");
+      expect(successLog.browser.length).toBeLessThanOrEqual(64);
+      expect(successLog.os.length).toBeLessThanOrEqual(64);
+    });
   });
 
   describe("refresh", () => {
