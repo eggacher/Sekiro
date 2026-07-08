@@ -400,3 +400,43 @@
 - **GitHub Issue**: [#26](https://github.com/eggacher/Sekiro/issues/26) 已关闭
 
 ---
+
+# Story #28: i18n 国际化 + 主题切换 — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-07-i18n-themes.md`
+- **执行方式**：subagent-driven-development
+- **开始时间**：2026-07-07
+- **完成时间**：2026-07-08
+- **工作区**：`.worktrees/feature/i18n-themes`
+
+## 任务清单
+
+- [x] Task 1: 重构字典结构（zh/en 模块拆分）
+- [x] Task 2: 登录页国际化
+- [x] Task 3: 工作台国际化
+- [x] Task 4: 个人中心国际化
+- [x] Task 5: 系统管理页面国际化
+- [x] Task 6: 系统监控页面国际化
+- [x] Task 7: 布局与共享组件国际化
+- [x] Task 8: 主题修复（持久化、暗色图表可读性）
+- [x] Task 9: 最终验证与合并
+
+## 完成记录
+
+### 最终验证
+- **验证结果**：✅ `pnpm --filter @sekiro/web typecheck` 通过
+- **构建结果**：✅ `pnpm --filter @sekiro/web build` 通过（18/18 静态页面）
+- **合并提交**：`85d7bc3` → `dev`（fast-forward）
+- **计划文档提交**：`f133cc6`
+- **GitHub Issue**: [#28](https://github.com/eggacher/Sekiro/issues/28) 已关闭
+
+### 关键修复（Review 后）
+- `tabs-nav.tsx`、`header.tsx`、`sidebar.tsx` 统一使用 `translateMenuTitle` 翻译菜单标题
+- 角色权限树中的按钮权限标题（新增/编辑/删除）加入字典映射
+- 主题色下拉标签改为字典键 `theme.color.*`
+- `translateMenuTitle` 提取到 `lib/i18n/menu-title.ts`，避免组件循环依赖
+
+### 已知限制
+- Root `pnpm typecheck` 因 `apps/api` 缺少生成的 Prisma client 类型而失败，不影响本 Story 范围。
+- `tool/codegen`、`tool/config` 页面不在本次 Story 范围内，仍保留中文。
