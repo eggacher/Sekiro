@@ -556,4 +556,26 @@
 - **审阅**: ✅ 完成过滤逻辑判断差异化改造，通过识别 `type === "select"` 保持下拉框精确过滤，其他文本输入型搜索项一律升级为不区分大小写的 `includes` 模糊搜索模式。
 - **验证**: ✅ `pnpm typecheck` 无类型或编译报错，`pnpm --filter @sekiro/api test` 全量 API 测试无 regression 全部通过。
 
+---
+
+# 数据字典类型状态视觉标识 — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-10-dict-status-indicator.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-10-dict-status-indicator-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/feature/dict-status-indicator` (branch `feature/dict-status-indicator`)
+- **开始时间**：2026-07-10
+
+- [x] Task 1: 优化字典管理页面的字典类型状态视觉显示
+
+## 完成记录
+
+### Task 1: 优化字典管理页面的字典类型状态视觉显示
+- **相关文件**：
+  - [page.tsx](file:///Users/zero/.worktrees/feature/dict-status-indicator/apps/web/app/(dashboard)/system/dict/page.tsx)
+- **Commit**: `0b143a5`
+- **审阅**: ✅ 完成左侧字典类型列表项视觉增强，停用类型将呈现 `opacity-60` 半透明样式且包含 `[停用]` 红色线框 Badge；右侧字典项详情头部追加 `<StatusBadge>` 组件展示。
+- **验证**: ✅ `pnpm typecheck` 全部通过。
+
 
