@@ -532,3 +532,28 @@
 - **测试**: ✅ `pnpm --filter @sekiro/api test` 167/167 全量单元测试顺利通过；
 - **手动验证**: ✅ 借助本地运行中的 NestJS 服务，通过 `curl` 模拟前端 MD5 登录验证，`admin` (password: admin123) 与 `zhangsan` (password: sekiro123) 均成功获得 token 响应，验证正常。
 
+---
+
+# CrudTable 通用表格模糊搜索 — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-10-crud-table-fuzzy-search.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-10-crud-table-fuzzy-search-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/feature/crud-table-fuzzy-search` (branch `feature/crud-table-fuzzy-search`)
+- **开始时间**：2026-07-10
+
+## 任务清单
+
+- [x] Task 1: 修改 CrudTable 组件过滤逻辑
+
+## 完成记录
+
+### Task 1: 修改 CrudTable 组件过滤逻辑
+- **相关文件**：
+  - [crud-table.tsx](file:///Users/zero/.worktrees/feature/crud-table-fuzzy-search/apps/web/components/shared/crud-table.tsx)
+- **Commit**: `1e42972`
+- **审阅**: ✅ 完成过滤逻辑判断差异化改造，通过识别 `type === "select"` 保持下拉框精确过滤，其他文本输入型搜索项一律升级为不区分大小写的 `includes` 模糊搜索模式。
+- **验证**: ✅ `pnpm typecheck` 无类型或编译报错，`pnpm --filter @sekiro/api test` 全量 API 测试无 regression 全部通过。
+
+
