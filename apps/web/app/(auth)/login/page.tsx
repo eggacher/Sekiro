@@ -14,6 +14,7 @@ import { Logo } from "@/components/layout/logo";
 import { apiClient } from "@/lib/api/client";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useTranslation } from "@/lib/i18n";
+import { md5 } from "@/lib/crypto";
 import type { CurrentUser, LoginResponse } from "@sekiro/shared";
 
 export default function LoginPage() {
@@ -37,7 +38,7 @@ export default function LoginPage() {
     try {
       const data = await apiClient.post<LoginResponse>("/auth/login", {
         username,
-        password,
+        password: md5(password),
         remember,
       });
 

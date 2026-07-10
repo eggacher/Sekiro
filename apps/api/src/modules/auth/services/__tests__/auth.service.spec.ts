@@ -4,6 +4,7 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import { JwtProvider } from "../../providers/jwt.provider";
 import { RedisSessionProvider } from "../../providers/redis-session.provider";
 import { LoginFailureProvider } from "../../providers/login-failure.provider";
+import { md5 } from "../../../../common/utils/crypto.util";
 import * as bcrypt from "bcrypt";
 
 describe("AuthService", () => {
@@ -69,10 +70,10 @@ describe("AuthService", () => {
     it("should successfully login with correct credentials", async () => {
       const loginRequest = {
         username: "admin",
-        password: "admin123",
+        password: md5("admin123"),
         remember: false,
       };
-      const hashedPassword = await bcrypt.hash("admin123", 10);
+      const hashedPassword = await bcrypt.hash(md5("admin123"), 10);
 
       prismaService.user.findUnique.mockResolvedValueOnce({
         id: 1,
@@ -147,7 +148,7 @@ describe("AuthService", () => {
     });
 
     it("should return error if user status is disabled", async () => {
-      const loginRequest = { username: "admin", password: "admin123" };
+      const loginRequest = { username: "admin", password: md5("admin123") };
       prismaService.user.findUnique.mockResolvedValueOnce({
         id: 1,
         username: "admin",
@@ -161,7 +162,7 @@ describe("AuthService", () => {
     });
 
     it("should return error if account is locked", async () => {
-      const loginRequest = { username: "admin", password: "admin123" };
+      const loginRequest = { username: "admin", password: md5("admin123") };
       prismaService.user.findUnique.mockResolvedValueOnce({
         id: 1,
         username: "admin",
@@ -176,8 +177,8 @@ describe("AuthService", () => {
     });
 
     it("should increment failure and lock after 5 attempts", async () => {
-      const loginRequest = { username: "admin", password: "wrongpwd" };
-      const correctHash = await bcrypt.hash("correctpwd", 10);
+      const loginRequest = { username: "admin", password: md5("wrongpwd") };
+      const correctHash = await bcrypt.hash(md5("correctpwd"), 10);
       prismaService.user.findUnique.mockResolvedValueOnce({
         id: 1,
         username: "admin",
@@ -194,8 +195,8 @@ describe("AuthService", () => {
     });
 
     it("should show remaining attempts after password error", async () => {
-      const loginRequest = { username: "admin", password: "wrongpwd" };
-      const correctHash = await bcrypt.hash("correctpwd", 10);
+      const loginRequest = { username: "admin", password: md5("wrongpwd") };
+      const correctHash = await bcrypt.hash(md5("correctpwd"), 10);
       prismaService.user.findUnique.mockResolvedValueOnce({
         id: 1,
         username: "admin",
@@ -213,8 +214,8 @@ describe("AuthService", () => {
     });
 
     it("should clear failure count on successful login", async () => {
-      const loginRequest = { username: "admin", password: "admin123" };
-      const hashedPassword = await bcrypt.hash("admin123", 10);
+      const loginRequest = { username: "admin", password: md5("admin123") };
+      const hashedPassword = await bcrypt.hash(md5("admin123"), 10);
 
       prismaService.user.findUnique.mockResolvedValueOnce({
         id: 1,
@@ -241,8 +242,8 @@ describe("AuthService", () => {
     });
 
     it("should create session with correct TTL", async () => {
-      const loginRequest = { username: "admin", password: "admin123" };
-      const hashedPassword = await bcrypt.hash("admin123", 10);
+      const loginRequest = { username: "admin", password: md5("admin123") };
+      const hashedPassword = await bcrypt.hash(md5("admin123"), 10);
 
       prismaService.user.findUnique.mockResolvedValueOnce({
         id: 1,
@@ -274,8 +275,8 @@ describe("AuthService", () => {
     });
 
     it("should write success login log", async () => {
-      const loginRequest = { username: "admin", password: "admin123" };
-      const hashedPassword = await bcrypt.hash("admin123", 10);
+      const loginRequest = { username: "admin", password: md5("admin123") };
+      const hashedPassword = await bcrypt.hash(md5("admin123"), 10);
 
       prismaService.user.findUnique.mockResolvedValueOnce({
         id: 1,
