@@ -367,7 +367,10 @@ export class AuthService {
    * 2. 计算权限和菜单
    * 3. 组装 CurrentUser
    */
-  async getMe(userId: number): Promise<{
+  async getMe(
+    userId: number,
+    sessionId?: string,
+  ): Promise<{
     user: CurrentUser;
     permissions: string[];
     menus: MenuNode[];
@@ -390,6 +393,10 @@ export class AuthService {
     const permissions = await this.getUserPermissions(userId);
     const menus = await this.buildMenuTree(userId);
     const roles = user.roles.map((ur) => ur.role.code);
+
+    if (sessionId) {
+      await this.redisSessionProvider.updateSession(sessionId, { permissions, roles });
+    }
 
     return {
       user: {

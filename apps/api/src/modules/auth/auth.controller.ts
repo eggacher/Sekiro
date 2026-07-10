@@ -109,7 +109,7 @@ export class AuthController {
   @ApiOperation({ summary: '获取当前登录用户信息' })
   @ApiResponse({ status: 200, description: '成功' })
   async getMe(@Req() req: any): Promise<ApiResponseType<any>> {
-    const result = await this.authService.getMe(req.user.sub);
+    const result = await this.authService.getMe(req.user.sub, req.user?.sid);
     return {
       code: 0,
       message: '获取成功',

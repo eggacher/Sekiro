@@ -51,6 +51,8 @@ describe("AuthService", () => {
     redisSessionProvider = {
       createSession: vi.fn(),
       deleteSession: vi.fn(),
+      getSession: vi.fn(),
+      updateSession: vi.fn(),
     };
 
     loginFailureProvider = {
@@ -467,6 +469,32 @@ describe("AuthService", () => {
       prismaService.user.findUnique.mockResolvedValueOnce(null);
 
       await expect(service.getMe(999)).rejects.toThrow("用户不存在");
+    });
+
+    it("getMe 应将重算的 permissions 与 roles 回写到 Session", async () => {
+      prismaService.user.findUnique.mockResolvedValueOnce({
+        id: 2,
+        username: "admin",
+        nickname: "Admin",
+        avatar: null,
+        email: null,
+        phone: null,
+        mfaEnabled: false,
+        roles: [{ role: { code: "admin" } }],
+      });
+      prismaService.userRole.findMany.mockResolvedValueOnce([{ roleId: 2 }]);
+      prismaService.roleMenu.findMany.mockResolvedValueOnce([{ menuId: 211 }]);
+      prismaService.menu.findMany.mockResolvedValueOnce([
+        { permission: "system:user:create" },
+      ]);
+      prismaService.userRole.findMany.mockResolvedValueOnce([]);
+
+      await service.getMe(2, "session-123");
+
+      expect(redisSessionProvider.updateSession).toHaveBeenCalledWith("session-123", {
+        permissions: ["system:user:create"],
+        roles: ["admin"],
+      });
     });
   });
 
