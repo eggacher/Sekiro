@@ -75,7 +75,7 @@ export class UserService {
   }
 
   async changePassword(id: number, oldPassword: string, newPassword: string) {
-    const user = await this.userRepo.findById(id);
+    const user = await this.userRepo.findSensitiveById(id);
     if (!user) {
       throw new NotFoundException("用户不存在");
     }
@@ -88,7 +88,7 @@ export class UserService {
   }
 
   async resetPassword(id: number) {
-    const user = await this.userRepo.findById(id);
+    const user = await this.userRepo.findSensitiveById(id);
     if (!user) {
       throw new NotFoundException("用户不存在");
     }

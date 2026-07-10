@@ -36,14 +36,16 @@ import { CrudTable, type Column } from "@/components/shared/crud-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { apiClient } from "@/lib/api/client";
+import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
-import type { User, Dept, Role, PageResult } from "@sekiro/shared";
+import type { User, Dept, Role, Position, PageResult } from "@sekiro/shared";
 
 export default function UserPage() {
   const { t } = useTranslation();
   const [users, setUsers] = React.useState<User[]>([]);
   const [depts, setDepts] = React.useState<Dept[]>([]);
   const [roles, setRoles] = React.useState<Role[]>([]);
+  const [positions, setPositions] = React.useState<Position[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<User | null>(null);
@@ -82,22 +84,66 @@ export default function UserPage() {
     }
   };
 
+  const fetchPositions = async () => {
+    try {
+      const res = await apiClient.get<PageResult<Position>>(
+        "/system/position?page=1&pageSize=1000"
+      );
+      // 保留全部岗位（含已停用）：编辑表单需展示用户已分配但已停用的岗位，
+      // 以便操作者能看到并取消勾选；新增/可选范围在表单内按 status 过滤。
+      setPositions(res.list || []);
+    } catch (err: any) {
+      toast.error(err.message || t("system.user.fetchPositionsFailed"));
+    }
+  };
+
   React.useEffect(() => {
     fetchUsers();
     fetchDepts();
     fetchRoles();
+    fetchPositions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSave = async (data: Partial<User>) => {
+    // roleIds 与 status 不是 CreateUserDto / UpdateUserDto 声明的字段；
+    // 全局 ValidationPipe 启用 whitelist + forbidNonWhitelisted，
+    // 因此这里显式从 payload 中剔除，避免接口收到未知字段而报 422。
+    const { positionIds, ...userData } = data;
+    const positionIdsToAssign = positionIds ?? [];
+
     try {
+      const userPayload = editing
+        ? {
+            nickname: userData.nickname,
+            email: userData.email,
+            phone: userData.phone,
+            avatar: userData.avatar,
+            deptId: userData.deptId,
+          }
+        : {
+            username: userData.username,
+            nickname: userData.nickname,
+            email: userData.email,
+            phone: userData.phone,
+            avatar: userData.avatar,
+            deptId: userData.deptId,
+          };
+
       if (editing) {
-        await apiClient.put<User>(`/system/user/${editing.id}`, data);
+        await apiClient.put<User>(`/system/user/${editing.id}`, userPayload);
+        await apiClient.put(`/system/user/${editing.id}/positions`, {
+          positionIds: positionIdsToAssign,
+        });
         toast.success(t("system.user.updateSuccess"));
       } else {
-        await apiClient.post<User>("/system/user", data);
+        const created = await apiClient.post<User>("/system/user", userPayload);
+        await apiClient.put(`/system/user/${created.id}/positions`, {
+          positionIds: positionIdsToAssign,
+        });
         toast.success(t("system.user.createSuccess"));
       }
+
       setFormOpen(false);
       setEditing(null);
       await fetchUsers();
@@ -171,6 +217,33 @@ export default function UserPage() {
           ))}
         </div>
       ),
+    },
+    {
+      key: "positions",
+      title: t("system.user.column.positions"),
+      render: (row) => {
+        const names = row.positionNames || [];
+        const ids = row.positionIds || [];
+        return (
+          <div className="flex flex-wrap gap-1">
+            {names.length > 0 ? (
+              names.map((name) => (
+                <Badge key={name} variant="outline" className="font-normal">
+                  {name}
+                </Badge>
+              ))
+            ) : ids.length > 0 ? (
+              ids.map((id) => (
+                <Badge key={id} variant="outline" className="font-normal">
+                  {t("system.user.positionFallback", { id })}
+                </Badge>
+              ))
+            ) : (
+              <span className="text-muted-foreground">{t("system.user.positionUnassigned")}</span>
+            )}
+          </div>
+        );
+      },
     },
     { key: "phone", title: t("system.user.column.phone") },
     {
@@ -285,6 +358,7 @@ export default function UserPage() {
         editing={editing}
         depts={depts}
         roles={roles}
+        positions={positions}
         onSave={handleSave}
       />
 
@@ -334,6 +408,7 @@ function UserFormDialog({
   editing,
   depts,
   roles,
+  positions,
   onSave,
 }: {
   open: boolean;
@@ -341,6 +416,7 @@ function UserFormDialog({
   editing: User | null;
   depts: Dept[];
   roles: Role[];
+  positions: Position[];
   onSave: (data: Partial<User>) => void;
 }) {
   const { t } = useTranslation();
@@ -353,9 +429,13 @@ function UserFormDialog({
           status: "enabled",
           deptId: depts[0]?.id,
           roleIds: roles[0] ? [roles[0].id] : [],
+          positionIds: [],
         }
       );
     }
+    // 仅依赖 open/editing/depts/roles：positions 是异步加载的可选列表，
+    // 若加入依赖会导致加载完成后重置已编辑的表单内容。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editing, depts, roles]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -375,6 +455,24 @@ function UserFormDialog({
       setForm({ ...form, roleIds: current.filter((id) => id !== roleId) });
     }
   };
+
+  const togglePosition = (positionId: number, checked: boolean) => {
+    const current = form.positionIds ?? [];
+    if (checked) {
+      setForm({ ...form, positionIds: [...current, positionId] });
+    } else {
+      setForm({ ...form, positionIds: current.filter((id) => id !== positionId) });
+    }
+  };
+
+  // 岗位展示范围：所有启用岗位（可勾选分配）∪ 当前用户已分配但已停用的岗位
+  // （仅编辑态出现，需让操作者可见并可取消勾选，避免"看不见删不掉"）。
+  const assignedIds = editing?.positionIds ?? [];
+  const enabledPositions = positions.filter((p) => p.status === "enabled");
+  const disabledAssigned = positions.filter(
+    (p) => p.status !== "enabled" && assignedIds.includes(p.id)
+  );
+  const displayPositions = [...enabledPositions, ...disabledAssigned];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -466,6 +564,38 @@ function UserFormDialog({
                     {r.name}
                   </label>
                 ))}
+              </div>
+            </div>
+            <div className="col-span-2 space-y-2">
+              <Label>{t("system.user.form.positions")}</Label>
+              <div className="flex flex-wrap gap-3 rounded-md border p-3">
+                {displayPositions.length === 0 ? (
+                  <span className="text-sm text-muted-foreground">{t("system.user.noPositions")}</span>
+                ) : (
+                  displayPositions.map((p) => {
+                    const isDisabled = p.status !== "enabled";
+                    return (
+                      <label
+                        key={p.id}
+                        className={cn(
+                          "flex items-center gap-2 text-sm",
+                          isDisabled && "text-muted-foreground"
+                        )}
+                      >
+                        <Checkbox
+                          checked={(form.positionIds ?? []).includes(p.id)}
+                          onCheckedChange={(checked) =>
+                            togglePosition(p.id, checked === true)
+                          }
+                        />
+                        {p.name}
+                        {isDisabled && (
+                          <span className="text-xs">（{t("system.user.positionDisabled")}）</span>
+                        )}
+                      </label>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>

@@ -440,3 +440,33 @@
 ### 已知限制
 - Root `pnpm typecheck` 因 `apps/api` 缺少生成的 Prisma client 类型而失败，不影响本 Story 范围。
 - `tool/codegen`、`tool/config` 页面不在本次 Story 范围内，仍保留中文。
+
+---
+
+# Story #31: 在用户管理中查看和分配岗位 — 执行进度
+
+## 计划信息
+- **规范文件**：`docs/superpowers/specs/2026-07-10-user-position-integration-design.md`
+- **实施计划**：`docs/superpowers/plans/2026-07-10-user-position-integration.md`
+- **完成时间**：2026-07-10
+
+## 任务清单
+- [x] Task 1: 后端 UserRepository 返回 positionIds
+- [x] Task 2: 前端加载岗位并展示列表岗位列
+- [x] Task 3: 前端用户表单增加岗位多选
+- [x] Task 4: 前端保存流程顺序分配岗位
+- [x] Task 5: 全量验证与文档更新
+
+## 完成记录
+
+### Task 1: 后端 UserRepository 岗位字段
+- **相关文件**：`apps/api/src/modules/user/repositories/user.repository.ts`
+- **审阅**: ✅ `findPage` 与 `findById` 返回 `positionIds` 与 `positionNames`，并补齐 `deptName`/`roleIds`/`roleNames`
+
+### Task 2-4: 前端用户管理页面
+- **相关文件**：`apps/web/app/(dashboard)/system/user/page.tsx`
+- **审阅**: ✅ 列表岗位列、表单岗位多选、保存分配岗位均实现；已停用岗位在编辑表单可见可取消
+
+### Final: 全量代码 review
+- **验证结果**: ✅ `pnpm typecheck` 通过、`pnpm lint` 通过、`pnpm --filter @sekiro/api test` 全部通过
+- **备注**: `pnpm lint` 当前仅覆盖 `apps/web`（Next.js ESLint）；`apps/api` 与 `packages/shared` 暂无独立 lint 配置，不在本次 Issue 范围内。项目引擎要求保持 Node `>=18.17.0`；API 测试在本地使用 Node 22 验证通过（`std-env@4.2.0` 需要 Node 22 的 `require(ESM)` 支持）。
