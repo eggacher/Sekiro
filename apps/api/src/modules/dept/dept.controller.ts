@@ -7,7 +7,9 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiQuery, ApiResponse } 
 import { DeptService } from "./services/dept.service";
 import { CreateDeptDto, UpdateDeptDto, QueryDeptDto } from "./dtos";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { ApiResponse as ApiResponseType } from "@sekiro/shared";
+import { PermissionGuard } from "../auth/guards/permission.guard";
+import { RequiresPermissions } from "../auth/decorators/requires-permissions.decorator";
+import { ApiResponse as ApiResponseType, PERMISSIONS } from "@sekiro/shared";
 
 import { UseInterceptors } from "@nestjs/common";
 import { DataScopeInterceptor } from "../auth/interceptors/data-scope.interceptor";
@@ -16,7 +18,7 @@ import { UserDataScope } from "../auth/types";
 
 @ApiTags('Dept')
 @Controller("system/dept")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 @ApiBearerAuth()
 export class DeptController {
   constructor(
@@ -45,6 +47,7 @@ export class DeptController {
     return { code: 0, message: "查询成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.DEPT_CREATE)
   @Post()
   @HttpCode(200)
   @ApiBody({ type: CreateDeptDto })
@@ -56,6 +59,7 @@ export class DeptController {
     return { code: 0, message: "创建成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.DEPT_UPDATE)
   @Put(":id")
   @HttpCode(200)
   @ApiBody({ type: UpdateDeptDto })
@@ -70,6 +74,7 @@ export class DeptController {
     return { code: 0, message: "更新成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.DEPT_DELETE)
   @Delete(":id")
   @HttpCode(200)
   @ApiOperation({ summary: '删除部门' })

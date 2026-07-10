@@ -7,11 +7,13 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiQuery, ApiResponse } 
 import { RoleService } from "./services/role.service";
 import { CreateRoleDto, UpdateRoleDto, QueryRoleDto } from "./dtos";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { ApiResponse as ApiResponseType } from "@sekiro/shared";
+import { PermissionGuard } from "../auth/guards/permission.guard";
+import { RequiresPermissions } from "../auth/decorators/requires-permissions.decorator";
+import { ApiResponse as ApiResponseType, PERMISSIONS } from "@sekiro/shared";
 
 @ApiTags('Role')
 @Controller("system/role")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 @ApiBearerAuth()
 export class RoleController {
   constructor(
@@ -36,6 +38,7 @@ export class RoleController {
     return { code: 0, message: "查询成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.ROLE_CREATE)
   @Post()
   @HttpCode(200)
   @ApiBody({ type: CreateRoleDto })
@@ -47,6 +50,7 @@ export class RoleController {
     return { code: 0, message: "创建成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.ROLE_UPDATE)
   @Put(":id")
   @HttpCode(200)
   @ApiBody({ type: UpdateRoleDto })
@@ -61,6 +65,7 @@ export class RoleController {
     return { code: 0, message: "更新成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.ROLE_DELETE)
   @Delete(":id")
   @HttpCode(200)
   @ApiOperation({ summary: '删除角色' })
@@ -70,6 +75,7 @@ export class RoleController {
     return { code: 0, message: "删除成功", data: null };
   }
 
+  @RequiresPermissions(PERMISSIONS.ROLE_UPDATE_STATUS)
   @Put(":id/status")
   @HttpCode(200)
   @ApiOperation({ summary: '更新角色状态' })
@@ -82,6 +88,7 @@ export class RoleController {
     return { code: 0, message: "状态更新成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.ROLE_ASSIGN_PERMISSION)
   @Put(":id/menus")
   @HttpCode(200)
   @ApiOperation({ summary: '分配角色菜单' })
@@ -94,6 +101,7 @@ export class RoleController {
     return { code: 0, message: "分配菜单成功", data: null };
   }
 
+  @RequiresPermissions(PERMISSIONS.ROLE_DATA_SCOPE)
   @Put(":id/data-scope")
   @HttpCode(200)
   @ApiOperation({ summary: '设置角色数据范围' })
