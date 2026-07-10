@@ -15,6 +15,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/shared/page-header";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { apiClient } from "@/lib/api/client";
+import { MfaSetupDialog } from "@/components/mfa/mfa-setup-dialog";
+import { MfaVerifyInput } from "@/components/mfa/mfa-verify-input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import type { CurrentUser, Menu } from "@sekiro/shared";
+
+type MeResponse = {
+  user: CurrentUser;
+  permissions: string[];
+  menus: Menu[];
+};
 
 type NotificationPrefs = {
   system: boolean;
@@ -64,6 +80,11 @@ export default function ProfilePage() {
 
   const [isSavingProfile, setIsSavingProfile] = React.useState(false);
   const [isChangingPassword, setIsChangingPassword] = React.useState(false);
+
+  const [mfaSetupOpen, setMfaSetupOpen] = React.useState(false);
+  const [mfaDisableOpen, setMfaDisableOpen] = React.useState(false);
+  const [disableCode, setDisableCode] = React.useState("");
+  const [disabling, setDisabling] = React.useState(false);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -134,6 +155,42 @@ export default function ProfilePage() {
     setPrefs(next);
     if (typeof window !== "undefined") {
       localStorage.setItem("sekiro-notification-prefs", JSON.stringify(next));
+    }
+  };
+
+  const handleMfaToggle = (checked: boolean) => {
+    if (checked) {
+      setMfaSetupOpen(true);
+    } else {
+      setMfaDisableOpen(true);
+    }
+  };
+
+  const handleMfaEnabled = () => {
+    apiClient.get<MeResponse>("/auth/me").then((data) => {
+      useAuthStore.setState((state) => ({
+        ...state,
+        user: data.user ? { ...state.user, ...data.user } : state.user,
+      }));
+    });
+  };
+
+  const handleDisableMfa = async () => {
+    if (disableCode.length !== 6) {
+      toast.error("请输入 6 位验证码");
+      return;
+    }
+    setDisabling(true);
+    try {
+      await apiClient.post("/auth/mfa/disable", { code: disableCode });
+      toast.success("两步验证已关闭");
+      setMfaDisableOpen(false);
+      setDisableCode("");
+      handleMfaEnabled();
+    } catch (err: any) {
+      toast.error(err.message || "关闭失败");
+    } finally {
+      setDisabling(false);
     }
   };
 
@@ -296,8 +353,34 @@ export default function ProfilePage() {
                         <div className="text-xs text-muted-foreground">使用 TOTP 应用增强账户安全</div>
                       </div>
                     </div>
-                    <Switch />
+                    <Switch
+                      checked={user?.mfaEnabled || false}
+                      onCheckedChange={handleMfaToggle}
+                    />
                   </div>
+
+                  <MfaSetupDialog
+                    open={mfaSetupOpen}
+                    onOpenChange={setMfaSetupOpen}
+                    onEnabled={handleMfaEnabled}
+                  />
+
+                  <Dialog open={mfaDisableOpen} onOpenChange={setMfaDisableOpen}>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>关闭两步验证</DialogTitle>
+                        <DialogDescription>
+                          请输入 Authenticator 应用中的 6 位验证码以确认关闭。
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <MfaVerifyInput value={disableCode} onChange={setDisableCode} disabled={disabling} />
+                        <Button onClick={handleDisableMfa} disabled={disabling || disableCode.length !== 6} className="w-full">
+                          {disabling ? "关闭中..." : "确认关闭"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </TabsContent>
 
