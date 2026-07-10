@@ -81,6 +81,7 @@ export function MfaSetupDialog({ open, onOpenChange, onEnabled }: MfaSetupDialog
           <div className="space-y-4">
             {setup?.qrCodeUrl && (
               <div className="flex flex-col items-center gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={setup.qrCodeUrl}
                   alt="MFA QR Code"

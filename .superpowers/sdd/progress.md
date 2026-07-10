@@ -400,3 +400,46 @@
 - **GitHub Issue**: [#26](https://github.com/eggacher/Sekiro/issues/26) 已关闭
 
 ---
+
+---
+
+# Issue #32: MFA / TOTP — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-10-mfa-implementation.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-10-mfa-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/chenggang/orca/workspaces/Sekiro/issue-32-mfa` (branch `issue-32-mfa`)
+- **开始时间**：2026-07-10
+
+## 任务清单
+
+- [x] Task 1: Prisma schema migration
+  - **Commits**: `13dda75`, `811349a`, `76cb643`
+  - **审阅**: ✅ baseline + incremental migration 结构正确；schema test 覆盖新字段
+- [ ] Task 2: Install MFA dependencies
+- [ ] Task 3: MfaCryptoProvider
+- [ ] Task 4: MfaProvider (TOTP)
+- [ ] Task 5: JwtProvider MFA token methods
+- [ ] Task 6: MfaService
+- [ ] Task 7: Update AuthService for MFA branching
+- [ ] Task 8: Update JwtAuthGuard to reject MFA tokens
+- [ ] Task 9: Add MFA controller endpoints and DTOs
+- [ ] Task 10: Update shared types
+- [ ] Task 11: Update frontend login page
+- [ ] Task 12: Update frontend profile page
+- [ ] Task 13: Update .env.example
+- [ ] Task 14: Final verification
+- [ ] Final: 全量代码 review
+
+## 完成记录
+
+### Task 1: Prisma schema migration
+- **相关文件**：
+  - `apps/api/prisma/schema.prisma`
+  - `apps/api/prisma/migrations/0_init/migration.sql`
+  - `apps/api/prisma/migrations/20260710092620_add_mfa_fields/migration.sql`
+  - `apps/api/prisma/schema.test.ts`
+  - `apps/api/prisma.config.ts`
+- **审阅**: ✅ 已通过 re-review
+- **备注**: 本地 dev 数据库做了 reset 以重建 migration 历史；生产环境应使用 `prisma migrate resolve --applied 0_init`
