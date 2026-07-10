@@ -29,6 +29,8 @@ describe("RedisSessionProvider", () => {
         createdAt: new Date().toISOString(),
         lastActiveAt: new Date().toISOString(),
         expiresAt: new Date().toISOString(),
+        permissions: ["system:user:create"],
+        roles: ["super_admin"],
       };
       await provider.createSession("session-123", session, 2592000);
       expect(mockRedis.setEx).toHaveBeenCalledWith(
