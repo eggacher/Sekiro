@@ -22,6 +22,18 @@ export interface RefreshTokenPayload {
 }
 
 /**
+ * 多因素认证令牌载荷 - MFA 令牌中的声明
+ */
+export interface MfaTokenPayload {
+  sub: number; // userId
+  username: string;
+  remember?: boolean;
+  type: 'mfa';
+  iat: number;
+  exp: number;
+}
+
+/**
  * 会话对象 - 用于跟踪用户登录会话信息
  */
 export interface Session {

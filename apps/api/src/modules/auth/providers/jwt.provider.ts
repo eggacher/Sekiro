@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { TokenPayload, RefreshTokenPayload } from '../types';
+import { TokenPayload, RefreshTokenPayload, MfaTokenPayload } from '../types';
 
 @Injectable()
 export class JwtProvider {
@@ -51,6 +51,34 @@ export class JwtProvider {
         secret: this.refreshTokenSecret,
       });
       if (payload.type !== 'refresh') {
+        return null;
+      }
+      return payload;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  signMfaToken(payload: Omit<MfaTokenPayload, 'iat' | 'exp' | 'type'>) {
+    const mfaToken = this.jwtService.sign(
+      { ...payload, type: 'mfa' },
+      {
+        secret: this.jwtSecret,
+        expiresIn: '5m',
+      }
+    );
+    return {
+      mfaToken,
+      expiresIn: 300, // 5 minutes in seconds
+    };
+  }
+
+  verifyMfaToken(token: string): MfaTokenPayload | null {
+    try {
+      const payload = this.jwtService.verify<MfaTokenPayload>(token, {
+        secret: this.jwtSecret,
+      });
+      if (payload.type !== 'mfa') {
         return null;
       }
       return payload;
