@@ -106,7 +106,7 @@ describe("UserService", () => {
   it("修改密码 - 旧密码正确时更新为 md5(新密码) 的 bcrypt", async () => {
     const oldPlain = "oldPwd123";
     const newPlain = "newPwd456";
-    repository.findById.mockResolvedValue({
+    repository.findSensitiveById.mockResolvedValue({
       id: 2,
       username: "tom",
       passwordHash: await bcrypt.hash(md5(oldPlain), 10),
@@ -120,7 +120,7 @@ describe("UserService", () => {
   });
 
   it("修改密码 - 旧密码错误时抛出异常", async () => {
-    repository.findById.mockResolvedValue({
+    repository.findSensitiveById.mockResolvedValue({
       id: 2,
       username: "tom",
       passwordHash: await bcrypt.hash(md5("correctOld"), 10),
@@ -133,7 +133,7 @@ describe("UserService", () => {
   });
 
   it("重置密码 - 应更新为 md5(sekiro123) 的 bcrypt", async () => {
-    repository.findById.mockResolvedValue({ id: 2, username: "tom" });
+    repository.findSensitiveById.mockResolvedValue({ id: 2, username: "tom" });
     repository.updatePassword.mockResolvedValue(undefined);
 
     await service.resetPassword(2);
