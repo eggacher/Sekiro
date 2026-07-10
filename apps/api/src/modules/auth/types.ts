@@ -6,6 +6,7 @@ export interface TokenPayload {
   username: string;
   roles: string[];
   sid?: string; // sessionId
+  type?: 'access' | 'mfa';
   iat: number;
   exp: number;
 }
@@ -17,6 +18,18 @@ export interface RefreshTokenPayload {
   sub: number;
   username: string;
   type: 'refresh';
+  iat: number;
+  exp: number;
+}
+
+/**
+ * 多因素认证令牌载荷 - MFA 令牌中的声明
+ */
+export interface MfaTokenPayload {
+  sub: number; // userId
+  username: string;
+  remember?: boolean;
+  type: 'mfa';
   iat: number;
   exp: number;
 }

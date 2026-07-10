@@ -1,53 +1,46 @@
-# Task 3 Report: Internationalize Dashboard
+# Task 3 Report: MfaCryptoProvider
 
 ## Status
-
 DONE
 
-## Commits Made
+## Summary
+Implemented `MfaCryptoProvider` to encrypt/decrypt TOTP secrets using the existing `encryptConfig`/`decryptConfig` crypto utility.
 
-- `55d5e06` feat(i18n): translate dashboard page
+## Files Created
+- `apps/api/src/modules/auth/providers/mfa-crypto.provider.ts`
+- `apps/api/src/modules/auth/providers/__tests__/mfa-crypto.provider.spec.ts`
 
-## Changes Summary
+## Files Changed
+- `apps/api/vitest.config.ts` → `apps/api/vitest.config.mts` (renamed to fix ESM config loading)
 
-- `apps/web/app/(dashboard)/page.tsx`
-  - Imported `TranslationKey` type for typed `t()` calls.
-  - Replaced hardcoded Chinese days of week in `weeklyActiveTrend` with translation keys (`mon`..`sun`) and added `tickFormatter` to the AreaChart XAxis.
-  - Replaced hardcoded Chinese months in `monthlyRevenue` with translation keys (`jan`..`dec`) and added `tickFormatter` to the BarChart XAxis.
-  - Replaced hardcoded Chinese traffic source names with translation keys (`direct`, `search`, `social`, `referral`) and translated them for the PieChart and legend.
-  - Replaced hardcoded Chinese recent-activity text (user names, actions, targets, times) with translation keys and `t()` calls.
+## Implementation Notes
+- `MfaCryptoProvider` is `@Injectable()`.
+- Reads `MFA_SECRET_KEY` from environment.
+- Throws in production if `MFA_SECRET_KEY` is missing.
+- Falls back to `JWT_SECRET` (or a placeholder) in development with a console warning.
+- `encrypt()` delegates to `encryptConfig(secret, this.key)`.
+- `decrypt()` validates the `ENC(...)` wrapper before delegating to `decryptConfig(encrypted, this.key)` and throws on invalid format.
 
-- `apps/web/lib/i18n/dictionaries/zh/dashboard.ts`
-  - Added Chinese translations for days, months, traffic sources, activity actions/targets/roles/users, and relative times.
+## Deviation from Brief
+The brief's implementation delegated decryption directly to `decryptConfig`, but the current `decryptConfig` returns non-`ENC(...)` input unchanged rather than throwing. To satisfy the test expectation `provider.decrypt("not-encrypted")` throws, I added a minimal format guard in `MfaCryptoProvider.decrypt()` before delegating.
 
-- `apps/web/lib/i18n/dictionaries/en/dashboard.ts`
-  - Added matching English translations for all new keys.
-
-## Verification Results
-
-### `pnpm --filter @sekiro/web build`
-
-PASSED
-
+## Test Results
 ```
-✓ Compiled successfully
-✓ Generating static pages (18/18)
+✓ src/modules/auth/providers/__tests__/mfa-crypto.provider.spec.ts (3 tests)
+Test Files  1 passed (1)
+Tests  3 passed (3)
 ```
 
-### `pnpm typecheck`
+Typecheck also passes:
+```
+> pnpm typecheck
+(tsc --noEmit succeeds)
+```
 
-PARTIAL / WEB PASSED, API FAILED DUE TO UNRELATED PRISMA ISSUES
-
-- `apps/web` typecheck: **Done** (no errors in modified files).
-- `apps/api` typecheck: **Failed** with pre-existing Prisma client errors such as:
-  - `Property 'user' does not exist on type 'PrismaService'`
-  - `Module '"@prisma/client"' has no exported member 'PrismaClient'`
-
-These errors are unrelated to the dashboard internationalization work and indicate the Prisma client has not been generated in this worktree.
+## Commits
+- `4d43259` feat(mfa): add MfaCryptoProvider for TOTP secret encryption
+- `8dac25d` fix(test): rename vitest config to .mts for ESM compatibility
 
 ## Concerns
-
-1. **Pre-existing API typecheck failure**: The repository-wide `pnpm typecheck` fails in `apps/api` because `@prisma/client` types are missing. This is an environment/setup issue in the worktree, not caused by this task.
-2. **Mock-data structure change**: The `recentActivities` mock data now uses key references (`userKey`, `actionKey`, etc.) instead of raw strings. This is consistent with i18n but is a slightly larger data-shape change than a pure string replacement.
-3. **Untranslated comments**: Chinese JSX comments (`{/* 欢迎横幅 */}`, etc.) remain; they are developer-only and were intentionally left unchanged to keep the diff focused.
-4. **Unused `roleKey` field**: Each activity object still carries a `roleKey` field matching the original `role` field, which is not rendered on the dashboard. It was retained to preserve the original data shape.
+- The `vitest.config.ts` → `.mts` rename was required because `vitest@4.1.9` fails to load its config in CommonJS mode due to `std-env@4.1.0` being pure ESM. This is a pre-existing workspace issue, not caused by this task, but the rename is necessary for tests to run.
+- `MfaCryptoProvider.decrypt()` duplicates the `ENC(...)` format check that already exists inside `decryptConfig`; ideally `decryptConfig` itself would throw on non-encrypted input, but the provider wrapper is the minimal change to satisfy the current contract.

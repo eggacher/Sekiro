@@ -1,69 +1,78 @@
-# Issue #31 Final Fix Report
+# Issue #32 MFA — Final Review Fixes
 
-## Summary
+**Date:** 2026-07-10
+**Fixes based on:** `.superpowers/sdd/final-review.md`
 
-Addressed all Important and Minor findings from the whole-branch review for Issue #31.
+---
 
-## What Was Fixed
+## Issues Fixed
 
-### Important
+### Important 1: `AuthService.getMe` now returns `mfaEnabled`
 
-1. **Missing `positionNames` in backend response**
-   - `apps/api/src/modules/user/repositories/user.repository.ts` now maps both `positionIds` and `positionNames` in `findById` and `findPage`.
-   - Added explicit return types using an internal `UserWithPositions` type derived from Prisma's `UserGetPayload`.
-   - `packages/shared/src/types.ts`: added `positionNames?: string[]` to the `User` interface.
-   - `apps/api/src/modules/user/__tests__/user.repository.positions.spec.ts`: assertions now cover both arrays and verify the Prisma `include` clause.
+- **File:** `apps/api/src/modules/auth/services/auth.service.ts`
+- Added `mfaEnabled: user.mfaEnabled` to the `CurrentUser` object returned by `getMe`.
+- Added unit test in `apps/api/src/modules/auth/services/__tests__/auth.service.spec.ts` asserting the field is present.
 
-2. **`std-env` ESM test execution issue**
-   - Root `package.json` engine requirement bumped from `>=18.17.0` to `>=22.0.0`.
-   - Added `.nvmrc` with `22` so `nvm use` selects a Node version that supports `require(ESM)`.
-   - Verified that `pnpm --filter @sekiro/api test` passes on Node v22.23.1.
+### Important 2: `AuthService.loginWithMfa` no longer verifies `mfaToken` twice
 
-3. **Mock-only repository tests**
-   - Added `positionsInclude` constant and `toHaveBeenCalledWith` assertions for `findFirst` / `findMany` to ensure the correct Prisma include is used.
+- **Files:**
+  - `apps/api/src/modules/auth/services/mfa.service.ts`
+  - `apps/api/src/modules/auth/services/auth.service.ts`
+- Changed `MfaService.verifyLogin` to return `{ user, payload }`.
+- Updated `AuthService.loginWithMfa` to read `payload.remember` from the returned payload instead of calling `jwtProvider.verifyMfaToken` again.
+- Updated unit tests in `mfa.service.spec.ts` and `auth.service.spec.ts` to match the new return shape and removed the now-unused `verifyMfaToken` mock in `auth.service.spec.ts`.
 
-4. **Inaccurate documentation**
-   - `.superpowers/sdd/GITHUB_ISSUES_STATUS.md`: changed "Select 多选模式" to "Checkbox 组" and updated the verification note.
-   - `.superpowers/sdd/progress.md`: updated Task 1 description and noted that `pnpm lint` currently covers only `apps/web`.
+### Important 4: Hardened token typing
 
-### Minor
+- **Files:**
+  - `apps/api/src/modules/auth/types.ts`
+  - `apps/api/src/modules/auth/providers/jwt.provider.ts`
+  - `apps/api/src/modules/auth/guards/jwt-auth.guard.ts`
+  - `apps/api/src/modules/auth/providers/__tests__/jwt.provider.spec.ts`
+- Added `type?: 'access' | 'mfa'` to `TokenPayload`.
+- Updated `JwtProvider.verifyToken` to reject tokens with `type === 'mfa'` (defense in depth).
+- Updated `JwtAuthGuard` to use `payload.type === 'mfa'` directly instead of casting.
+- Added unit test asserting `verifyToken` rejects MFA tokens.
 
-5. **Missing explicit return types on repository methods**
-   - `findById` now returns `Promise<UserWithPositions | null>`.
-   - `findPage` now returns `Promise<PageResult<UserWithPositions>>`.
+### Minor: Cleaned up `MfaProvider.verify` cast
 
-6. **`UserFormDialog` effect dependency array**
-   - Added `positions` to the dependency array at `apps/web/app/(dashboard)/system/user/page.tsx:411`.
+- **File:** `apps/api/src/modules/auth/providers/mfa.provider.ts`
+- Replaced `as boolean` with `!!` to handle the `boolean | null` return from `speakeasy.totp.verify`.
 
-7. **Lint coverage note**
-   - Added an explicit note in `.superpowers/sdd/progress.md` that `pnpm lint` currently only runs `apps/web` because `apps/api` and `packages/shared` have no ESLint configuration. Adding ESLint configs to those packages was deemed out of scope for this fix pass.
+### Minor: Kept `MfaCryptoProvider.decrypt` `ENC(...)` format check
 
-8. **Dead controls in user form**
-   - Added a code comment above `handleSave` explaining that `roleIds` and `status` are intentionally excluded from the save payload due to DTO `whitelist`/`forbidNonWhitelisted` constraints, matching existing behavior.
+- **File:** `apps/api/src/modules/auth/providers/mfa-crypto.provider.ts`
+- The existing unit test expects `decrypt('not-encrypted')` to throw, while `decryptConfig` returns non-encrypted input unchanged. Therefore the explicit format check is retained.
+
+---
 
 ## Verification Results
 
-Run with Node v22.23.1 (selected via `nvm use`):
+| Check | Command | Result |
+|-------|---------|--------|
+| API tests | `cd apps/api && pnpm test` | 145/145 passed |
+| API typecheck | `cd apps/api && pnpm typecheck` | clean |
+| Web typecheck | `cd apps/web && pnpm typecheck` | clean |
+| Web lint | `cd apps/web && pnpm lint` | no warnings or errors |
+| Shared build | `pnpm --filter @sekiro/shared build` | success |
 
-| Command | Result |
-| --- | --- |
-| `pnpm typecheck` | PASS |
-| `pnpm --filter @sekiro/api test` | PASS (122/122) |
-| `pnpm lint` | PASS (covers `apps/web` only) |
+---
 
 ## Files Changed
 
-- `.nvmrc`
-- `package.json`
-- `packages/shared/src/types.ts`
-- `apps/api/src/modules/user/repositories/user.repository.ts`
-- `apps/api/src/modules/user/__tests__/user.repository.positions.spec.ts`
-- `apps/web/app/(dashboard)/system/user/page.tsx`
-- `.superpowers/sdd/GITHUB_ISSUES_STATUS.md`
-- `.superpowers/sdd/progress.md`
-- `pnpm-lock.yaml` (updated by `pnpm install`)
+- `apps/api/src/modules/auth/types.ts`
+- `apps/api/src/modules/auth/providers/jwt.provider.ts`
+- `apps/api/src/modules/auth/providers/mfa.provider.ts`
+- `apps/api/src/modules/auth/guards/jwt-auth.guard.ts`
+- `apps/api/src/modules/auth/services/auth.service.ts`
+- `apps/api/src/modules/auth/services/mfa.service.ts`
+- `apps/api/src/modules/auth/services/__tests__/auth.service.spec.ts`
+- `apps/api/src/modules/auth/services/__tests__/mfa.service.spec.ts`
+- `apps/api/src/modules/auth/providers/__tests__/jwt.provider.spec.ts`
 
-## Issues or Concerns
+---
 
-- The working tree also contained uncommitted modifications to `.superpowers/sdd/task-3-brief.md`, `task-3-report.md`, `task-4-brief.md`, and `task-4-report.md` that pre-dated this fix pass. These were included in the fix commit to preserve the branch state; they contain Story #31 task content written by the previous implementer.
-- `pnpm lint` still only covers `apps/web`. Adding lint configs/scripts to `apps/api` and `packages/shared` is a worthwhile follow-up but outside the scope of Issue #31.
+## Notes / Follow-up
+
+- The baseline migration documentation issue (Important 3 in the review) was **not** addressed in this fix pass because it was not included in the requested fix list.
+- The pre-existing modification to `.superpowers/sdd/progress.md` was left unstaged.

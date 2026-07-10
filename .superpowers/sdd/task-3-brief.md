@@ -1,39 +1,112 @@
-## Task 3: Internationalize Dashboard
+## Task 3: MfaCryptoProvider
 
 **Files:**
-- Modify: `apps/web/app/(dashboard)/page.tsx`
+- Create: `apps/api/src/modules/auth/providers/mfa-crypto.provider.ts`
+- Create: `apps/api/src/modules/auth/providers/__tests__/mfa-crypto.provider.spec.ts`
 
 **Interfaces:**
-- Consumes: `useTranslation`
-- Produces: dashboard strings via `t()`
+- Produces: `MfaCryptoProvider.encrypt(secret: string): string`
+- Produces: `MfaCryptoProvider.decrypt(encrypted: string): string`
+- Consumes: `encryptConfig`/`decryptConfig` from `apps/api/src/modules/security/utils/crypto.util.ts`
 
-- [ ] **Step 1: Read file and identify hardcoded strings**
+- [ ] **Step 1: Write the failing test**
 
+```typescript
+import { describe, it, expect, beforeEach } from 'vitest';
+import { MfaCryptoProvider } from '../mfa-crypto.provider';
+
+describe('MfaCryptoProvider', () => {
+  let provider: MfaCryptoProvider;
+
+  beforeEach(() => {
+    process.env.MFA_SECRET_KEY = 'test-mfa-key-32-bytes-long!!';
+    provider = new MfaCryptoProvider();
+  });
+
+  it('should encrypt and decrypt a secret', () => {
+    const secret = 'JBSWY3DPEHPK3PXP';
+    const encrypted = provider.encrypt(secret);
+    expect(encrypted).toMatch(/^ENC\(/);
+    expect(provider.decrypt(encrypted)).toBe(secret);
+  });
+
+  it('should produce different ciphertexts for the same secret', () => {
+    const secret = 'JBSWY3DPEHPK3PXP';
+    const encrypted1 = provider.encrypt(secret);
+    const encrypted2 = provider.encrypt(secret);
+    expect(encrypted1).not.toBe(encrypted2);
+    expect(provider.decrypt(encrypted1)).toBe(secret);
+    expect(provider.decrypt(encrypted2)).toBe(secret);
+  });
+
+  it('should throw on invalid encrypted format', () => {
+    expect(() => provider.decrypt('not-encrypted')).toThrow();
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run:
 ```bash
-cat apps/web/app/(dashboard)/page.tsx
+cd apps/api
+pnpm test providers/__tests__/mfa-crypto.provider.spec.ts
 ```
 
-- [ ] **Step 2: Add missing keys to `zh/dashboard.ts` and `en/dashboard.ts`**
+Expected: FAIL with "MfaCryptoProvider is not defined" or similar.
 
-- [ ] **Step 3: Replace strings with `t()`**
+- [ ] **Step 3: Write minimal implementation**
 
-For chart labels, pass values:
-```tsx
-{t("dashboard.revenueTrend")}
+```typescript
+import { Injectable } from '@nestjs/common';
+import {
+  encryptConfig,
+  decryptConfig,
+} from '../../security/utils/crypto.util';
+
+@Injectable()
+export class MfaCryptoProvider {
+  private readonly key: string;
+
+  constructor() {
+    const envKey = process.env.MFA_SECRET_KEY;
+    if (!envKey) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('MFA_SECRET_KEY environment variable is required in production');
+      }
+      console.warn('[MfaCryptoProvider] MFA_SECRET_KEY not set, falling back to JWT_SECRET');
+      this.key = process.env.JWT_SECRET || 'your-secret-key';
+    } else {
+      this.key = envKey;
+    }
+  }
+
+  encrypt(secret: string): string {
+    return encryptConfig(secret, this.key);
+  }
+
+  decrypt(encrypted: string): string {
+    return decryptConfig(encrypted, this.key);
+  }
+}
 ```
 
-- [ ] **Step 4: Run typecheck and build**
+- [ ] **Step 4: Run test to verify it passes**
 
+Run:
 ```bash
-pnpm typecheck
-pnpm --filter @sekiro/web build
+cd apps/api
+pnpm test providers/__tests__/mfa-crypto.provider.spec.ts
 ```
+
+Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add apps/web/app/(dashboard)/page.tsx apps/web/lib/i18n/dictionaries/
-git commit -m "feat(i18n): translate dashboard page"
+git add apps/api/src/modules/auth/providers/mfa-crypto.provider.ts \
+        apps/api/src/modules/auth/providers/__tests__/mfa-crypto.provider.spec.ts
+git commit -m "feat(mfa): add MfaCryptoProvider for TOTP secret encryption"
 ```
 
 ---

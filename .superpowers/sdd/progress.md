@@ -401,72 +401,101 @@
 
 ---
 
-# Story #28: i18n 国际化 + 主题切换 — 执行进度
-
-## 计划信息
-- **计划文件**：`docs/superpowers/plans/2026-07-07-i18n-themes.md`
-- **执行方式**：subagent-driven-development
-- **开始时间**：2026-07-07
-- **完成时间**：2026-07-08
-- **工作区**：`.worktrees/feature/i18n-themes`
-
-## 任务清单
-
-- [x] Task 1: 重构字典结构（zh/en 模块拆分）
-- [x] Task 2: 登录页国际化
-- [x] Task 3: 工作台国际化
-- [x] Task 4: 个人中心国际化
-- [x] Task 5: 系统管理页面国际化
-- [x] Task 6: 系统监控页面国际化
-- [x] Task 7: 布局与共享组件国际化
-- [x] Task 8: 主题修复（持久化、暗色图表可读性）
-- [x] Task 9: 最终验证与合并
-
-## 完成记录
-
-### 最终验证
-- **验证结果**：✅ `pnpm --filter @sekiro/web typecheck` 通过
-- **构建结果**：✅ `pnpm --filter @sekiro/web build` 通过（18/18 静态页面）
-- **合并提交**：`85d7bc3` → `dev`（fast-forward）
-- **计划文档提交**：`f133cc6`
-- **GitHub Issue**: [#28](https://github.com/eggacher/Sekiro/issues/28) 已关闭
-
-### 关键修复（Review 后）
-- `tabs-nav.tsx`、`header.tsx`、`sidebar.tsx` 统一使用 `translateMenuTitle` 翻译菜单标题
-- 角色权限树中的按钮权限标题（新增/编辑/删除）加入字典映射
-- 主题色下拉标签改为字典键 `theme.color.*`
-- `translateMenuTitle` 提取到 `lib/i18n/menu-title.ts`，避免组件循环依赖
-
-### 已知限制
-- Root `pnpm typecheck` 因 `apps/api` 缺少生成的 Prisma client 类型而失败，不影响本 Story 范围。
-- `tool/codegen`、`tool/config` 页面不在本次 Story 范围内，仍保留中文。
-
 ---
 
-# Story #31: 在用户管理中查看和分配岗位 — 执行进度
+# Issue #32: MFA / TOTP — 执行进度
 
 ## 计划信息
-- **规范文件**：`docs/superpowers/specs/2026-07-10-user-position-integration-design.md`
-- **实施计划**：`docs/superpowers/plans/2026-07-10-user-position-integration.md`
-- **完成时间**：2026-07-10
+- **计划文件**：`docs/superpowers/plans/2026-07-10-mfa-implementation.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-10-mfa-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/chenggang/orca/workspaces/Sekiro/issue-32-mfa` (branch `issue-32-mfa`)
+- **开始时间**：2026-07-10
 
 ## 任务清单
-- [x] Task 1: 后端 UserRepository 返回 positionIds
-- [x] Task 2: 前端加载岗位并展示列表岗位列
-- [x] Task 3: 前端用户表单增加岗位多选
-- [x] Task 4: 前端保存流程顺序分配岗位
-- [x] Task 5: 全量验证与文档更新
+
+- [x] Task 1: Prisma schema migration
+  - **Commits**: `13dda75`, `811349a`, `76cb643`
+  - **审阅**: ✅ baseline + incremental migration 结构正确；schema test 覆盖新字段
+- [ ] Task 2: Install MFA dependencies
+- [ ] Task 3: MfaCryptoProvider
+- [ ] Task 4: MfaProvider (TOTP)
+- [ ] Task 5: JwtProvider MFA token methods
+- [ ] Task 6: MfaService
+- [ ] Task 7: Update AuthService for MFA branching
+- [ ] Task 8: Update JwtAuthGuard to reject MFA tokens
+- [ ] Task 9: Add MFA controller endpoints and DTOs
+- [ ] Task 10: Update shared types
+- [ ] Task 11: Update frontend login page
+- [ ] Task 12: Update frontend profile page
+- [ ] Task 13: Update .env.example
+- [ ] Task 14: Final verification
+- [ ] Final: 全量代码 review
 
 ## 完成记录
 
-### Task 1: 后端 UserRepository 岗位字段
-- **相关文件**：`apps/api/src/modules/user/repositories/user.repository.ts`
-- **审阅**: ✅ `findPage` 与 `findById` 返回 `positionIds` 与 `positionNames`，并补齐 `deptName`/`roleIds`/`roleNames`
+### Task 1: Prisma schema migration
+- **相关文件**：
+  - `apps/api/prisma/schema.prisma`
+  - `apps/api/prisma/migrations/0_init/migration.sql`
+  - `apps/api/prisma/migrations/20260710092620_add_mfa_fields/migration.sql`
+  - `apps/api/prisma/schema.test.ts`
+  - `apps/api/prisma.config.ts`
+- **审阅**: ✅ 已通过 re-review
+- **备注**: 本地 dev 数据库做了 reset 以重建 migration 历史；生产环境应使用 `prisma migrate resolve --applied 0_init`
 
-### Task 2-4: 前端用户管理页面
-- **相关文件**：`apps/web/app/(dashboard)/system/user/page.tsx`
-- **审阅**: ✅ 列表岗位列、表单岗位多选、保存分配岗位均实现；已停用岗位在编辑表单可见可取消
+## 完成记录（更新）
 
-### Final: 全量代码 review
-- **验证结果**: ✅ `pnpm typecheck` 通过、`pnpm lint` 通过、`pnpm --filter @sekiro/api test` 全部通过
-- **备注**: `pnpm lint` 当前仅覆盖 `apps/web`（Next.js ESLint）；`apps/api` 与 `packages/shared` 暂无独立 lint 配置，不在本次 Issue 范围内。项目引擎要求保持 Node `>=18.17.0`；API 测试在本地使用 Node 22 验证通过（`std-env@4.2.0` 需要 Node 22 的 `require(ESM)` 支持）。
+### Task 2: Install MFA dependencies
+- **Commit**: `330a7f8`
+- **审阅**: ✅ 依赖安装正确
+
+### Task 3: MfaCryptoProvider
+- **Commit**: `4d43259`
+- **修复 Commit**: `796780f`
+- **审阅**: ✅ TOTP secret 加解密实现正确
+
+### Task 4: MfaProvider (TOTP)
+- **Commit**: `f2c086d`
+- **审阅**: ✅ RFC 6238 TOTP 生成与验证正确
+
+### Task 5: JwtProvider MFA token methods
+- **Commit**: `c29d4a7`
+- **审阅**: ✅ mfaToken 签发与验证正确
+
+### Task 6: MfaService
+- **Commit**: `c55dde2`
+- **审阅**: ✅ MFA 开启/关闭/登录验证流程正确
+
+### Task 7: Update AuthService for MFA branching
+- **Commit**: `7cf0007`
+- **审阅**: ✅ 登录分支与 loginWithMfa 实现正确
+
+### Task 8: Update JwtAuthGuard to reject MFA tokens
+- **Commit**: `efb9320`
+- **审阅**: ✅ mfa token 不能访问受保护资源
+
+### Task 9: Add MFA controller endpoints and DTOs
+- **Commit**: `c7b8c52`
+- **审阅**: ✅ 四个 MFA 端点与 DTOs 实现正确
+
+### Task 10: Update shared types
+- **Commit**: `12c663f`
+- **审阅**: ✅ 共享类型更新正确
+
+### Task 11: Update frontend login page
+- **Commit**: `ba79c5c`
+- **审阅**: ✅ 登录页 MFA 两步验证实现正确
+
+### Task 12: Update frontend profile page
+- **Commit**: `d00c1d1`
+- **审阅**: ✅ 个人中心 MFA 开关/二维码弹窗实现正确
+
+### Task 13: Update .env.example
+- **Commit**: `501e65d`
+- **审阅**: ✅ MFA_SECRET_KEY 文档化
+
+### Task 14: Final verification
+- **Commit**: `13b7574`
+- **审阅**: ✅ `pnpm typecheck` + `pnpm test` + `pnpm lint` 全部通过
+- **测试**: API 142/142 通过，共 27 个测试文件

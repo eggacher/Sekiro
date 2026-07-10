@@ -1,26 +1,36 @@
-# Task 4 Report: Internationalize Profile Page
+# Task 4 Report: MfaProvider (TOTP Wrapper)
 
-**Status:** DONE
+## Status
+DONE
 
-## Commits made
+## Files Created
+- `apps/api/src/modules/auth/providers/mfa.provider.ts`
+- `apps/api/src/modules/auth/providers/__tests__/mfa.provider.spec.ts`
 
-- `27af7fd` feat(i18n): translate profile page
-  - `apps/web/app/(dashboard)/profile/page.tsx`
-  - `apps/web/lib/i18n/dictionaries/en/profile.ts`
-  - `apps/web/lib/i18n/dictionaries/zh/profile.ts`
+## Commit
+- `f2c086d` feat(mfa): add MfaProvider for TOTP generation and verification
 
-## Changes summary
+## Implementation Summary
+Created a NestJS-injectable `MfaProvider` wrapping `speakeasy` to:
+- Generate base32 TOTP secrets (`generateSecret`)
+- Build `otpauth://` URLs for QR code generation (`getOtpauthUrl`)
+- Verify 6-digit TOTP codes with a configurable window (`verify`, default window 1)
 
-- Added `useTranslation` hook to the profile page.
-- Replaced all hardcoded Chinese UI strings (page header, tab labels, form labels, placeholders, buttons, notification preferences, MFA section, toasts) with `t("...")` calls.
-- Converted the `NOTIFICATION_LABELS` constant into a `NOTIFICATION_LABEL_KEYS` mapping that references translation keys, preserving type safety.
-- Added all required keys to `zh/profile.ts` (Chinese) and `en/profile.ts` (English) dictionaries.
+## Test Summary
+All 5 tests pass:
+- generates a base32 secret
+- returns an otpauth URL containing the expected scheme, secret, and issuer
+- verifies a valid current TOTP code
+- rejects an invalid code
+- rejects a code outside the allowed window
 
-## Verification
-
-- `pnpm --filter @sekiro/web typecheck` — PASSED (no TypeScript errors in the web app).
-- `pnpm --filter @sekiro/web build` — PASSED (Next.js production build completed successfully, including `/profile`).
+## Verification Commands
+```bash
+cd apps/api
+pnpm test providers/__tests__/mfa.provider.spec.ts
+pnpm typecheck
+```
 
 ## Concerns
-
-- The root-level `pnpm typecheck` command runs recursively across all workspaces and currently fails in `apps/api` due to pre-existing Prisma client type-generation issues (e.g., `Property 'user' does not exist on type 'PrismaService'`). These errors are unrelated to Task 4 changes; the web-specific typecheck and build both pass.
+- `pnpm typecheck` passes.
+- Running the repository's ESLint configuration directly against the new test file produces an error: `Definition for rule '@typescript-eslint/no-var-requires' was not found`. This is caused by the `// eslint-disable-next-line @typescript-eslint/no-var-requires` comment prescribed by the task brief. The root ESLint config only extends `next/core-web-vitals` and does not load `@typescript-eslint`, so the disable comment references an undefined rule. Since `apps/api` has no `lint` script and the project's automated checks (`test`, `typecheck`) pass, this does not block the task, but a future cleanup could either remove the unused disable comment or add `@typescript-eslint` to the ESLint config.

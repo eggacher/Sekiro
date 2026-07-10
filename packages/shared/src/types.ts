@@ -156,12 +156,14 @@ export interface LoginRequest {
 
 /** 登录响应 */
 export interface LoginResponse {
-  token: string;
+  token?: string;
   refreshToken?: string;
-  expiresIn: number;
-  user: Omit<User, "createdAt">;
-  permissions: string[];
-  menus: Menu[];
+  expiresIn?: number;
+  user?: Omit<User, "createdAt">;
+  permissions?: string[];
+  menus?: Menu[];
+  mfaRequired?: boolean;
+  mfaToken?: string;
 }
 
 /** 会话 —— 对应领域类 Session */
@@ -218,6 +220,30 @@ export interface CurrentUser {
   phone?: string | null;
   roles: string[];
   permissions: string[];
+  mfaEnabled?: boolean;
+}
+
+/** MFA 绑定响应 */
+export interface MfaSetupResponse {
+  secret: string;
+  qrCodeUrl: string;
+  manualEntryKey: string;
+}
+
+/** MFA 验证请求 */
+export interface MfaVerifyRequest {
+  code: string;
+}
+
+/** MFA 验证响应 */
+export interface MfaVerifyResponse {
+  enabled: boolean;
+}
+
+/** MFA 登录验证请求 */
+export interface MfaLoginVerifyRequest {
+  mfaToken: string;
+  code: string;
 }
 
 /** 刷新令牌请求 */

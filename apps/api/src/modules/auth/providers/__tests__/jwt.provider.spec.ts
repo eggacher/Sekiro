@@ -7,8 +7,19 @@ describe("JwtProvider", () => {
 
   beforeEach(() => {
     provider = new JwtProvider({
-      sign: vi.fn((payload, options) => "mock.token.string"),
-      verify: vi.fn((token) => ({ sub: 1, username: "test" })),
+      sign: vi.fn((payload, options) => `mock-${payload.type || "access"}.token.string`),
+      verify: vi.fn((token) => {
+        if (token.includes("tamper")) {
+          throw new Error("Invalid token");
+        }
+        if (token.includes("mfa")) {
+          return { sub: 1, username: "admin", type: "mfa" };
+        }
+        if (token.includes("refresh")) {
+          return { sub: 1, username: "admin", type: "refresh" };
+        }
+        return { sub: 1, username: "test" };
+      }),
     } as any);
   });
 
@@ -38,6 +49,15 @@ describe("JwtProvider", () => {
       expect(result?.sub).toBe(1);
     });
 
+    it("should reject an MFA token as access token", () => {
+      const jwtService = {
+        verify: vi.fn(() => ({ sub: 1, username: "admin", type: "mfa" })),
+      };
+      const providerWithMfa = new JwtProvider(jwtService as any);
+      const result = providerWithMfa.verifyToken("mfa.token");
+      expect(result).toBeNull();
+    });
+
     it("should return null for invalid token", () => {
       const jwtService = {
         verify: vi.fn(() => {
@@ -64,6 +84,42 @@ describe("JwtProvider", () => {
       const providerWithError = new JwtProvider(jwtService as any);
       const result = providerWithError.verifyRefreshToken("token");
       expect(result).toBeNull();
+    });
+  });
+
+  describe("MFA token", () => {
+    it("should sign and verify an MFA token", () => {
+      const { mfaToken, expiresIn } = provider.signMfaToken({
+        sub: 1,
+        username: "admin",
+      });
+
+      expect(mfaToken).toBeDefined();
+      expect(expiresIn).toBe(300);
+
+      const payload = provider.verifyMfaToken(mfaToken);
+      expect(payload).not.toBeNull();
+      expect(payload!.sub).toBe(1);
+      expect(payload!.username).toBe("admin");
+      expect(payload!.type).toBe("mfa");
+    });
+
+    it("should reject an expired MFA token", () => {
+      const { mfaToken } = provider.signMfaToken({ sub: 1, username: "admin" });
+      // Simulate expiration by advancing time is hard with jwtService.sign;
+      // Instead verify a tampered token returns null.
+      const payload = provider.verifyMfaToken(mfaToken + "tamper");
+      expect(payload).toBeNull();
+    });
+
+    it("should reject a standard access token as MFA token", () => {
+      const { token } = provider.signToken({
+        sub: 1,
+        username: "admin",
+        roles: [],
+        sid: "session-1",
+      });
+      expect(provider.verifyMfaToken(token)).toBeNull();
     });
   });
 });

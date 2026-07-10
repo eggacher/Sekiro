@@ -12,4 +12,6 @@ export const login = {
   "login.error.failed": "登录失败",
   "login.otherMethods": "其他登录方式",
   "login.copyright": "© 2026 Sekiro Admin · 基于 Next.js + shadcn/ui",
+  "login.mfaTitle": "两步验证",
+  "login.mfaSubtitle": "请输入 Authenticator 应用中的 6 位验证码",
 } as const;

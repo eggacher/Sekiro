@@ -10,6 +10,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { JwtProvider } from '../providers/jwt.provider';
 import { RedisSessionProvider } from '../providers/redis-session.provider';
 import { LoginFailureProvider } from '../providers/login-failure.provider';
+import { MfaService, isMfaSuccess } from './mfa.service';
 import type { CurrentUser, LoginRequest, Menu } from '@sekiro/shared';
 
 /**
@@ -34,6 +35,7 @@ export class AuthService {
     @Inject(JwtProvider) private jwtProvider: JwtProvider,
     @Inject(RedisSessionProvider) private redisSessionProvider: RedisSessionProvider,
     @Inject(LoginFailureProvider) private loginFailureProvider: LoginFailureProvider,
+    @Inject(MfaService) private mfaService: MfaService,
   ) {}
 
   /**
@@ -133,7 +135,23 @@ export class AuthService {
     // 5. 验证成功！清除失败计数
     await this.loginFailureProvider.clearFailure(user.id);
 
-    // 6. 计算权限和菜单
+    // 6. 如果用户开启了 MFA，进入第二步验证
+    if (user.mfaEnabled) {
+      const { mfaToken } = this.jwtProvider.signMfaToken({
+        sub: user.id,
+        username: user.username,
+        remember: request.remember || false,
+      });
+      return {
+        code: 0,
+        data: {
+          mfaRequired: true,
+          mfaToken,
+        },
+      };
+    }
+
+    // 7. 计算权限和菜单
     const permissions = await this.getUserPermissions(user.id);
     const menus = await this.buildMenuTree(user.id);
 
@@ -185,6 +203,101 @@ export class AuthService {
     });
 
     // 10. 返回响应
+    return {
+      code: 0,
+      data: {
+        token,
+        refreshToken,
+        expiresIn,
+        user: {
+          id: user.id,
+          username: user.username,
+          nickname: user.nickname,
+          email: user.email,
+          phone: user.phone,
+          avatar: user.avatar,
+          status: user.status,
+          deptId: user.deptId,
+        },
+        permissions,
+        menus,
+      },
+    };
+  }
+
+  /**
+   * MFA 第二步验证并签发正式 Token
+   */
+  async loginWithMfa(
+    mfaToken: string,
+    code: string,
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<any> {
+    const verifyResult = await this.mfaService.verifyLogin(mfaToken, code);
+
+    if (!isMfaSuccess(verifyResult)) {
+      return { code: verifyResult.code, message: verifyResult.message };
+    }
+
+    const { user, payload } = verifyResult.data;
+
+    // 从已验证的 mfaToken payload 中读取 remember 偏好
+    const remember = payload?.remember || false;
+
+    // 清除登录失败计数
+    await this.loginFailureProvider.clearFailure(user.id);
+
+    // 计算权限和菜单
+    const permissions = await this.getUserPermissions(user.id);
+    const menus = await this.buildMenuTree(user.id);
+
+    // 创建 Session ID 并签发 Token
+    const sessionId = uuidv4();
+    const { token, expiresIn } = this.jwtProvider.signToken({
+      sub: user.id,
+      username: user.username,
+      roles: permissions.map((p) => p.split(':')[0]).filter((v, i, a) => a.indexOf(v) === i),
+      sid: sessionId,
+    });
+
+    const { refreshToken } = this.jwtProvider.signRefreshToken({
+      sub: user.id,
+      username: user.username,
+    });
+
+    // 创建 Session
+    const session = {
+      userId: user.id,
+      username: user.username,
+      token,
+      refreshToken,
+      remember,
+      ip: ipAddress,
+      userAgent,
+      createdAt: new Date().toISOString(),
+      lastActiveAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+    await this.redisSessionProvider.createSession(sessionId, session, 2592000);
+
+    // 更新用户登录时间并写日志
+    await this.prismaService.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+    await this.prismaService.loginLog.create({
+      data: {
+        username: user.username,
+        result: 'success',
+        message: '登录成功',
+        ip: ipAddress,
+        browser: userAgent,
+        os: userAgent,
+      },
+    });
+
+    // 返回响应
     return {
       code: 0,
       data: {
@@ -273,6 +386,7 @@ export class AuthService {
         avatar: user.avatar ?? undefined,
         email: user.email ?? undefined,
         phone: user.phone ?? undefined,
+        mfaEnabled: user.mfaEnabled,
         roles,
         permissions,
       },

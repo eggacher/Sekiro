@@ -23,6 +23,8 @@ model User {
   lockedUntil    DateTime? @map("locked_until")
   loginFailCount Int       @default(0) @map("login_fail_count")
   lastLoginAt    DateTime? @map("last_login_at")
+  mfaSecret      String?   @map("mfa_secret") @db.VarChar(512)
+  mfaEnabled     Boolean   @default(false) @map("mfa_enabled")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
   deletedAt      DateTime? @map("deleted_at")

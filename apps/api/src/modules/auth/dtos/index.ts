@@ -3,3 +3,7 @@
  */
 export * from './login.dto';
 export * from './refresh.dto';
+export * from './mfa-setup.dto';
+export * from './mfa-verify.dto';
+export * from './mfa-disable.dto';
+export * from './mfa-login-verify.dto';
