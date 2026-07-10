@@ -10,6 +10,7 @@ import { LoginFailureProvider } from './providers/login-failure.provider';
 import { MfaProvider } from './providers/mfa.provider';
 import { MfaCryptoProvider } from './providers/mfa-crypto.provider';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { PermissionGuard } from './guards/permission.guard';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
@@ -27,6 +28,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     MfaProvider,
     MfaCryptoProvider,
     JwtAuthGuard,
+    PermissionGuard,
     DataScopeService,
   ],
   exports: [
@@ -35,6 +37,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     JwtProvider,
     RedisSessionProvider,
     JwtAuthGuard,
+    PermissionGuard,
     DataScopeService,
   ],
 })
