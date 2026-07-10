@@ -21,6 +21,11 @@ export const MENU_KEYS = {
 } as const;
 
 /**
+ * 超级管理员角色编码（guard 与前端 hook 绕过权限判断时使用）
+ */
+export const SUPER_ADMIN_ROLE = "super_admin";
+
+/**
  * 权限标识常量（按钮级）
  * 命名规范：模块:资源:动作
  */
@@ -30,13 +35,29 @@ export const PERMISSIONS = {
   USER_DELETE: "system:user:delete",
   USER_RESET: "system:user:reset",
   USER_ASSIGN_ROLE: "system:user:assign-role",
+  USER_ASSIGN_POSITION: "system:user:assign-position",
+  USER_UPDATE_STATUS: "system:user:update-status",
   ROLE_CREATE: "system:role:create",
   ROLE_UPDATE: "system:role:update",
   ROLE_DELETE: "system:role:delete",
   ROLE_ASSIGN_PERMISSION: "system:role:assign-permission",
+  ROLE_DATA_SCOPE: "system:role:data-scope",
+  ROLE_UPDATE_STATUS: "system:role:update-status",
   MENU_CREATE: "system:menu:create",
   MENU_UPDATE: "system:menu:update",
   MENU_DELETE: "system:menu:delete",
+  DEPT_CREATE: "system:dept:create",
+  DEPT_UPDATE: "system:dept:update",
+  DEPT_DELETE: "system:dept:delete",
+  POSITION_CREATE: "system:position:create",
+  POSITION_UPDATE: "system:position:update",
+  POSITION_DELETE: "system:position:delete",
+  DICT_CREATE: "system:dict:create",
+  DICT_UPDATE: "system:dict:update",
+  DICT_DELETE: "system:dict:delete",
+  DICT_ITEM_CREATE: "system:dict-item:create",
+  DICT_ITEM_UPDATE: "system:dict-item:update",
+  DICT_ITEM_DELETE: "system:dict-item:delete",
 } as const;
 
 /**
