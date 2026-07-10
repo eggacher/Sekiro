@@ -292,8 +292,8 @@ export class AuthService {
         result: 'success',
         message: '登录成功',
         ip: ipAddress,
-        browser: userAgent,
-        os: userAgent,
+        browser: this.parseBrowser(userAgent),
+        os: this.parseOs(userAgent),
       },
     });
 
