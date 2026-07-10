@@ -6,6 +6,7 @@ export interface TokenPayload {
   username: string;
   roles: string[];
   sid?: string; // sessionId
+  type?: 'access' | 'mfa';
   iat: number;
   exp: number;
 }

@@ -96,7 +96,7 @@ export class MfaService {
     return { enabled: false };
   }
 
-  async verifyLogin(mfaToken: string, code: string) {
+  async verifyLogin(mfaToken: string, code: string): Promise<{ user: any; payload: any }> {
     const payload = this.jwtProvider.verifyMfaToken(mfaToken);
 
     if (!payload) {
@@ -117,6 +117,6 @@ export class MfaService {
       throw new BadRequestException('验证码错误或已过期');
     }
 
-    return user;
+    return { user, payload };
   }
 }

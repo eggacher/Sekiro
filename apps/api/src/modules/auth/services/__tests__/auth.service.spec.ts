@@ -356,6 +356,40 @@ describe("AuthService", () => {
     });
   });
 
+  describe("getMe", () => {
+    it("should return current user with mfaEnabled", async () => {
+      prismaService.user.findUnique.mockResolvedValueOnce({
+        id: 1,
+        username: "admin",
+        nickname: "Administrator",
+        email: "admin@example.com",
+        phone: null,
+        avatar: null,
+        mfaEnabled: true,
+        roles: [{ role: { code: "admin" } }],
+      });
+
+      prismaService.userRole.findMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+      prismaService.menu.findMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.getMe(1);
+
+      expect(result.user.id).toBe(1);
+      expect(result.user.username).toBe("admin");
+      expect(result.user.mfaEnabled).toBe(true);
+    });
+
+    it("should throw if user not found", async () => {
+      prismaService.user.findUnique.mockResolvedValueOnce(null);
+
+      await expect(service.getMe(999)).rejects.toThrow("用户不存在");
+    });
+  });
+
   describe("getUserPermissions", () => {
     it("should return empty array if user has no roles", async () => {
       prismaService.userRole.findMany.mockResolvedValueOnce([]);
@@ -611,7 +645,7 @@ describe("AuthService", () => {
         mfaEnabled: true,
       };
 
-      mfaService.verifyLogin.mockResolvedValueOnce(user);
+      mfaService.verifyLogin.mockResolvedValueOnce({ user, payload: { sub: 1, username: 'admin', type: 'mfa', remember: false } });
       prismaService.userRole.findMany
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
@@ -619,12 +653,6 @@ describe("AuthService", () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
 
-      jwtProvider.verifyMfaToken.mockReturnValueOnce({
-        sub: 1,
-        username: "admin",
-        type: "mfa",
-        remember: false,
-      });
       jwtProvider.signToken.mockReturnValueOnce({ token: "jwt.token", expiresIn: 7200 });
       jwtProvider.signRefreshToken.mockReturnValueOnce({ refreshToken: "rt.token", expiresIn: 2592000 });
 

@@ -21,11 +21,11 @@ export class MfaProvider {
   }
 
   verify(secret: string, code: string, window: number = 1): boolean {
-    return speakeasy.totp.verify({
+    return !!speakeasy.totp.verify({
       secret,
       encoding: "base32",
       token: code,
       window,
-    }) as boolean;
+    });
   }
 }

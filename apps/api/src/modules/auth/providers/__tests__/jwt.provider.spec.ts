@@ -49,6 +49,15 @@ describe("JwtProvider", () => {
       expect(result?.sub).toBe(1);
     });
 
+    it("should reject an MFA token as access token", () => {
+      const jwtService = {
+        verify: vi.fn(() => ({ sub: 1, username: "admin", type: "mfa" })),
+      };
+      const providerWithMfa = new JwtProvider(jwtService as any);
+      const result = providerWithMfa.verifyToken("mfa.token");
+      expect(result).toBeNull();
+    });
+
     it("should return null for invalid token", () => {
       const jwtService = {
         verify: vi.fn(() => {

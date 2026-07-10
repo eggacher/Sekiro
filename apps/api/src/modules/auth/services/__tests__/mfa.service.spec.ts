@@ -128,7 +128,7 @@ describe('MfaService', () => {
   });
 
   describe('verifyLogin', () => {
-    it('should return user when mfaToken and code are valid', async () => {
+    it('should return user and payload when mfaToken and code are valid', async () => {
       const secret = mfaProvider.generateSecret();
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const speakeasy = require('speakeasy');
@@ -139,12 +139,14 @@ describe('MfaService', () => {
         mfaEnabled: true,
         mfaSecret: cryptoProvider.encrypt(secret),
       };
+      const tokenPayload = { sub: 1, username: 'admin', type: 'mfa' };
 
-      jwtProvider.verifyMfaToken.mockReturnValueOnce({ sub: 1, username: 'admin', type: 'mfa' });
+      jwtProvider.verifyMfaToken.mockReturnValueOnce(tokenPayload);
       prismaService.user.findUnique.mockResolvedValueOnce(user);
 
       const result = await service.verifyLogin('mfa.token', validCode);
-      expect(result.id).toBe(1);
+      expect(result.user.id).toBe(1);
+      expect(result.payload).toEqual(tokenPayload);
     });
 
     it('should throw if mfaToken is invalid', async () => {

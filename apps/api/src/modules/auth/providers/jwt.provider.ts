@@ -25,6 +25,9 @@ export class JwtProvider {
       const payload = this.jwtService.verify<TokenPayload>(token, {
         secret: this.jwtSecret,
       });
+      if (payload.type === 'mfa') {
+        return null;
+      }
       return payload;
     } catch (error) {
       return null;

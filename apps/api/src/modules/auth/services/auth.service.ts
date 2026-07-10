@@ -232,10 +232,9 @@ export class AuthService {
     ipAddress: string,
     userAgent: string,
   ): Promise<any> {
-    const user = await this.mfaService.verifyLogin(mfaToken, code);
+    const { user, payload } = await this.mfaService.verifyLogin(mfaToken, code);
 
-    // 从 mfaToken payload 中读取 remember 偏好
-    const payload = this.jwtProvider.verifyMfaToken(mfaToken);
+    // 从已验证的 mfaToken payload 中读取 remember 偏好
     const remember = payload?.remember || false;
 
     // 清除登录失败计数
@@ -379,6 +378,7 @@ export class AuthService {
         avatar: user.avatar ?? undefined,
         email: user.email ?? undefined,
         phone: user.phone ?? undefined,
+        mfaEnabled: user.mfaEnabled,
         roles,
         permissions,
       },
