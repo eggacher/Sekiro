@@ -17,6 +17,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
+    "db:reset-passwords": "tsx prisma/reset-passwords.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
