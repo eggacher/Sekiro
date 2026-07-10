@@ -8,6 +8,8 @@ import { useAuthStore } from "@/lib/store/auth-store";
 import { useTranslation } from "@/lib/i18n";
 import { apiClient } from "@/lib/api/client";
 
+import { toast } from "sonner";
+
 const PUBLIC_PATHS = ["/login"];
 
 type MeResponse = {
@@ -47,10 +49,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         useAuthStore.getState().setAuth(token, data.user, data.permissions, data.menus);
         setReady(true);
       })
-      .catch(() => {
+      .catch((err: any) => {
         if (cancelled) return;
-        useAuthStore.getState().clearAuth();
-        router.replace("/login");
+        
+        // Only clear auth and redirect to login if the error is specifically a 401 Unauthorized
+        const isUnauthorized = 
+          err?.code === 401 || 
+          err?.message?.includes("401");
+
+        if (isUnauthorized) {
+          useAuthStore.getState().clearAuth();
+          router.replace("/login");
+        } else {
+          toast.error(err.message || "获取用户信息失败");
+        }
       });
 
     return () => {
