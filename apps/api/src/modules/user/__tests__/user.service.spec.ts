@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { UserService } from "../services/user.service";
 import { ForbiddenException, UnprocessableEntityException, NotFoundException } from "@nestjs/common";
+import * as bcrypt from "bcrypt";
 
 describe("UserService", () => {
   let service: UserService;
@@ -9,6 +10,7 @@ describe("UserService", () => {
   beforeEach(() => {
     repository = {
       findById: vi.fn(),
+      findSensitiveById: vi.fn(),
       findByUsername: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
@@ -40,6 +42,40 @@ describe("UserService", () => {
   it("禁用用户 - 禁用管理员ID为1抛出异常", async () => {
     repository.findById.mockResolvedValue({ id: 1, username: "admin" });
     await expect(service.updateStatus(1, "disabled")).rejects.toThrow(ForbiddenException);
+  });
+
+  it("修改密码 - 使用 findSensitiveById 返回的 passwordHash 校验旧密码并更新", async () => {
+    const passwordHash = await bcrypt.hash("old-pass", 10);
+    repository.findSensitiveById.mockResolvedValue({ id: 2, passwordHash });
+    repository.updatePassword.mockResolvedValue(undefined);
+
+    await service.changePassword(2, "old-pass", "new-pass");
+
+    expect(repository.findSensitiveById).toHaveBeenCalledWith(2);
+    expect(repository.findById).not.toHaveBeenCalled();
+    expect(repository.updatePassword).toHaveBeenCalledWith(2, expect.any(String));
+  });
+
+  it("修改密码 - 旧密码错误时抛出异常且不更新", async () => {
+    const passwordHash = await bcrypt.hash("old-pass", 10);
+    repository.findSensitiveById.mockResolvedValue({ id: 2, passwordHash });
+
+    await expect(service.changePassword(2, "wrong-pass", "new-pass")).rejects.toThrow(
+      UnprocessableEntityException,
+    );
+    expect(repository.findSensitiveById).toHaveBeenCalledWith(2);
+    expect(repository.updatePassword).not.toHaveBeenCalled();
+  });
+
+  it("重置密码 - 通过 findSensitiveById 校验用户存在后更新默认密码", async () => {
+    repository.findSensitiveById.mockResolvedValue({ id: 2, passwordHash: "hash" });
+    repository.updatePassword.mockResolvedValue(undefined);
+
+    await service.resetPassword(2);
+
+    expect(repository.findSensitiveById).toHaveBeenCalledWith(2);
+    expect(repository.findById).not.toHaveBeenCalled();
+    expect(repository.updatePassword).toHaveBeenCalledWith(2, expect.any(String));
   });
 
   it("分配角色 - 成功调用仓储层操作", async () => {

@@ -127,6 +127,7 @@
 | **Story #24** | **API 文档（OpenAPI + Scalar）** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #26** | **Docker 部署 + CI/CD** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #27** | **安全基线（限流/安全头/上传校验）** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
+| **Story #31** | **在用户管理中查看和分配岗位** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 | **Story #25** | **代码生成器** | **❌ 放弃** | **✅ Closed** | **✅ Closed** |
 | **Story #28** | **i18n 国际化 + 主题切换** | **✅ 完成** | **✅ Closed** | **✅ Closed** |
 
@@ -209,6 +210,38 @@
 - [x] **关闭 Story #25 (代码生成器)** (已放弃)
   - 标题：`Story #25: 代码生成器（脚手架杀手锏）`
   - 描述：在 Vibe Coding / AI 辅助开发时代，手动代码生成器维护成本高于收益，不再实现。
+- [x] **关闭 Story #31 (在用户管理中查看和分配岗位)** (已关闭)
+  - 标题：`Story #31: 在用户管理中查看和分配岗位`
+  - 描述：后端 UserRepository 返回 positionIds；前端用户列表展示岗位、表单支持岗位多选、保存时顺序分配岗位。
+
+---
+
+## 📌 Story #31: 在用户管理中查看和分配岗位（已完成）
+
+### 概览
+
+| 维度 | 信息 |
+|------|------|
+| **Story** | #31 在用户管理中查看和分配岗位 |
+| **Epic** | #3 v0.5 生产就绪 |
+| **Milestone** | v0.5 生产就绪 |
+| **状态** | ✅ **已完成** |
+| **依赖** | Story #7 (User) & Story #17 (Dept & Position) ✅ 已完成 |
+| **相关文档** | `docs/superpowers/specs/2026-07-10-user-position-integration-design.md` |
+
+### 完成内容
+
+- ✅ 后端 `UserRepository.findPage` 与 `UserRepository.findById` 返回 `positionIds`
+- ✅ 前端用户管理列表新增岗位列，异步加载岗位字典并渲染岗位名称
+- ✅ 用户新增/编辑表单增加岗位多选（Checkbox 组）
+- ✅ 保存用户时显式分离 `positionIds`，先保存用户 DTO，再调用岗位分配接口顺序写入
+- ✅ 全量验证通过：`pnpm typecheck`、`pnpm lint`（仅 `apps/web`）、`pnpm --filter @sekiro/api test` 全部通过（122/122）
+- **环境要求**: 项目保留原始 Node `>=18.17.0` 引擎要求；API 测试因本地 `std-env@4.2.0` 的 `require(ESM)` 兼容性，使用 Node 22 环境验证通过。
+
+### 关联 Commits
+
+- 岗位集成实现见 Task 1~4 报告
+- 文档同步：`docs(sync): update progress and issue status for Story #31`
 
 ---
 
@@ -231,6 +264,7 @@
 | `docs/superpowers/specs/2026-07-05-api-docs-design.md` | Story #24 | API 文档（OpenAPI + Scalar）详细设计 |
 | `docs/superpowers/specs/2026-07-07-docker-ci-design.md` | Story #26 | Docker 部署 + CI/CD 详细设计 |
 | `docs/superpowers/specs/2026-07-07-story-27-security-baseline-design.md` | Story #27 | 安全基线（限流/安全头/上传校验）详细设计 |
+| `docs/superpowers/specs/2026-07-10-user-position-integration-design.md` | Story #31 | 用户管理岗位集成详细设计 |
 
 ### 实施计划
 
@@ -248,6 +282,7 @@
 | `docs/superpowers/plans/2026-07-05-api-docs.md` | Story #24 | Story #24 实施计划 |
 | `docs/superpowers/plans/2026-07-07-docker-ci.md` | Story #26 | Story #26 实施计划 |
 | `docs/superpowers/plans/2026-07-07-story-27-security-baseline.md` | Story #27 | Story #27 实施计划 |
+| `docs/superpowers/plans/2026-07-10-user-position-integration.md` | Story #31 | Story #31 实施计划 |
 
 ### 完成报告
 
@@ -279,6 +314,7 @@
 | 2026-07-06 | 完成 Story #24（OpenAPI + Scalar）并合并到 dev；关闭 GitHub Issue #24；更新本地 Epic 与进度状态 | Agent |
 | 2026-07-07 | 完成 Story #26（Docker 部署）并合并到 dev；关闭 GitHub Issue #26；更新本地 Epic 与进度状态 | Agent |
 | 2026-07-07 | 检测并同步 Story #27 状态：关闭 GitHub Issue #27，更新本地 GITHUB_ISSUES_STATUS.md 与文档映射表 | Agent |
+| 2026-07-10 | 完成 Story #31（用户管理岗位集成）；全量验证通过；更新本地进度与 GitHub Issues 状态 | Agent |
 
 ---
 

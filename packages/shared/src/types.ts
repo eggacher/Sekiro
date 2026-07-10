@@ -44,14 +44,15 @@ export interface User {
   id: number;
   username: string;
   nickname: string;
-  email: string;
-  phone: string;
-  avatar?: string;
-  deptId: number;
-  deptName?: string;
+  email: string | null;
+  phone: string | null;
+  avatar?: string | null;
+  deptId: number | null;
+  deptName?: string | null;
   roleIds: number[];
   roleNames?: string[];
   positionIds?: number[];
+  positionNames?: string[];
   status: CommonStatus;
   lastLoginTime?: string;
   createdAt: string;
@@ -212,9 +213,9 @@ export interface CurrentUser {
   id: number;
   username: string;
   nickname: string;
-  avatar?: string;
-  email?: string;
-  phone?: string;
+  avatar?: string | null;
+  email?: string | null;
+  phone?: string | null;
   roles: string[];
   permissions: string[];
 }
