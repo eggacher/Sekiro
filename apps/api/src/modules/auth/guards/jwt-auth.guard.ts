@@ -30,7 +30,7 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     // MFA 临时 token 不能访问受保护资源
-    if (payload.type === 'mfa') {
+    if ((payload as { type?: string }).type === 'mfa') {
       throw new UnauthorizedException({ code: 401, message: 'Token 已过期或无效' });
     }
 

@@ -11,14 +11,25 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { AuthService } from "./services/auth.service";
+import { MfaService } from "./services/mfa.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
-import { LoginDto, LoginResponse, RefreshDto, RefreshResponse } from "./dtos";
+import {
+  LoginDto,
+  RefreshDto,
+  RefreshResponse,
+  MfaVerifyDto,
+  MfaDisableDto,
+  MfaLoginVerifyDto,
+} from "./dtos";
 import type { ApiResponse as ApiResponseType } from "@sekiro/shared";
 
 @ApiTags('Auth')
 @Controller("auth")
 export class AuthController {
-  constructor(@Inject(AuthService) private authService: AuthService) {}
+  constructor(
+    @Inject(AuthService) private authService: AuthService,
+    @Inject(MfaService) private mfaService: MfaService,
+  ) {}
 
   /**
    * 登录接口
@@ -177,5 +188,62 @@ export class AuthController {
       message: "登出成功",
       data: null,
     };
+  }
+
+  @Post('mfa/setup')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '生成 MFA 绑定信息' })
+  async mfaSetup(@Req() req: any): Promise<ApiResponseType<any>> {
+    const { sub, username } = req.user;
+    const result = await this.mfaService.setup(sub, username);
+    return { code: 0, message: '生成成功', data: result };
+  }
+
+  @Post('mfa/verify')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '验证并启用 MFA' })
+  async mfaVerify(
+    @Req() req: any,
+    @Body() dto: MfaVerifyDto,
+  ): Promise<ApiResponseType<any>> {
+    const result = await this.mfaService.verifyAndEnable(req.user.sub, dto.code);
+    return { code: 0, message: '启用成功', data: result };
+  }
+
+  @Post('mfa/disable')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '关闭 MFA' })
+  async mfaDisable(
+    @Req() req: any,
+    @Body() dto: MfaDisableDto,
+  ): Promise<ApiResponseType<any>> {
+    const result = await this.mfaService.disable(req.user.sub, dto.code);
+    return { code: 0, message: '关闭成功', data: result };
+  }
+
+  @Post('mfa/login-verify')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60 * 1000 } })
+  @ApiOperation({ summary: 'MFA 登录验证' })
+  async mfaLoginVerify(
+    @Body() dto: MfaLoginVerifyDto,
+    @Req() req: any,
+  ): Promise<ApiResponseType<any>> {
+    const ipAddress = req.ip || '0.0.0.0';
+    const userAgent = req.headers['user-agent'] || '';
+    const result = await this.authService.loginWithMfa(
+      dto.mfaToken,
+      dto.code,
+      ipAddress,
+      userAgent,
+    );
+
+    if ('data' in result) {
+      return { code: 0, message: '登录成功', data: result.data };
+    }
+    return { code: result.code, message: result.message, data: null };
   }
 }
