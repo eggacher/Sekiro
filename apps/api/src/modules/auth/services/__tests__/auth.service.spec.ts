@@ -94,6 +94,7 @@ describe("AuthService", () => {
         avatar: null,
         status: "enabled",
         deptId: 1,
+        roles: [],
       });
 
       // Mock for getUserPermissions
@@ -236,6 +237,7 @@ describe("AuthService", () => {
         avatar: null,
         status: "enabled",
         deptId: 1,
+        roles: [],
       });
 
       prismaService.userRole.findMany
@@ -264,6 +266,7 @@ describe("AuthService", () => {
         avatar: null,
         status: "enabled",
         deptId: 1,
+        roles: [],
       });
 
       prismaService.userRole.findMany
@@ -297,6 +300,7 @@ describe("AuthService", () => {
         avatar: null,
         status: "enabled",
         deptId: 1,
+        roles: [],
       });
 
       prismaService.userRole.findMany
@@ -328,6 +332,7 @@ describe("AuthService", () => {
         avatar: null,
         status: "enabled",
         deptId: 1,
+        roles: [],
       });
 
       prismaService.userRole.findMany
@@ -347,6 +352,45 @@ describe("AuthService", () => {
       expect(successLog.os).toBe("macOS 10.15.7");
       expect(successLog.browser.length).toBeLessThanOrEqual(64);
       expect(successLog.os.length).toBeLessThanOrEqual(64);
+    });
+
+    it("登录成功应在 Session 中写入 permissions 与 roles，并在响应 user 中返回 roles", async () => {
+      const hashedPassword = await bcrypt.hash("md5hash", 10);
+      prismaService.user.findUnique.mockResolvedValueOnce({
+        id: 2,
+        username: "admin",
+        passwordHash: hashedPassword,
+        status: "enabled",
+        mfaEnabled: false,
+        nickname: "Admin",
+        email: null,
+        phone: null,
+        avatar: null,
+        deptId: 1,
+        roles: [{ role: { code: "admin" } }],
+      });
+      prismaService.userRole.findMany.mockResolvedValueOnce([{ roleId: 2 }]);
+      prismaService.roleMenu.findMany.mockResolvedValueOnce([{ menuId: 211 }]);
+      prismaService.menu.findMany.mockResolvedValueOnce([
+        { permission: "system:user:create" },
+      ]);
+      prismaService.userRole.findMany.mockResolvedValueOnce([]);
+
+      const result = await service.login(
+        { username: "admin", password: "md5hash" } as any,
+        "127.0.0.1",
+        "Mozilla/5.0",
+      );
+
+      expect(redisSessionProvider.createSession).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          permissions: ["system:user:create"],
+          roles: ["admin"],
+        }),
+        2592000,
+      );
+      expect(result.data.user.roles).toEqual(["admin"]);
     });
   });
 
@@ -647,6 +691,7 @@ describe("AuthService", () => {
         status: "enabled",
         deptId: 1,
         mfaEnabled: false,
+        roles: [],
       });
 
       prismaService.userRole.findMany.mockResolvedValueOnce([]);
@@ -679,6 +724,7 @@ describe("AuthService", () => {
         status: "enabled",
         deptId: 1,
         mfaEnabled: true,
+        roles: [],
       };
 
       mfaService.verifyLogin.mockResolvedValueOnce({ code: 0, data: { user, payload: { sub: 1, username: 'admin', type: 'mfa', remember: false } } });
@@ -712,6 +758,44 @@ describe("AuthService", () => {
       expect(jwtProvider.signRefreshToken).not.toHaveBeenCalled();
       expect(redisSessionProvider.createSession).not.toHaveBeenCalled();
       expect(prismaService.loginLog.create).not.toHaveBeenCalled();
+    });
+
+    it("MFA 登录成功应在 Session 中写入 permissions 与 roles，并在响应 user 中返回 roles", async () => {
+      mfaService.verifyLogin.mockResolvedValueOnce({
+        code: 0,
+        data: {
+          user: {
+            id: 2,
+            username: "admin",
+            nickname: "Admin",
+            email: null,
+            phone: null,
+            avatar: null,
+            status: "enabled",
+            deptId: 1,
+            roles: [{ role: { code: "admin" } }],
+          },
+          payload: { remember: false },
+        },
+      });
+      prismaService.userRole.findMany.mockResolvedValueOnce([{ roleId: 2 }]);
+      prismaService.roleMenu.findMany.mockResolvedValueOnce([{ menuId: 211 }]);
+      prismaService.menu.findMany.mockResolvedValueOnce([
+        { permission: "system:user:create" },
+      ]);
+      prismaService.userRole.findMany.mockResolvedValueOnce([]);
+
+      const result = await service.loginWithMfa("mfa.token", "123456", "127.0.0.1", "Mozilla/5.0");
+
+      expect(redisSessionProvider.createSession).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          permissions: ["system:user:create"],
+          roles: ["admin"],
+        }),
+        2592000,
+      );
+      expect(result.data.user.roles).toEqual(["admin"]);
     });
   });
 });

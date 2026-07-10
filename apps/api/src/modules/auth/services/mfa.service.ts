@@ -119,6 +119,11 @@ export class MfaService {
 
     const user = await this.prismaService.user.findUnique({
       where: { id: payload.sub },
+      include: {
+        roles: {
+          include: { role: true },
+        },
+      },
     });
 
     if (!user || !user.mfaEnabled || !user.mfaSecret) {
