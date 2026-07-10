@@ -645,7 +645,7 @@ describe("AuthService", () => {
         mfaEnabled: true,
       };
 
-      mfaService.verifyLogin.mockResolvedValueOnce({ user, payload: { sub: 1, username: 'admin', type: 'mfa', remember: false } });
+      mfaService.verifyLogin.mockResolvedValueOnce({ code: 0, data: { user, payload: { sub: 1, username: 'admin', type: 'mfa', remember: false } } });
       prismaService.userRole.findMany
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);

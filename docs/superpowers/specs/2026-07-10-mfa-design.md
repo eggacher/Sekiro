@@ -1,8 +1,8 @@
 # Issue #32: 多因素认证（MFA / TOTP）设计规格
 
-**文档版本**：v1.0  
+**文档版本**：v1.1  
 **创建日期**：2026-07-10  
-**状态**：设计待审  
+**状态**：设计已批准 / 实现完成  
 **相关 Issue**：#32（MFA）  
 **相关 SPEC**：`docs/PRD.md` §5.2 F-AUTH-09、`docs/FEATURES.md` §P1  
 
@@ -560,7 +560,37 @@ export class MfaNotEnabledException extends HttpException {
 
 ---
 
-## 12. 后续衔接
+## 12. 部署与迁移说明
+
+### 12.1 开发环境
+
+- 本地使用 `prisma migrate dev` 生成并应用迁移。
+- 由于仓库此前使用 `prisma db push` 管理数据库，Task 1 建立了 `0_init` baseline migration 和 `add_mfa_fields` 增量迁移。
+
+### 12.2 生产环境（关键）
+
+对于已经通过 `prisma db push` 初始化的生产数据库，不能直接应用 `0_init` baseline migration（会尝试 `CREATE TABLE` 已存在的表）。必须：
+
+1. 在生产数据库上标记 baseline migration 已应用（不实际执行 SQL）：
+   ```bash
+   pnpm prisma migrate resolve --applied 0_init
+   ```
+2. 再应用增量迁移：
+   ```bash
+   pnpm prisma migrate deploy
+   ```
+
+对于全新的空数据库，直接运行 `pnpm prisma migrate deploy` 即可。
+
+### 12.3 环境变量
+
+生产部署前必须设置：
+- `MFA_SECRET_KEY`：用于加密 TOTP secret，长度建议 ≥32 字节，必须保密。
+- `JWT_SECRET`：用于签名 mfaToken 和正式 JWT，必须保密。
+
+---
+
+## 13. 后续衔接
 
 **Issue #32 完成后**：
 - 可扩展恢复码功能（Issue #XX）。

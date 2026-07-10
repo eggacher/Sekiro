@@ -10,7 +10,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { JwtProvider } from '../providers/jwt.provider';
 import { RedisSessionProvider } from '../providers/redis-session.provider';
 import { LoginFailureProvider } from '../providers/login-failure.provider';
-import { MfaService } from './mfa.service';
+import { MfaService, isMfaSuccess } from './mfa.service';
 import type { CurrentUser, LoginRequest, Menu } from '@sekiro/shared';
 
 /**
@@ -232,7 +232,13 @@ export class AuthService {
     ipAddress: string,
     userAgent: string,
   ): Promise<any> {
-    const { user, payload } = await this.mfaService.verifyLogin(mfaToken, code);
+    const verifyResult = await this.mfaService.verifyLogin(mfaToken, code);
+
+    if (!isMfaSuccess(verifyResult)) {
+      return { code: verifyResult.code, message: verifyResult.message };
+    }
+
+    const { user, payload } = verifyResult.data;
 
     // 从已验证的 mfaToken payload 中读取 remember 偏好
     const remember = payload?.remember || false;

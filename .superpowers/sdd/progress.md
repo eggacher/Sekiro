@@ -443,3 +443,59 @@
   - `apps/api/prisma.config.ts`
 - **审阅**: ✅ 已通过 re-review
 - **备注**: 本地 dev 数据库做了 reset 以重建 migration 历史；生产环境应使用 `prisma migrate resolve --applied 0_init`
+
+## 完成记录（更新）
+
+### Task 2: Install MFA dependencies
+- **Commit**: `330a7f8`
+- **审阅**: ✅ 依赖安装正确
+
+### Task 3: MfaCryptoProvider
+- **Commit**: `4d43259`
+- **修复 Commit**: `796780f`
+- **审阅**: ✅ TOTP secret 加解密实现正确
+
+### Task 4: MfaProvider (TOTP)
+- **Commit**: `f2c086d`
+- **审阅**: ✅ RFC 6238 TOTP 生成与验证正确
+
+### Task 5: JwtProvider MFA token methods
+- **Commit**: `c29d4a7`
+- **审阅**: ✅ mfaToken 签发与验证正确
+
+### Task 6: MfaService
+- **Commit**: `c55dde2`
+- **审阅**: ✅ MFA 开启/关闭/登录验证流程正确
+
+### Task 7: Update AuthService for MFA branching
+- **Commit**: `7cf0007`
+- **审阅**: ✅ 登录分支与 loginWithMfa 实现正确
+
+### Task 8: Update JwtAuthGuard to reject MFA tokens
+- **Commit**: `efb9320`
+- **审阅**: ✅ mfa token 不能访问受保护资源
+
+### Task 9: Add MFA controller endpoints and DTOs
+- **Commit**: `c7b8c52`
+- **审阅**: ✅ 四个 MFA 端点与 DTOs 实现正确
+
+### Task 10: Update shared types
+- **Commit**: `12c663f`
+- **审阅**: ✅ 共享类型更新正确
+
+### Task 11: Update frontend login page
+- **Commit**: `ba79c5c`
+- **审阅**: ✅ 登录页 MFA 两步验证实现正确
+
+### Task 12: Update frontend profile page
+- **Commit**: `d00c1d1`
+- **审阅**: ✅ 个人中心 MFA 开关/二维码弹窗实现正确
+
+### Task 13: Update .env.example
+- **Commit**: `501e65d`
+- **审阅**: ✅ MFA_SECRET_KEY 文档化
+
+### Task 14: Final verification
+- **Commit**: `13b7574`
+- **审阅**: ✅ `pnpm typecheck` + `pnpm test` + `pnpm lint` 全部通过
+- **测试**: API 142/142 通过，共 27 个测试文件

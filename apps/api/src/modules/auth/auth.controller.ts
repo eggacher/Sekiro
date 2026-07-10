@@ -11,7 +11,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { AuthService } from "./services/auth.service";
-import { MfaService } from "./services/mfa.service";
+import { MfaService, isMfaSuccess } from "./services/mfa.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import {
   LoginDto,
@@ -197,7 +197,11 @@ export class AuthController {
   async mfaSetup(@Req() req: any): Promise<ApiResponseType<any>> {
     const { sub, username } = req.user;
     const result = await this.mfaService.setup(sub, username);
-    return { code: 0, message: '生成成功', data: result };
+
+    if (isMfaSuccess(result)) {
+      return { code: 0, message: '生成成功', data: result.data };
+    }
+    return { code: result.code, message: result.message, data: null };
   }
 
   @Post('mfa/verify')
@@ -209,7 +213,11 @@ export class AuthController {
     @Body() dto: MfaVerifyDto,
   ): Promise<ApiResponseType<any>> {
     const result = await this.mfaService.verifyAndEnable(req.user.sub, dto.code);
-    return { code: 0, message: '启用成功', data: result };
+
+    if (isMfaSuccess(result)) {
+      return { code: 0, message: '启用成功', data: result.data };
+    }
+    return { code: result.code, message: result.message, data: null };
   }
 
   @Post('mfa/disable')
@@ -221,7 +229,11 @@ export class AuthController {
     @Body() dto: MfaDisableDto,
   ): Promise<ApiResponseType<any>> {
     const result = await this.mfaService.disable(req.user.sub, dto.code);
-    return { code: 0, message: '关闭成功', data: result };
+
+    if (isMfaSuccess(result)) {
+      return { code: 0, message: '关闭成功', data: result.data };
+    }
+    return { code: result.code, message: result.message, data: null };
   }
 
   @Post('mfa/login-verify')
