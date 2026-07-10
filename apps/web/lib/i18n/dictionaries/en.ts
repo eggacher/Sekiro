@@ -39,6 +39,8 @@ export const en: Record<keyof typeof zh, string> = {
   "login.error.failed": "Login failed",
   "login.otherMethods": "Other login methods",
   "login.copyright": "© 2026 Sekiro Admin · Built with Next.js + shadcn/ui",
+  "login.mfaTitle": "Two-Factor Authentication",
+  "login.mfaSubtitle": "Enter the 6-digit code from your Authenticator app",
 
   "dashboard.greeting": "Good morning",
   "dashboard.todo": "You have {count} todos today",
