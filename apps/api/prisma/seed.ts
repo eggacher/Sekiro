@@ -1096,7 +1096,6 @@ async function main() {
     for (const log of loginLogData) {
       await prisma.loginLog.create({
         data: {
-          id: log.id,
           username: log.username,
           ip: log.ip,
           location: log.location,
@@ -1115,7 +1114,6 @@ async function main() {
     for (const log of operationLogData) {
       await prisma.operationLog.create({
         data: {
-          id: log.id,
           operator: log.operator,
           module: log.module,
           type: log.type,
