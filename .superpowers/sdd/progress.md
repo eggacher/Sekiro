@@ -499,3 +499,36 @@
 - **Commit**: `13b7574`
 - **审阅**: ✅ `pnpm typecheck` + `pnpm test` + `pnpm lint` 全部通过
 - **测试**: API 142/142 通过，共 27 个测试文件
+
+---
+
+# 数据库密码重置 — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-10-reset-passwords.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-10-reset-passwords-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/feature/reset-passwords` (branch `feature/reset-passwords`)
+- **开始时间**：2026-07-10
+
+## 任务清单
+
+- [x] Task 1: 编写数据库密码重置脚本
+- [x] Task 2: 执行脚本并验证密码可用性
+
+## 完成记录
+
+### Task 1: 编写数据库密码重置脚本
+- **相关文件**：
+  - [reset-passwords.ts](file:///Users/zero/projects/Sekiro/.worktrees/feature/reset-passwords/apps/api/prisma/reset-passwords.ts)
+  - [package.json](file:///Users/zero/projects/Sekiro/.worktrees/feature/reset-passwords/apps/api/package.json)
+- **Commit**: `9ccf4a4`
+- **审阅**: ✅ 脚本编写完成，可通过 `pnpm --filter @sekiro/api db:reset-passwords` 直接执行；`apps/api/package.json` 正确注册了相关命令。
+
+### Task 2: 执行脚本并验证密码可用性
+- **相关文件**：
+  - [reset-passwords.ts](file:///Users/zero/projects/Sekiro/.worktrees/feature/reset-passwords/apps/api/prisma/reset-passwords.ts)
+- **审阅**: ✅ 脚本运行正常并成功重置了全部 12 位用户的密码哈希；
+- **测试**: ✅ `pnpm --filter @sekiro/api test` 167/167 全量单元测试顺利通过；
+- **手动验证**: ✅ 借助本地运行中的 NestJS 服务，通过 `curl` 模拟前端 MD5 登录验证，`admin` (password: admin123) 与 `zhangsan` (password: sekiro123) 均成功获得 token 响应，验证正常。
+
