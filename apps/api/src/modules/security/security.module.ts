@@ -42,7 +42,7 @@ function parseThrottleNumber(
               ) * 1000,
             limit: parseThrottleNumber(
               process.env.THROTTLE_LIMIT,
-              "10",
+              "100",
               "THROTTLE_LIMIT",
             ),
           },
