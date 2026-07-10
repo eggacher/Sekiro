@@ -4,6 +4,7 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import { JwtProvider } from "../../providers/jwt.provider";
 import { RedisSessionProvider } from "../../providers/redis-session.provider";
 import { LoginFailureProvider } from "../../providers/login-failure.provider";
+import { MfaService } from "../mfa.service";
 import * as bcrypt from "bcrypt";
 
 describe("AuthService", () => {
@@ -12,6 +13,7 @@ describe("AuthService", () => {
   let jwtProvider: any;
   let redisSessionProvider: any;
   let loginFailureProvider: any;
+  let mfaService: any;
 
   beforeEach(() => {
     prismaService = {
@@ -41,6 +43,8 @@ describe("AuthService", () => {
         .fn()
         .mockReturnValue({ refreshToken: "rt.token", expiresIn: 2592000 }),
       verifyRefreshToken: vi.fn(),
+      signMfaToken: vi.fn().mockReturnValue({ mfaToken: "mfa.token", expiresIn: 300 }),
+      verifyMfaToken: vi.fn(),
     };
 
     redisSessionProvider = {
@@ -57,11 +61,16 @@ describe("AuthService", () => {
       getFailureTtl: vi.fn().mockReturnValue(1800),
     };
 
+    mfaService = {
+      verifyLogin: vi.fn(),
+    };
+
     service = new AuthService(
       prismaService,
       jwtProvider,
       redisSessionProvider,
       loginFailureProvider,
+      mfaService,
     );
   });
 
@@ -511,6 +520,121 @@ describe("AuthService", () => {
 
       expect(result[0].id).toBe(2);
       expect(result[1].id).toBe(1);
+    });
+  });
+
+  describe("login with MFA", () => {
+    it("should return mfaRequired when MFA is enabled", async () => {
+      const loginRequest = {
+        username: "admin",
+        password: "admin123",
+        remember: false,
+      };
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+
+      prismaService.user.findUnique.mockResolvedValueOnce({
+        id: 1,
+        username: "admin",
+        passwordHash: hashedPassword,
+        nickname: "Administrator",
+        email: "admin@example.com",
+        phone: null,
+        avatar: null,
+        status: "enabled",
+        deptId: 1,
+        mfaEnabled: true,
+      });
+
+      jwtProvider.signMfaToken.mockReturnValueOnce({
+        mfaToken: "mfa.token",
+        expiresIn: 300,
+      });
+
+      const result = await service.login(loginRequest, "127.0.0.1", "UA");
+
+      expect(result.code).toBe(0);
+      expect(result.data.mfaRequired).toBe(true);
+      expect(result.data.mfaToken).toBe("mfa.token");
+      expect(redisSessionProvider.createSession).not.toHaveBeenCalled();
+    });
+
+    it("should return full login response when MFA is disabled", async () => {
+      const loginRequest = {
+        username: "admin",
+        password: "admin123",
+        remember: false,
+      };
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+
+      prismaService.user.findUnique.mockResolvedValueOnce({
+        id: 1,
+        username: "admin",
+        passwordHash: hashedPassword,
+        nickname: "Administrator",
+        email: "admin@example.com",
+        phone: null,
+        avatar: null,
+        status: "enabled",
+        deptId: 1,
+        mfaEnabled: false,
+      });
+
+      prismaService.userRole.findMany.mockResolvedValueOnce([]);
+      prismaService.menu.findMany.mockResolvedValueOnce([]);
+      prismaService.userRole.findMany.mockResolvedValueOnce([]);
+      prismaService.menu.findMany.mockResolvedValueOnce([]);
+
+      jwtProvider.signToken.mockReturnValueOnce({ token: "jwt.token", expiresIn: 7200 });
+      jwtProvider.signRefreshToken.mockReturnValueOnce({ refreshToken: "rt.token", expiresIn: 2592000 });
+
+      const result = await service.login(loginRequest, "127.0.0.1", "UA");
+
+      expect(result.code).toBe(0);
+      expect(result.data.token).toBe("jwt.token");
+      expect(result.data.mfaRequired).toBeUndefined();
+    });
+  });
+
+  describe("loginWithMfa", () => {
+    it("should return full login response after valid MFA code", async () => {
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+      const user = {
+        id: 1,
+        username: "admin",
+        passwordHash: hashedPassword,
+        nickname: "Administrator",
+        email: "admin@example.com",
+        phone: null,
+        avatar: null,
+        status: "enabled",
+        deptId: 1,
+        mfaEnabled: true,
+      };
+
+      mfaService.verifyLogin.mockResolvedValueOnce(user);
+      prismaService.userRole.findMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+      prismaService.menu.findMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      jwtProvider.verifyMfaToken.mockReturnValueOnce({
+        sub: 1,
+        username: "admin",
+        type: "mfa",
+        remember: false,
+      });
+      jwtProvider.signToken.mockReturnValueOnce({ token: "jwt.token", expiresIn: 7200 });
+      jwtProvider.signRefreshToken.mockReturnValueOnce({ refreshToken: "rt.token", expiresIn: 2592000 });
+
+      const result = await service.loginWithMfa("mfa.token", "123456", "127.0.0.1", "UA");
+
+      expect(result.code).toBe(0);
+      expect(result.data.token).toBe("jwt.token");
+      expect(mfaService.verifyLogin).toHaveBeenCalledWith("mfa.token", "123456");
+      expect(redisSessionProvider.createSession).toHaveBeenCalled();
+      expect(prismaService.loginLog.create).toHaveBeenCalled();
     });
   });
 });
