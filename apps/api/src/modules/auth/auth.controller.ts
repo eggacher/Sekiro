@@ -191,6 +191,7 @@ export class AuthController {
   }
 
   @Post('mfa/setup')
+  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '生成 MFA 绑定信息' })
@@ -205,6 +206,7 @@ export class AuthController {
   }
 
   @Post('mfa/verify')
+  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '验证并启用 MFA' })
@@ -221,6 +223,7 @@ export class AuthController {
   }
 
   @Post('mfa/disable')
+  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '关闭 MFA' })

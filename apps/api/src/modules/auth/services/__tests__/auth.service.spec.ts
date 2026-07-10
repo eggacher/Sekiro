@@ -664,5 +664,18 @@ describe("AuthService", () => {
       expect(redisSessionProvider.createSession).toHaveBeenCalled();
       expect(prismaService.loginLog.create).toHaveBeenCalled();
     });
+
+    it("should propagate MFA verification failure without creating session", async () => {
+      mfaService.verifyLogin.mockResolvedValueOnce({ code: 1, message: "验证码错误或已过期" });
+
+      const result = await service.loginWithMfa("mfa.token", "000000", "127.0.0.1", "UA");
+
+      expect(result.code).toBe(1);
+      expect(result.message).toBe("验证码错误或已过期");
+      expect(jwtProvider.signToken).not.toHaveBeenCalled();
+      expect(jwtProvider.signRefreshToken).not.toHaveBeenCalled();
+      expect(redisSessionProvider.createSession).not.toHaveBeenCalled();
+      expect(prismaService.loginLog.create).not.toHaveBeenCalled();
+    });
   });
 });
