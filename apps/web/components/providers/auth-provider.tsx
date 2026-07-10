@@ -20,7 +20,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const { setAuth, clearAuth } = useAuthStore();
   const { t } = useTranslation();
   const isPublic = PUBLIC_PATHS.includes(pathname);
 
@@ -36,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.TOKEN) : null;
 
     if (!token) {
-      clearAuth();
+      useAuthStore.getState().clearAuth();
       router.replace("/login");
       return;
     }
@@ -45,19 +44,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .get<MeResponse>("/auth/me")
       .then((data) => {
         if (cancelled) return;
-        setAuth(token, data.user, data.permissions, data.menus);
+        useAuthStore.getState().setAuth(token, data.user, data.permissions, data.menus);
         setReady(true);
       })
       .catch(() => {
         if (cancelled) return;
-        clearAuth();
+        useAuthStore.getState().clearAuth();
         router.replace("/login");
       });
 
     return () => {
       cancelled = true;
     };
-  }, [pathname, router, setAuth, clearAuth, isPublic]);
+  }, [pathname, router, isPublic]);
 
   if (!ready && !isPublic) {
     return (
