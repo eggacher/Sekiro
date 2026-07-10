@@ -206,12 +206,23 @@ export default function DictPage() {
                     onClick={() => setActiveId(d.id)}
                     className={cn(
                       "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors",
-                      activeId === d.id ? "bg-primary/10 text-primary" : "hover:bg-accent"
+                      activeId === d.id ? "bg-primary/10 text-primary" : "hover:bg-accent",
+                      d.status === "disabled" && "opacity-60"
                     )}
                   >
-                    <BookMarked className="h-4 w-4 shrink-0" />
+                    <BookMarked className={cn(
+                      "h-4 w-4 shrink-0",
+                      d.status === "disabled" ? "text-muted-foreground" : "text-primary"
+                    )} />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{d.name}</div>
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="truncate font-medium">{d.name}</div>
+                        {d.status === "disabled" && (
+                          <Badge variant="outline" className="h-4 px-1 py-0 text-[10px] border-destructive/30 bg-destructive/5 text-destructive shrink-0 font-normal scale-90 origin-right">
+                            {t("system.status.disabled")}
+                          </Badge>
+                        )}
+                      </div>
                       <div className="truncate text-xs text-muted-foreground">{d.code}</div>
                     </div>
                   </button>
@@ -235,6 +246,7 @@ export default function DictPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{active.name}</span>
                     <Badge variant="secondary" className="text-[10px]">{active.code}</Badge>
+                    <StatusBadge status={active.status} />
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">{active.remark}</p>
                 </div>
