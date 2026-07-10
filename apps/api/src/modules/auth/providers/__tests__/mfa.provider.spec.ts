@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { MfaProvider } from "../mfa.provider";
+import * as speakeasy from "speakeasy";
 
 function generateToken(secret: string, step: number = 0): string {
   // Use speakeasy directly in test to generate a known-good token
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const speakeasy = require("speakeasy");
   return speakeasy.totp({
     secret,
     encoding: "base32",
