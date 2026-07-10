@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { apiClient } from "@/lib/api/client";
 import { useTranslation } from "@/lib/i18n";
+import { md5 } from "@/lib/crypto";
 
 type NotificationPrefs = {
   system: boolean;
@@ -119,8 +120,8 @@ export default function ProfilePage() {
     setIsChangingPassword(true);
     try {
       await apiClient.put("/system/user/password", {
-        oldPassword: passwordForm.oldPassword,
-        newPassword: passwordForm.newPassword,
+        oldPassword: md5(passwordForm.oldPassword),
+        newPassword: md5(passwordForm.newPassword),
       });
       toast.success(t("profile.toast.passwordChanged"));
       useAuthStore.getState().clearAuth();

@@ -101,7 +101,7 @@ export class AuthService {
       return { code: 1, message: '账号已锁定 30 分钟' };
     }
 
-    // 4. 验证密码
+    // 4. 验证密码（前端已 MD5，后端将接收值视为 MD5 后比较）
     const passwordMatch = await bcrypt.compare(password, user.passwordHash);
     if (!passwordMatch) {
       const failureCount = await this.loginFailureProvider.incrementFailure(user.id);

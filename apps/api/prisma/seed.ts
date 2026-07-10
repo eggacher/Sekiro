@@ -2,17 +2,27 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import * as bcrypt from "bcrypt";
+import { createHash } from "crypto";
 
 const adapter = new PrismaPg(process.env.DATABASE_URL!);
 const prisma = new PrismaClient({ adapter });
 
 /**
+ * 计算字符串的 32 位小写 MD5 哈希
+ * 与 apps/api/src/common/utils/crypto.util.ts 保持逻辑一致
+ */
+function md5(text: string): string {
+  return createHash("md5").update(text).digest("hex");
+}
+
+/**
  * 生成密码哈希
+ * 约定：数据库存储的是 bcrypt(md5(明文密码))，前端提交时已做 MD5
  * @param password 明文密码
  * @param cost bcrypt cost 因子，默认 10
  */
 async function hashPassword(password: string, cost = 10): Promise<string> {
-  return bcrypt.hash(password, cost);
+  return bcrypt.hash(md5(password), cost);
 }
 
 /**
