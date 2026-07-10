@@ -84,11 +84,20 @@ export function CrudTable<T extends { id: string | number }>({
     }
     Object.entries(filters).forEach(([key, value]) => {
       if (value && value !== "all") {
-        list = list.filter((row) => String((row as Record<string, unknown>)[key]) === value);
+        const field = searchFields.find((f) => f.key === key);
+        const isSelect = field?.type === "select";
+        if (isSelect) {
+          list = list.filter((row) => String((row as Record<string, unknown>)[key]) === value);
+        } else {
+          list = list.filter((row) => {
+            const val = (row as Record<string, unknown>)[key];
+            return String(val ?? "").toLowerCase().includes(value.toLowerCase());
+          });
+        }
       }
     });
     return list;
-  }, [data, keyword, filters]);
+  }, [data, keyword, filters, searchFields]);
 
   const { list: pageData, total } = paginate(filtered, page, pageSize);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
