@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { UserDataScope } from "../types";
 
 @Injectable()
 export class DataScopeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async calculateScope(userId: number): Promise<UserDataScope> {
     if (userId === 1) {

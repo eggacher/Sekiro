@@ -4,6 +4,7 @@ import {
   ExecutionContext,
   CallHandler,
   SetMetadata,
+  Inject,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
@@ -22,8 +23,8 @@ export const AuditLog = (options: AuditLogOptions) => SetMetadata(AUDIT_LOG_KEY,
 @Injectable()
 export class OperationLogInterceptor implements NestInterceptor {
   constructor(
-    private readonly reflector: Reflector,
-    private readonly logService: LogService,
+    @Inject(Reflector) private readonly reflector: Reflector,
+    @Inject(LogService) private readonly logService: LogService,
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {

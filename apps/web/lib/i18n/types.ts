@@ -1,10 +1,7 @@
 import { zh } from "./dictionaries/zh";
+import type { Locale } from "./config";
 
-export type Dictionary = Record<string, string>;
 export type TranslationKey = keyof typeof zh;
+export type Dictionary = Record<TranslationKey, string>;
 
-export type I18nContextValue = {
-  locale: import("./config").Locale;
-  setLocale: (locale: import("./config").Locale) => void;
-  t: (key: TranslationKey, values?: Record<string, string | number>) => string;
-};
+export type { Locale };

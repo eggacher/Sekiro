@@ -29,6 +29,8 @@ describe("RedisSessionProvider", () => {
         createdAt: new Date().toISOString(),
         lastActiveAt: new Date().toISOString(),
         expiresAt: new Date().toISOString(),
+        permissions: ["system:user:create"],
+        roles: ["super_admin"],
       };
       await provider.createSession("session-123", session, 2592000);
       expect(mockRedis.setEx).toHaveBeenCalledWith(
@@ -81,6 +83,49 @@ describe("RedisSessionProvider", () => {
         1800,
         expect.stringContaining("new.token"),
       );
+    });
+  });
+
+  describe("updateSession", () => {
+    it("should merge patch into existing session and preserve TTL", async () => {
+      const existing = {
+        userId: 1,
+        username: "admin",
+        token: "jwt.token",
+        refreshToken: "rt.token",
+        remember: true,
+        ip: "127.0.0.1",
+        userAgent: "Mozilla/5.0",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        lastActiveAt: "2026-01-01T00:00:00.000Z",
+        expiresAt: "2026-01-31T00:00:00.000Z",
+        permissions: [],
+        roles: [],
+      };
+      mockRedis.get.mockResolvedValueOnce(JSON.stringify(existing));
+      mockRedis.ttl.mockResolvedValueOnce(2000);
+
+      await provider.updateSession("session-123", {
+        permissions: ["system:user:create"],
+        roles: ["admin"],
+      });
+
+      expect(mockRedis.setEx).toHaveBeenCalledWith(
+        "sekiro:session:session-123",
+        2000,
+        expect.stringContaining('"permissions":["system:user:create"]'),
+      );
+      expect(mockRedis.setEx).toHaveBeenCalledWith(
+        "sekiro:session:session-123",
+        2000,
+        expect.stringContaining('"roles":["admin"]'),
+      );
+    });
+
+    it("should do nothing if session does not exist", async () => {
+      mockRedis.get.mockResolvedValueOnce(null);
+      await provider.updateSession("missing", { permissions: ["x"] });
+      expect(mockRedis.setEx).not.toHaveBeenCalled();
     });
   });
 });

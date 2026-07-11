@@ -46,6 +46,8 @@ describe("schema.prisma 结构校证 (spec §3)", () => {
       "lockedUntil",
       "loginFailCount",
       "lastLoginAt",
+      "mfaSecret",
+      "mfaEnabled",
       "createdAt",
       "updatedAt",
       "deletedAt",

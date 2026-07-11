@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Lock, User, Loader2, Github } from "lucide-react";
+import { Eye, EyeOff, Lock, User, Loader2, Github, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { Logo } from "@/components/layout/logo";
 import { apiClient } from "@/lib/api/client";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useTranslation } from "@/lib/i18n";
+import { md5 } from "@/lib/crypto";
 import type { CurrentUser, LoginResponse } from "@sekiro/shared";
 
 export default function LoginPage() {
@@ -23,11 +24,13 @@ export default function LoginPage() {
   const [showPwd, setShowPwd] = useState(false);
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
 
   const { setAuth } = useAuthStore();
   const { t } = useTranslation();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
       toast.error(t("login.error.required"));
@@ -37,29 +40,62 @@ export default function LoginPage() {
     try {
       const data = await apiClient.post<LoginResponse>("/auth/login", {
         username,
-        password,
+        password: md5(password),
         remember,
       });
 
-      const currentUser: CurrentUser = {
-        id: data.user.id,
-        username: data.user.username,
-        nickname: data.user.nickname,
-        avatar: data.user.avatar,
-        email: data.user.email,
-        phone: data.user.phone,
-        roles: [],
-        permissions: data.permissions,
-      };
+      if (data.mfaRequired) {
+        setMfaToken(data.mfaToken || null);
+        setLoading(false);
+        return;
+      }
 
-      setAuth(data.token, currentUser, data.permissions, data.menus);
-      toast.success(t("login.success"));
-      router.push("/");
+      completeLogin(data);
     } catch (err: any) {
       toast.error(err.message || t("login.error.failed"));
-    } finally {
       setLoading(false);
     }
+  };
+
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfaToken || mfaCode.length !== 6) {
+      toast.error("请输入 6 位验证码");
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await apiClient.post<LoginResponse>("/auth/mfa/login-verify", {
+        mfaToken,
+        code: mfaCode,
+      });
+      completeLogin(data);
+    } catch (err: any) {
+      toast.error(err.message || t("login.error.failed"));
+      setLoading(false);
+    }
+  };
+
+  const completeLogin = (data: LoginResponse) => {
+    const currentUser: CurrentUser = {
+      id: data.user!.id,
+      username: data.user!.username,
+      nickname: data.user!.nickname,
+      avatar: data.user!.avatar,
+      email: data.user!.email,
+      phone: data.user!.phone,
+      roles: data.user?.roles ?? [],
+      permissions: data.permissions || [],
+    };
+
+    setAuth(data.token!, currentUser, data.permissions || [], data.menus || []);
+    toast.success(t("login.success"));
+    router.push("/");
+  };
+
+  const resetToLogin = () => {
+    setMfaToken(null);
+    setMfaCode("");
   };
 
   return (
@@ -73,7 +109,6 @@ export default function LoginPage() {
         className="relative z-10 w-full max-w-md"
       >
         <div className="rounded-2xl border bg-card/80 p-8 shadow-2xl backdrop-blur-xl">
-          {/* Header */}
           <div className="mb-8 flex flex-col items-center text-center">
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
@@ -82,76 +117,118 @@ export default function LoginPage() {
             >
               <Logo />
             </motion.div>
-            <h1 className="mt-6 text-2xl font-bold tracking-tight">{t("login.title")}</h1>
+            <h1 className="mt-6 text-2xl font-bold tracking-tight">
+              {mfaToken ? t("login.mfaTitle") || "两步验证" : t("login.title")}
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {t("login.subtitle")}
+              {mfaToken
+                ? t("login.mfaSubtitle") || "请输入 Authenticator 应用中的 6 位验证码"
+                : t("login.subtitle")}
             </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder={t("login.username")}
-                  className="h-11 pl-9"
-                />
+          {!mfaToken ? (
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              {/* existing username/password/remember form unchanged */}
+              <div className="space-y-2">
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder={t("login.username")}
+                    className="h-11 pl-9"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type={showPwd ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t("login.password")}
-                  className="h-11 pl-9 pr-9"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPwd((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+              <div className="space-y-2">
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type={showPwd ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t("login.password")}
+                    className="h-11 pl-9 pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPwd((s) => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <Checkbox checked={remember} onCheckedChange={(v) => setRemember(!!v)} />
-                <span className="text-muted-foreground">{t("login.rememberMe")}</span>
-              </label>
-              <a href="#" className="text-primary hover:underline">
-                {t("login.forgotPassword")}
-              </a>
-            </div>
+              <div className="flex items-center justify-between text-sm">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={remember} onCheckedChange={(v) => setRemember(!!v)} />
+                  <span className="text-muted-foreground">{t("login.rememberMe")}</span>
+                </label>
+                <a href="#" className="text-primary hover:underline">
+                  {t("login.forgotPassword")}
+                </a>
+              </div>
 
-            <Button type="submit" className="h-11 w-full text-base" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {t("login.loggingIn")}
-                </>
-              ) : (
-                t("login.submit")
-              )}
-            </Button>
-          </form>
+              <Button type="submit" className="h-11 w-full text-base" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {t("login.loggingIn")}
+                  </>
+                ) : (
+                  t("login.submit")
+                )}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleMfaSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <div className="relative">
+                  <Shield className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="000000"
+                    maxLength={6}
+                    className="h-11 pl-9 text-center text-lg tracking-[0.5em]"
+                    inputMode="numeric"
+                  />
+                </div>
+              </div>
 
-          {/* Divider */}
+              <Button type="submit" className="h-11 w-full text-base" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    验证中...
+                  </>
+                ) : (
+                  "验证并登录"
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={resetToLogin}
+                disabled={loading}
+              >
+                返回重新登录
+              </Button>
+            </form>
+          )}
+
+          {/* existing divider and social login unchanged */}
           <div className="my-6 flex items-center gap-3">
             <Separator className="flex-1" />
             <span className="text-xs text-muted-foreground">{t("login.otherMethods")}</span>
             <Separator className="flex-1" />
           </div>
 
-          {/* Social */}
           <div className="flex justify-center gap-3">
             <Button variant="outline" size="icon" className="h-10 w-10 rounded-full">
               <Github className="h-4 w-4" />

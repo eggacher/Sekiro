@@ -6,17 +6,20 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/page-header";
 import { CrudTable, type Column } from "@/components/shared/crud-table";
 import { apiClient } from "@/lib/api/client";
+import { useTranslation } from "@/lib/i18n";
 import type { PageResult } from "@sekiro/shared";
 
-const typeMeta: Record<string, { label: string; icon: typeof Plus; color: string }> = {
-  create: { label: "新增", icon: Plus, color: "text-success" },
-  update: { label: "修改", icon: Edit2, color: "text-blue-500" },
-  delete: { label: "删除", icon: Trash2, color: "text-destructive" },
-  export: { label: "导出", icon: Download, color: "text-purple-500" },
-  other: { label: "其他", icon: Settings, color: "text-muted-foreground" },
-};
-
 export default function OperationLogPage() {
+  const { t } = useTranslation();
+
+  const typeMeta: Record<string, { label: string; icon: typeof Plus; color: string }> = {
+    create: { label: t("monitor.operationLog.type.create"), icon: Plus, color: "text-success" },
+    update: { label: t("monitor.operationLog.type.update"), icon: Edit2, color: "text-blue-500" },
+    delete: { label: t("monitor.operationLog.type.delete"), icon: Trash2, color: "text-destructive" },
+    export: { label: t("monitor.operationLog.type.export"), icon: Download, color: "text-purple-500" },
+    other: { label: t("monitor.operationLog.type.other"), icon: Settings, color: "text-muted-foreground" },
+  };
+
   const [list, setList] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
 
@@ -37,12 +40,12 @@ export default function OperationLogPage() {
   }, [fetchLogs]);
 
   const columns: Column<any>[] = [
-    { key: "id", title: "编号", width: 70, render: (r) => <span className="text-muted-foreground">{r.id}</span> },
-    { key: "operator", title: "操作人", render: (r) => <span className="font-medium">{r.operator}</span> },
-    { key: "module", title: "模块", render: (r) => <Badge variant="secondary">{r.module}</Badge> },
+    { key: "id", title: t("monitor.operationLog.column.id"), width: 70, render: (r) => <span className="text-muted-foreground">{r.id}</span> },
+    { key: "operator", title: t("monitor.operationLog.column.operator"), render: (r) => <span className="font-medium">{r.operator}</span> },
+    { key: "module", title: t("monitor.operationLog.column.module"), render: (r) => <Badge variant="secondary">{r.module}</Badge> },
     {
       key: "type",
-      title: "操作类型",
+      title: t("monitor.operationLog.column.type"),
       width: 110,
       render: (r) => {
         const meta = typeMeta[r.type] || typeMeta.other;
@@ -55,10 +58,10 @@ export default function OperationLogPage() {
         );
       },
     },
-    { key: "description", title: "描述", render: (r) => <span>{r.description}</span> },
+    { key: "description", title: t("monitor.operationLog.column.description"), render: (r) => <span>{r.description}</span> },
     {
       key: "method",
-      title: "请求",
+      title: t("monitor.operationLog.column.request"),
       width: 140,
       render: (r) => (
         <div>
@@ -67,21 +70,21 @@ export default function OperationLogPage() {
         </div>
       ),
     },
-    { key: "ip", title: "IP", width: 130, render: (r) => <span className="font-mono text-xs text-muted-foreground">{r.ip}</span> },
+    { key: "ip", title: t("monitor.operationLog.column.ip"), width: 130, render: (r) => <span className="font-mono text-xs text-muted-foreground">{r.ip}</span> },
     {
       key: "cost",
-      title: "耗时",
+      title: t("monitor.operationLog.column.cost"),
       width: 90,
       align: "center",
       render: (r) => (
         <Badge variant={r.cost > 1000 ? "warning" : "outline"} className="font-mono">
-          {r.cost}ms
+          {t("monitor.operationLog.costValue", { ms: r.cost })}
         </Badge>
       ),
     },
     {
       key: "status",
-      title: "状态",
+      title: t("monitor.operationLog.column.status"),
       width: 90,
       render: (r) =>
         r.status === "success" ? (
@@ -90,20 +93,20 @@ export default function OperationLogPage() {
           <XCircle className="h-4 w-4 text-destructive" />
         ),
     },
-    { key: "time", title: "时间", width: 180, render: (r) => <span className="text-muted-foreground">{new Date(r.createdAt).toLocaleString()}</span> },
+    { key: "time", title: t("monitor.operationLog.column.time"), width: 180, render: (r) => <span className="text-muted-foreground">{new Date(r.createdAt).toLocaleString()}</span> },
   ];
 
   return (
     <div>
-      <PageHeader title="操作日志" description="记录用户的增删改等关键操作，支持审计追溯" />
+      <PageHeader title={t("monitor.operationLog.title")} description={t("monitor.operationLog.description")} />
       {loading ? (
-        <div className="flex h-[300px] items-center justify-center text-muted-foreground">加载中...</div>
+        <div className="flex h-[300px] items-center justify-center text-muted-foreground">{t("monitor.operationLog.loading")}</div>
       ) : (
         <CrudTable columns={columns} data={list}
           searchFields={[
-            { key: "operator", label: "操作人", placeholder: "请输入操作人" },
-            { key: "module", label: "模块", placeholder: "请输入模块" },
-            { key: "type", label: "类型", type: "select",
+            { key: "operator", label: t("monitor.operationLog.search.operator"), placeholder: t("monitor.operationLog.search.operatorPlaceholder") },
+            { key: "module", label: t("monitor.operationLog.search.module"), placeholder: t("monitor.operationLog.search.modulePlaceholder") },
+            { key: "type", label: t("monitor.operationLog.search.type"), type: "select",
               options: Object.entries(typeMeta).map(([v, m]) => ({ label: m.label, value: v })) },
           ]}
         />

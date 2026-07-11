@@ -8,6 +8,8 @@ import { useAuthStore } from "@/lib/store/auth-store";
 import { useTranslation } from "@/lib/i18n";
 import { apiClient } from "@/lib/api/client";
 
+import { toast } from "sonner";
+
 const PUBLIC_PATHS = ["/login"];
 
 type MeResponse = {
@@ -20,7 +22,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const { setAuth, clearAuth } = useAuthStore();
   const { t } = useTranslation();
   const isPublic = PUBLIC_PATHS.includes(pathname);
 
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.TOKEN) : null;
 
     if (!token) {
-      clearAuth();
+      useAuthStore.getState().clearAuth();
       router.replace("/login");
       return;
     }
@@ -45,19 +46,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .get<MeResponse>("/auth/me")
       .then((data) => {
         if (cancelled) return;
-        setAuth(token, data.user, data.permissions, data.menus);
+        useAuthStore.getState().setAuth(token, data.user, data.permissions, data.menus);
         setReady(true);
       })
-      .catch(() => {
+      .catch((err: any) => {
         if (cancelled) return;
-        clearAuth();
-        router.replace("/login");
+        
+        // Only clear auth and redirect to login if the error is specifically a 401 Unauthorized
+        const isUnauthorized = 
+          err?.code === 401 || 
+          err?.message?.includes("401");
+
+        if (isUnauthorized) {
+          useAuthStore.getState().clearAuth();
+          router.replace("/login");
+        } else {
+          toast.error(err.message || "获取用户信息失败");
+        }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [pathname, router, setAuth, clearAuth, isPublic]);
+  }, [pathname, router, isPublic]);
 
   if (!ready && !isPublic) {
     return (

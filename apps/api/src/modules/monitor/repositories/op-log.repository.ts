@@ -1,19 +1,19 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { QueryOpLogDto } from "../dtos";
 import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class OpLogRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async create(data: Prisma.OperationLogCreateInput) {
     return this.prisma.operationLog.create({ data });
   }
 
   async findPage(query: QueryOpLogDto) {
-    const page = query.page || 1;
-    const pageSize = query.pageSize || 10;
+    const page = Number(query.page) || 1;
+    const pageSize = Number(query.pageSize) || 10;
     const where: Prisma.OperationLogWhereInput = {};
 
     if (query.operator) {

@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/page-header";
 import { apiClient } from "@/lib/api/client";
+import { useTranslation } from "@/lib/i18n";
 
 function Gauge({ value, label, icon: Icon, color }: {
   value: number; label: string; icon: typeof Cpu; color: string;
@@ -52,6 +53,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export default function ServerMonitorPage() {
+  const { t } = useTranslation();
   const [info, setInfo] = React.useState<any>(null);
 
   const fetchInfo = React.useCallback(async () => {
@@ -70,7 +72,7 @@ export default function ServerMonitorPage() {
   if (!info) {
     return (
       <div className="flex h-[400px] items-center justify-center text-muted-foreground">
-        加载监控数据中...
+        {t("monitor.server.loading")}
       </div>
     );
   }
@@ -81,19 +83,19 @@ export default function ServerMonitorPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="服务监控" description="实时监控服务器与运行时的核心指标">
+      <PageHeader title={t("monitor.server.title")} description={t("monitor.server.description")}>
         <Badge variant="success" className="gap-1">
           <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
-          运行中 · {info.uptime}
+          {t("monitor.server.running", { uptime: info.uptime })}
         </Badge>
       </PageHeader>
 
       {/* 仪表盘 */}
       <div className="grid gap-4 rounded-xl border bg-card p-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Gauge value={info.cpuUsage} label="CPU 使用率" icon={Cpu} color="#3b82f6" />
-        <Gauge value={memUsage} label="内存使用率" icon={MemoryStick} color="#8b5cf6" />
-        <Gauge value={diskUsage} label="磁盘使用率" icon={HardDrive} color="#06b6d4" />
-        <Gauge value={jvmUsage} label="Node 运行内存" icon={Activity} color="#f59e0b" />
+        <Gauge value={info.cpuUsage} label={t("monitor.server.gauge.cpu")} icon={Cpu} color="#3b82f6" />
+        <Gauge value={memUsage} label={t("monitor.server.gauge.memory")} icon={MemoryStick} color="#8b5cf6" />
+        <Gauge value={diskUsage} label={t("monitor.server.gauge.disk")} icon={HardDrive} color="#06b6d4" />
+        <Gauge value={jvmUsage} label={t("monitor.server.gauge.node")} icon={Activity} color="#f59e0b" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -102,7 +104,7 @@ export default function ServerMonitorPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
               <Activity className="h-4 w-4 text-primary" />
-              CPU / 内存趋势（近 60s）
+              {t("monitor.server.trend.title")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -118,8 +120,8 @@ export default function ServerMonitorPage() {
                       borderRadius: "8px", fontSize: "12px",
                     }}
                   />
-                  <Line type="monotone" dataKey="cpu" name="CPU%" stroke="#3b82f6" strokeWidth={2} dot={false} isAnimationActive={false} />
-                  <Line type="monotone" dataKey="memory" name="内存%" stroke="#8b5cf6" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="cpu" name={t("monitor.server.chart.cpu")} stroke="#3b82f6" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="memory" name={t("monitor.server.chart.memory")} stroke="#8b5cf6" strokeWidth={2} dot={false} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -131,17 +133,17 @@ export default function ServerMonitorPage() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
               <Server className="h-4 w-4 text-primary" />
-              服务器信息
+              {t("monitor.server.info.title")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-0">
-            <InfoRow label="主机名" value={info.hostname} />
-            <InfoRow label="操作系统" value={info.os} />
-            <InfoRow label="架构" value={info.arch} />
-            <InfoRow label="CPU 核数" value={`${info.cpuCores} 核`} />
-            <InfoRow label="内存" value={`${(info.memoryUsed / 1024).toFixed(1)} / ${(info.memoryTotal / 1024).toFixed(0)} GB`} />
-            <InfoRow label="磁盘" value={`${info.diskUsed} / ${info.diskTotal} GB`} />
-            <InfoRow label="Node 版本" value={info.jvmVersion} />
+            <InfoRow label={t("monitor.server.info.hostname")} value={info.hostname} />
+            <InfoRow label={t("monitor.server.info.os")} value={info.os} />
+            <InfoRow label={t("monitor.server.info.arch")} value={info.arch} />
+            <InfoRow label={t("monitor.server.info.cpuCores")} value={`${info.cpuCores} ${t("monitor.server.unit.cores")}`} />
+            <InfoRow label={t("monitor.server.info.memory")} value={`${(info.memoryUsed / 1024).toFixed(1)} / ${(info.memoryTotal / 1024).toFixed(0)} ${t("monitor.server.unit.gb")}`} />
+            <InfoRow label={t("monitor.server.info.disk")} value={`${info.diskUsed} / ${info.diskTotal} ${t("monitor.server.unit.gb")}`} />
+            <InfoRow label={t("monitor.server.info.nodeVersion")} value={info.jvmVersion} />
           </CardContent>
         </Card>
       </div>
@@ -151,7 +153,7 @@ export default function ServerMonitorPage() {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Network className="h-4 w-4 text-success" />
-            网络流量
+            {t("monitor.server.network.title")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -161,8 +163,8 @@ export default function ServerMonitorPage() {
                 <Globe className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">入站流量</div>
-                <div className="text-xl font-bold">{info.networkRx} <span className="text-sm font-normal text-muted-foreground">MB/s</span></div>
+                <div className="text-sm text-muted-foreground">{t("monitor.server.network.inbound")}</div>
+                <div className="text-xl font-bold">{info.networkRx} <span className="text-sm font-normal text-muted-foreground">{t("monitor.server.network.rate")}</span></div>
               </div>
             </div>
             <div className="flex items-center gap-3 rounded-lg border p-4">
@@ -170,8 +172,8 @@ export default function ServerMonitorPage() {
                 <Network className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">出站流量</div>
-                <div className="text-xl font-bold">{info.networkTx} <span className="text-sm font-normal text-muted-foreground">MB/s</span></div>
+                <div className="text-sm text-muted-foreground">{t("monitor.server.network.outbound")}</div>
+                <div className="text-xl font-bold">{info.networkTx} <span className="text-sm font-normal text-muted-foreground">{t("monitor.server.network.rate")}</span></div>
               </div>
             </div>
           </div>

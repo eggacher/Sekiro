@@ -10,6 +10,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { JwtProvider } from '../providers/jwt.provider';
 import { RedisSessionProvider } from '../providers/redis-session.provider';
 import { LoginFailureProvider } from '../providers/login-failure.provider';
+import { MfaService, isMfaSuccess } from './mfa.service';
 import type { CurrentUser, LoginRequest, Menu } from '@sekiro/shared';
 
 /**
@@ -34,6 +35,7 @@ export class AuthService {
     @Inject(JwtProvider) private jwtProvider: JwtProvider,
     @Inject(RedisSessionProvider) private redisSessionProvider: RedisSessionProvider,
     @Inject(LoginFailureProvider) private loginFailureProvider: LoginFailureProvider,
+    @Inject(MfaService) private mfaService: MfaService,
   ) {}
 
   /**
@@ -55,6 +57,11 @@ export class AuthService {
     // 1. 查询用户
     const user = await this.prismaService.user.findUnique({
       where: { username },
+      include: {
+        roles: {
+          include: { role: true },
+        },
+      },
     });
     if (!user) {
       await this.prismaService.loginLog.create({
@@ -63,8 +70,8 @@ export class AuthService {
           result: 'fail',
           message: '账号不存在',
           ip: ipAddress,
-          browser: userAgent,
-          os: userAgent,
+          browser: this.parseBrowser(userAgent),
+          os: this.parseOs(userAgent),
         },
       });
       return { code: 1, message: '账号或密码错误' };
@@ -78,8 +85,8 @@ export class AuthService {
           result: 'fail',
           message: '账号已停用',
           ip: ipAddress,
-          browser: userAgent,
-          os: userAgent,
+          browser: this.parseBrowser(userAgent),
+          os: this.parseOs(userAgent),
         },
       });
       return { code: 1, message: '账号已停用' };
@@ -94,14 +101,14 @@ export class AuthService {
           result: 'fail',
           message: '账号已锁定',
           ip: ipAddress,
-          browser: userAgent,
-          os: userAgent,
+          browser: this.parseBrowser(userAgent),
+          os: this.parseOs(userAgent),
         },
       });
       return { code: 1, message: '账号已锁定 30 分钟' };
     }
 
-    // 4. 验证密码
+    // 4. 验证密码（前端已 MD5，后端将接收值视为 MD5 后比较）
     const passwordMatch = await bcrypt.compare(password, user.passwordHash);
     if (!passwordMatch) {
       const failureCount = await this.loginFailureProvider.incrementFailure(user.id);
@@ -119,8 +126,8 @@ export class AuthService {
           result: 'fail',
           message: '密码错误',
           ip: ipAddress,
-          browser: userAgent,
-          os: userAgent,
+          browser: this.parseBrowser(userAgent),
+          os: this.parseOs(userAgent),
         },
       });
 
@@ -133,9 +140,26 @@ export class AuthService {
     // 5. 验证成功！清除失败计数
     await this.loginFailureProvider.clearFailure(user.id);
 
-    // 6. 计算权限和菜单
+    // 6. 如果用户开启了 MFA，进入第二步验证
+    if (user.mfaEnabled) {
+      const { mfaToken } = this.jwtProvider.signMfaToken({
+        sub: user.id,
+        username: user.username,
+        remember: request.remember || false,
+      });
+      return {
+        code: 0,
+        data: {
+          mfaRequired: true,
+          mfaToken,
+        },
+      };
+    }
+
+    // 7. 计算权限和菜单
     const permissions = await this.getUserPermissions(user.id);
     const menus = await this.buildMenuTree(user.id);
+    const roles = user.roles.map((ur) => ur.role.code);
 
     // 7. 创建 Session ID 并签发 Token
     const sessionId = uuidv4();
@@ -163,6 +187,8 @@ export class AuthService {
       createdAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+      permissions,
+      roles,
     };
     await this.redisSessionProvider.createSession(sessionId, session, 2592000);
 
@@ -171,14 +197,16 @@ export class AuthService {
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
+    const parsedBrowser = this.parseBrowser(userAgent);
+    const parsedOs = this.parseOs(userAgent);
     await this.prismaService.loginLog.create({
       data: {
         username,
         result: 'success',
         message: '登录成功',
         ip: ipAddress,
-        browser: userAgent,
-        os: userAgent,
+        browser: parsedBrowser,
+        os: parsedOs,
       },
     });
 
@@ -198,6 +226,106 @@ export class AuthService {
           avatar: user.avatar,
           status: user.status,
           deptId: user.deptId,
+          roles,
+        },
+        permissions,
+        menus,
+      },
+    };
+  }
+
+  /**
+   * MFA 第二步验证并签发正式 Token
+   */
+  async loginWithMfa(
+    mfaToken: string,
+    code: string,
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<any> {
+    const verifyResult = await this.mfaService.verifyLogin(mfaToken, code);
+
+    if (!isMfaSuccess(verifyResult)) {
+      return { code: verifyResult.code, message: verifyResult.message };
+    }
+
+    const { user, payload } = verifyResult.data;
+
+    // 从已验证的 mfaToken payload 中读取 remember 偏好
+    const remember = payload?.remember || false;
+
+    // 清除登录失败计数
+    await this.loginFailureProvider.clearFailure(user.id);
+
+    // 计算权限和菜单
+    const permissions = await this.getUserPermissions(user.id);
+    const menus = await this.buildMenuTree(user.id);
+    const roles = user.roles.map((ur: any) => ur.role.code);
+
+    // 创建 Session ID 并签发 Token
+    const sessionId = uuidv4();
+    const { token, expiresIn } = this.jwtProvider.signToken({
+      sub: user.id,
+      username: user.username,
+      roles: permissions.map((p) => p.split(':')[0]).filter((v, i, a) => a.indexOf(v) === i),
+      sid: sessionId,
+    });
+
+    const { refreshToken } = this.jwtProvider.signRefreshToken({
+      sub: user.id,
+      username: user.username,
+    });
+
+    // 创建 Session
+    const session = {
+      userId: user.id,
+      username: user.username,
+      token,
+      refreshToken,
+      remember,
+      ip: ipAddress,
+      userAgent,
+      createdAt: new Date().toISOString(),
+      lastActiveAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      permissions,
+      roles,
+    };
+    await this.redisSessionProvider.createSession(sessionId, session, 2592000);
+
+    // 更新用户登录时间并写日志
+    await this.prismaService.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+    await this.prismaService.loginLog.create({
+      data: {
+        username: user.username,
+        result: 'success',
+        message: '登录成功',
+        ip: ipAddress,
+        browser: this.parseBrowser(userAgent),
+        os: this.parseOs(userAgent),
+      },
+    });
+
+    // 返回响应
+    return {
+      code: 0,
+      data: {
+        token,
+        refreshToken,
+        expiresIn,
+        user: {
+          id: user.id,
+          username: user.username,
+          nickname: user.nickname,
+          email: user.email,
+          phone: user.phone,
+          avatar: user.avatar,
+          status: user.status,
+          deptId: user.deptId,
+          roles,
         },
         permissions,
         menus,
@@ -239,7 +367,10 @@ export class AuthService {
    * 2. 计算权限和菜单
    * 3. 组装 CurrentUser
    */
-  async getMe(userId: number): Promise<{
+  async getMe(
+    userId: number,
+    sessionId?: string,
+  ): Promise<{
     user: CurrentUser;
     permissions: string[];
     menus: MenuNode[];
@@ -263,6 +394,10 @@ export class AuthService {
     const menus = await this.buildMenuTree(userId);
     const roles = user.roles.map((ur) => ur.role.code);
 
+    if (sessionId) {
+      await this.redisSessionProvider.updateSession(sessionId, { permissions, roles });
+    }
+
     return {
       user: {
         id: user.id,
@@ -271,6 +406,7 @@ export class AuthService {
         avatar: user.avatar ?? undefined,
         email: user.email ?? undefined,
         phone: user.phone ?? undefined,
+        mfaEnabled: user.mfaEnabled,
         roles,
         permissions,
       },
@@ -390,5 +526,54 @@ export class AuthService {
         ...item,
         children: this.buildTree(items, item.id),
       }));
+  }
+
+  /**
+   * 从 User-Agent 字符串中解析浏览器名称
+   */
+  private parseBrowser(ua: string): string {
+    if (!ua) return 'Unknown';
+    const patterns: [RegExp, string][] = [
+      [/Edg(?:e|A)?\/([\d.]+)/, 'Edge'],
+      [/OPR\/([\d.]+)/, 'Opera'],
+      [/Chrome\/([\d.]+)/, 'Chrome'],
+      [/Firefox\/([\d.]+)/, 'Firefox'],
+      [/Version\/([\d.]+).*Safari/, 'Safari'],
+    ];
+    for (const [regex, name] of patterns) {
+      const match = ua.match(regex);
+      if (match) {
+        const version = match[1].split('.')[0];
+        return `${name} ${version}`;
+      }
+    }
+    return ua.substring(0, 64);
+  }
+
+  /**
+   * 从 User-Agent 字符串中解析操作系统名称
+   */
+  private parseOs(ua: string): string {
+    if (!ua) return 'Unknown';
+    const patterns: [RegExp, string][] = [
+      [/Windows NT 10\.0/, 'Windows 10'],
+      [/Windows NT 6\.3/, 'Windows 8.1'],
+      [/Windows NT 6\.1/, 'Windows 7'],
+      [/Mac OS X ([\d._]+)/, 'macOS'],
+      [/Android ([\d.]+)/, 'Android'],
+      [/iPhone OS ([\d_]+)/, 'iOS'],
+      [/Linux/, 'Linux'],
+    ];
+    for (const [regex, name] of patterns) {
+      const match = ua.match(regex);
+      if (match) {
+        if (match[1]) {
+          const version = match[1].replace(/_/g, '.');
+          return `${name} ${version}`;
+        }
+        return name;
+      }
+    }
+    return ua.substring(0, 64);
   }
 }

@@ -1,0 +1,17 @@
+export const login = {
+  "login.title": "欢迎回来",
+  "login.subtitle": "登录 Sekiro 管理后台",
+  "login.username": "账号",
+  "login.password": "密码",
+  "login.rememberMe": "记住我",
+  "login.forgotPassword": "忘记密码？",
+  "login.submit": "登 录",
+  "login.loggingIn": "登录中…",
+  "login.success": "登录成功，欢迎回来！",
+  "login.error.required": "请输入账号和密码",
+  "login.error.failed": "登录失败",
+  "login.otherMethods": "其他登录方式",
+  "login.copyright": "© 2026 Sekiro Admin · 基于 Next.js + shadcn/ui",
+  "login.mfaTitle": "两步验证",
+  "login.mfaSubtitle": "请输入 Authenticator 应用中的 6 位验证码",
+} as const;

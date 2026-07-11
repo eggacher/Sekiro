@@ -7,11 +7,13 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiQuery, ApiResponse } 
 import { PositionService } from "./services/position.service";
 import { CreatePositionDto, UpdatePositionDto, QueryPositionDto } from "./dtos";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { ApiResponse as ApiResponseType } from "@sekiro/shared";
+import { PermissionGuard } from "../auth/guards/permission.guard";
+import { RequiresPermissions } from "../auth/decorators/requires-permissions.decorator";
+import { ApiResponse as ApiResponseType, PERMISSIONS } from "@sekiro/shared";
 
 @ApiTags('Position')
 @Controller("system/position")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 @ApiBearerAuth()
 export class PositionController {
   constructor(
@@ -36,6 +38,7 @@ export class PositionController {
     return { code: 0, message: "查询成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.POSITION_CREATE)
   @Post()
   @HttpCode(200)
   @ApiBody({ type: CreatePositionDto })
@@ -47,6 +50,7 @@ export class PositionController {
     return { code: 0, message: "创建成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.POSITION_UPDATE)
   @Put(":id")
   @HttpCode(200)
   @ApiBody({ type: UpdatePositionDto })
@@ -61,6 +65,7 @@ export class PositionController {
     return { code: 0, message: "更新成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.POSITION_DELETE)
   @Delete(":id")
   @HttpCode(200)
   @ApiOperation({ summary: '删除岗位' })

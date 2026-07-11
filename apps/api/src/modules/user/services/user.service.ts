@@ -2,6 +2,7 @@ import { Injectable, Inject, ForbiddenException, UnprocessableEntityException, N
 import { UserRepository } from "../repositories/user.repository";
 import { CreateUserDto, UpdateUserDto, QueryUserDto } from "../dtos";
 import * as bcrypt from "bcrypt";
+import { md5 } from "../../../common/utils/crypto.util";
 
 import { UserDataScope } from "../../auth/types";
 
@@ -28,7 +29,7 @@ export class UserService {
     if (existing) {
       throw new UnprocessableEntityException("用户名已存在");
     }
-    const defaultPasswordHash = await bcrypt.hash("sekiro123", 10);
+    const defaultPasswordHash = await bcrypt.hash(md5("sekiro123"), 10);
     return this.userRepo.create(data, defaultPasswordHash);
   }
 
@@ -74,7 +75,7 @@ export class UserService {
   }
 
   async changePassword(id: number, oldPassword: string, newPassword: string) {
-    const user = await this.userRepo.findById(id);
+    const user = await this.userRepo.findSensitiveById(id);
     if (!user) {
       throw new NotFoundException("用户不存在");
     }
@@ -87,11 +88,11 @@ export class UserService {
   }
 
   async resetPassword(id: number) {
-    const user = await this.userRepo.findById(id);
+    const user = await this.userRepo.findSensitiveById(id);
     if (!user) {
       throw new NotFoundException("用户不存在");
     }
-    const defaultPasswordHash = await bcrypt.hash("sekiro123", 10);
+    const defaultPasswordHash = await bcrypt.hash(md5("sekiro123"), 10);
     return this.userRepo.updatePassword(id, defaultPasswordHash);
   }
 

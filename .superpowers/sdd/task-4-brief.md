@@ -1,75 +1,136 @@
-## Task 4: 全量验证与文档更新
+## Task 4: MfaProvider (TOTP Wrapper)
 
 **Files:**
-- Modify: `.superpowers/sdd/progress.md`
-- Modify: `.superpowers/sdd/GITHUB_ISSUES_STATUS.md`
+- Create: `apps/api/src/modules/auth/providers/mfa.provider.ts`
+- Create: `apps/api/src/modules/auth/providers/__tests__/mfa.provider.spec.ts`
 
 **Interfaces:**
-- Consumes: 所有前面 Task 的产出
-- Produces: 验证报告、issue 状态更新
+- Produces: `MfaProvider.generateSecret(): string`
+- Produces: `MfaProvider.getOtpauthUrl(secret, username, issuer?): string`
+- Produces: `MfaProvider.verify(secret, code, window?): boolean`
+- Consumes: `speakeasy`
 
-- [ ] **Step 1: 运行全量验证**
+- [ ] **Step 1: Write the failing test**
 
-```bash
-pnpm typecheck
-pnpm lint
-pnpm --filter @sekiro/api test
+```typescript
+import { describe, it, expect } from 'vitest';
+import { MfaProvider } from '../mfa.provider';
+
+function generateToken(secret: string, step: number = 0): string {
+  // Use speakeasy directly in test to generate a known-good token
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const speakeasy = require('speakeasy');
+  return speakeasy.totp({
+    secret,
+    encoding: 'base32',
+    step: 30,
+    time: Math.floor(Date.now() / 30000) * 30 + step,
+  });
+}
+
+describe('MfaProvider', () => {
+  let provider: MfaProvider;
+
+  beforeEach(() => {
+    provider = new MfaProvider();
+  });
+
+  it('should generate a base32 secret', () => {
+    const secret = provider.generateSecret();
+    expect(secret).toMatch(/^[A-Z2-7]+$/);
+    expect(secret.length).toBeGreaterThanOrEqual(32);
+  });
+
+  it('should return an otpauth URL', () => {
+    const secret = 'JBSWY3DPEHPK3PXP';
+    const url = provider.getOtpauthUrl(secret, 'admin');
+    expect(url).toContain('otpauth://totp/');
+    expect(url).toContain('secret=JBSWY3DPEHPK3PXP');
+    expect(url).toContain('issuer=Sekiro');
+  });
+
+  it('should verify a valid current TOTP code', () => {
+    const secret = provider.generateSecret();
+    const code = generateToken(secret);
+    expect(provider.verify(secret, code)).toBe(true);
+  });
+
+  it('should reject an invalid code', () => {
+    const secret = provider.generateSecret();
+    expect(provider.verify(secret, '000000')).toBe(false);
+  });
+
+  it('should reject a code outside the allowed window', () => {
+    const secret = provider.generateSecret();
+    const oldCode = generateToken(secret, -120); // 2 minutes ago
+    expect(provider.verify(secret, oldCode, 1)).toBe(false);
+  });
+});
 ```
 
-Expected: 全部通过。
+- [ ] **Step 2: Run test to verify it fails**
 
-- [ ] **Step 2: 更新 progress ledger**
+Run:
+```bash
+cd apps/api
+pnpm test providers/__tests__/mfa.provider.spec.ts
+```
 
-在 `.superpowers/sdd/progress.md` 中新增 Story #15 段落，标记所有任务完成。
+Expected: FAIL.
 
-- [ ] **Step 3: 更新 GITHUB_ISSUES_STATUS.md**
+- [ ] **Step 3: Write minimal implementation**
 
-将 Story #15 标记为已完成（本地实现完成）。
+```typescript
+import { Injectable } from '@nestjs/common';
+import * as speakeasy from 'speakeasy';
 
-- [ ] **Step 4: Commit**
+@Injectable()
+export class MfaProvider {
+  generateSecret(): string {
+    return speakeasy.generateSecret({ length: 32 }).base32;
+  }
+
+  getOtpauthUrl(
+    secret: string,
+    username: string,
+    issuer: string = 'Sekiro',
+  ): string {
+    return speakeasy.otpauthURL({
+      secret,
+      label: `${issuer}:${username}`,
+      issuer,
+      encoding: 'base32',
+    });
+  }
+
+  verify(secret: string, code: string, window: number = 1): boolean {
+    return speakeasy.totp.verify({
+      secret,
+      encoding: 'base32',
+      token: code,
+      window,
+    }) as boolean;
+  }
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run:
+```bash
+cd apps/api
+pnpm test providers/__tests__/mfa.provider.spec.ts
+```
+
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
 
 ```bash
-git add .superpowers/sdd/
-git commit -m "docs(sync): update progress and issue status for Story #15"
+git add apps/api/src/modules/auth/providers/mfa.provider.ts \
+        apps/api/src/modules/auth/providers/__tests__/mfa.provider.spec.ts
+git commit -m "feat(mfa): add MfaProvider for TOTP generation and verification"
 ```
 
 ---
 
-## Self-Review
-
-### 1. Spec coverage
-
-对照 GitHub issue #15 验收清单：
-
-| 验收项 | 对应 Task |
-|--------|----------|
-| 个人中心三个 Tab | Task 3 |
-| 基本信息可改 | Task 3 |
-| 安全：修改密码需旧密码 + 二次确认 | Task 1~3 |
-| 修改密码后强制重新登录 | Task 3 |
-| 通知偏好：4 类开关 | Task 3（localStorage） |
-| 头像上传（base64） | Task 3 |
-
-### 2. Placeholder scan
-
-无 TBD/TODO/"implement later"/"appropriate error handling"/"similar to Task N"。
-
-### 3. Type consistency
-
-- `UpdateUserDto` 已存在并支持 nickname/phone/email/avatar
-- `UpdatePasswordDto` 新定义 oldPassword/newPassword
-- 前端表单状态类型与 DTO 一致
-
----
-
-## Execution Handoff
-
-**Plan complete and saved to `docs/superpowers/plans/2026-07-05-personal-center.md`.**
-
-Two execution options:
-
-**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration.
-
-**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints for review.
-
-**Which approach?**

@@ -29,14 +29,23 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException({ code: 401, message: 'Token 已过期或无效' });
     }
 
+    // MFA 临时 token 不能访问受保护资源
+    if (payload.type === 'mfa') {
+      throw new UnauthorizedException({ code: 401, message: 'Token 已过期或无效' });
+    }
+
+    let permissions: string[] = [];
+    let roles: string[] = [];
     if (payload.sid) {
       const session = await this.redisSessionProvider.getSession(payload.sid);
       if (!session) {
         throw new UnauthorizedException({ code: 401, message: '会话已失效' });
       }
+      permissions = session.permissions ?? [];
+      roles = session.roles ?? [];
     }
 
-    request.user = payload;
+    request.user = { ...payload, permissions, roles };
     return true;
   }
 }

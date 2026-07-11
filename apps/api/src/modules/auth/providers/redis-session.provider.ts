@@ -40,6 +40,22 @@ export class RedisSessionProvider {
     }
   }
 
+  async updateSession(
+    sessionId: string,
+    patch: Partial<Session>,
+  ): Promise<void> {
+    const key = `sekiro:session:${sessionId}`;
+    const session = await this.getSession(sessionId);
+    if (!session) {
+      return;
+    }
+    const updated = { ...session, ...patch };
+    const ttl = await this.redisClient.ttl(key);
+    if (ttl > 0) {
+      await this.redisClient.setEx(key, ttl, JSON.stringify(updated));
+    }
+  }
+
   async deleteSession(sessionId: string): Promise<void> {
     const key = `sekiro:session:${sessionId}`;
     await this.redisClient.del(key);

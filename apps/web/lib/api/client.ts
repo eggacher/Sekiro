@@ -1,6 +1,7 @@
 import type { ApiResponse } from "@sekiro/shared";
 import { ResultCode, RESULT_MESSAGES, STORAGE_KEYS } from "@sekiro/shared";
 import { toast } from "sonner";
+import { useAuthStore } from "../store/auth-store";
 
 export type ApiFieldError = { field: string; message: string };
 
@@ -35,6 +36,10 @@ export async function request<T>(
   });
 
   if (!res.ok) {
+    if (res.status === 401 && typeof window !== "undefined") {
+      useAuthStore.getState().clearAuth();
+      window.location.href = "/login";
+    }
     throw new Error(`HTTP ${res.status}`);
   }
 
@@ -42,7 +47,7 @@ export async function request<T>(
 
   if (json.code !== ResultCode.SUCCESS) {
     if (json.code === ResultCode.UNAUTHORIZED && typeof window !== "undefined") {
-      localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      useAuthStore.getState().clearAuth();
       window.location.href = "/login";
       throw new ApiError(json.message || RESULT_MESSAGES[json.code], json.code);
     }

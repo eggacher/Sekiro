@@ -35,17 +35,23 @@ import { CrudTable, type Column } from "@/components/shared/crud-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { CheckableTree, type TreeNode } from "@/components/shared/checkable-tree";
+import { HasPermission } from "@/components/shared/has-permission";
+import { PERMISSIONS } from "@sekiro/shared";
 import { apiClient } from "@/lib/api/client";
-
-const dataScopeLabels: Record<string, string> = {
-  all: "全部数据",
-  dept_and_below: "本部门及以下",
-  dept: "仅本部门",
-  self: "仅本人",
-  custom: "自定义",
-};
+import { useTranslation } from "@/lib/i18n";
+import { translateMenuTitle } from "@/lib/i18n/menu-title";
 
 export default function RolePage() {
+  const { t } = useTranslation();
+
+  const dataScopeLabels: Record<string, string> = {
+    all: t("system.role.dataScope.all"),
+    dept_and_below: t("system.role.dataScope.dept_and_below"),
+    dept: t("system.role.dataScope.dept"),
+    self: t("system.role.dataScope.self"),
+    custom: t("system.role.dataScope.custom"),
+  };
+
   const [list, setList] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [formOpen, setFormOpen] = React.useState(false);
@@ -62,11 +68,11 @@ export default function RolePage() {
       const res = await apiClient.get<any>("/system/role?page=1&pageSize=1000");
       setList(res.list || []);
     } catch (err: any) {
-      toast.error(err.message || "加载角色列表失败");
+      toast.error(err.message || t("system.role.fetchListFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const fetchMenuTree = React.useCallback(async () => {
     try {
@@ -74,16 +80,16 @@ export default function RolePage() {
       const mapNode = (nodes: any[]): TreeNode[] => {
         return nodes.map((n) => ({
           id: n.id,
-          title: n.title,
+          title: translateMenuTitle(t, n.title),
           type: n.type,
           children: n.children ? mapNode(n.children) : undefined,
         }));
       };
       setMenuTree(mapNode(res));
     } catch (err: any) {
-      toast.error("加载菜单失败");
+      toast.error(t("system.role.fetchMenuFailed"));
     }
-  }, []);
+  }, [t]);
 
   React.useEffect(() => {
     fetchList();
@@ -100,7 +106,7 @@ export default function RolePage() {
           description: data.description,
           status: data.status,
         });
-        toast.success("角色更新成功");
+        toast.success(t("system.role.updateSuccess"));
       } else {
         const res = await apiClient.post<any>("/system/role", {
           name: data.name,
@@ -109,7 +115,7 @@ export default function RolePage() {
           status: data.status || "enabled",
         });
         roleId = res.id;
-        toast.success("角色新增成功");
+        toast.success(t("system.role.createSuccess"));
       }
 
       if (roleId) {
@@ -123,7 +129,7 @@ export default function RolePage() {
       setEditing(null);
       await fetchList();
     } catch (err: any) {
-      toast.error(err.message || "保存失败");
+      toast.error(err.message || t("system.role.saveFailed"));
     }
   };
 
@@ -131,11 +137,11 @@ export default function RolePage() {
     if (delId == null) return;
     try {
       await apiClient.delete(`/system/role/${delId}`);
-      toast.success("已删除该角色");
+      toast.success(t("system.role.deleteSuccess"));
       setDelId(null);
       await fetchList();
     } catch (err: any) {
-      toast.error(err.message || "删除角色失败");
+      toast.error(err.message || t("system.role.deleteFailed"));
     }
   };
 
@@ -152,19 +158,19 @@ export default function RolePage() {
       await apiClient.put(`/system/role/${permTarget.id}/menus`, {
         menuIds: Array.from(checkedKeys).map(Number),
       });
-      toast.success("分配权限成功");
+      toast.success(t("system.role.assignPermSuccess"));
       setPermOpen(false);
       await fetchList();
     } catch (err: any) {
-      toast.error(err.message || "分配权限失败");
+      toast.error(err.message || t("system.role.assignPermFailed"));
     }
   };
 
   const columns: Column<any>[] = [
-    { key: "id", title: "编号", width: 70, render: (r) => <span className="text-muted-foreground">{r.id}</span> },
+    { key: "id", title: t("system.role.column.id"), width: 70, render: (r) => <span className="text-muted-foreground">{r.id}</span> },
     {
       key: "name",
-      title: "角色名称",
+      title: t("system.role.column.name"),
       render: (r) => (
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -177,54 +183,60 @@ export default function RolePage() {
         </div>
       ),
     },
-    { key: "description", title: "描述" },
+    { key: "description", title: t("system.role.column.description") },
     {
       key: "dataScope",
-      title: "数据范围",
+      title: t("system.role.column.dataScope"),
       render: (r) => <Badge variant="outline">{dataScopeLabels[r.dataScope] || r.dataScope}</Badge>,
     },
     {
       key: "status",
-      title: "状态",
+      title: t("common.status"),
       render: (r) => <StatusBadge status={r.status} />,
     },
     {
       key: "actions",
-      title: "操作",
+      title: t("common.operation"),
       width: 220,
       align: "right",
       render: (r) => (
         <div className="flex items-center justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1 text-primary"
-            onClick={() => {
-              setEditing(r);
-              setFormOpen(true);
-            }}
-          >
-            <Edit2 className="h-3.5 w-3.5" />
-            编辑
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1 text-purple-600"
-            onClick={() => openPerm(r)}
-          >
-            <Settings2 className="h-3.5 w-3.5" />
-            权限
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive"
-            onClick={() => setDelId(r.id)}
-            disabled={r.id === 1}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          <HasPermission code={PERMISSIONS.ROLE_UPDATE}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 text-primary"
+              onClick={() => {
+                setEditing(r);
+                setFormOpen(true);
+              }}
+            >
+              <Edit2 className="h-3.5 w-3.5" />
+              {t("common.edit")}
+            </Button>
+          </HasPermission>
+          <HasPermission code={PERMISSIONS.ROLE_ASSIGN_PERMISSION}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 text-purple-600"
+              onClick={() => openPerm(r)}
+            >
+              <Settings2 className="h-3.5 w-3.5" />
+              {t("system.role.permission")}
+            </Button>
+          </HasPermission>
+          <HasPermission code={PERMISSIONS.ROLE_DELETE}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive"
+              onClick={() => setDelId(r.id)}
+              disabled={r.id === 1}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </HasPermission>
         </div>
       ),
     },
@@ -232,11 +244,13 @@ export default function RolePage() {
 
   return (
     <div>
-      <PageHeader title="角色管理" description="维护系统角色，配置菜单与数据权限">
-        <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
-          <Plus className="h-4 w-4" />
-          新增角色
-        </Button>
+      <PageHeader title={t("system.role.title")} description={t("system.role.description")}>
+        <HasPermission code={PERMISSIONS.ROLE_CREATE}>
+          <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
+            <Plus className="h-4 w-4" />
+            {t("system.role.createRole")}
+          </Button>
+        </HasPermission>
       </PageHeader>
 
       <CrudTable
@@ -244,15 +258,15 @@ export default function RolePage() {
         data={list}
         loading={loading}
         searchFields={[
-          { key: "name", label: "角色名称", placeholder: "请输入角色名称" },
-          { key: "code", label: "角色编码", placeholder: "请输入编码" },
+          { key: "name", label: t("system.role.search.name"), placeholder: t("system.role.search.namePlaceholder") },
+          { key: "code", label: t("system.role.search.code"), placeholder: t("system.role.search.codePlaceholder") },
           {
             key: "status",
-            label: "状态",
+            label: t("common.status"),
             type: "select",
             options: [
-              { label: "启用", value: "enabled" },
-              { label: "停用", value: "disabled" },
+              { label: t("system.status.enabled"), value: "enabled" },
+              { label: t("system.status.disabled"), value: "disabled" },
             ],
           },
         ]}
@@ -270,10 +284,10 @@ export default function RolePage() {
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <Settings2 className="h-4 w-4" />
-              分配权限 · {permTarget?.name}
+              {t("system.role.assignPermTitle", { name: permTarget?.name })}
             </SheetTitle>
             <SheetDescription>
-              勾选菜单与按钮权限，保存后即时生效
+              {t("system.role.assignPermDescription")}
             </SheetDescription>
           </SheetHeader>
           <div className="mt-4 rounded-lg border p-2">
@@ -285,14 +299,14 @@ export default function RolePage() {
             />
           </div>
           <div className="mt-3 text-xs text-muted-foreground">
-            已选 <span className="font-medium text-foreground">{checkedKeys.size}</span> 项
+            {t("system.role.selectedCount", { count: checkedKeys.size })}
           </div>
           <div className="mt-6 flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setPermOpen(false)}>
-              取消
+              {t("common.cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSavePerm}>
-              保存权限
+              {t("system.role.savePermission")}
             </Button>
           </div>
         </SheetContent>
@@ -301,9 +315,9 @@ export default function RolePage() {
       <ConfirmDialog
         open={delId != null}
         onOpenChange={(v) => !v && setDelId(null)}
-        title="删除角色"
-        description="删除后，该角色下的用户将失去对应权限。确定继续吗？"
-        confirmText="确认删除"
+        title={t("system.role.deleteTitle")}
+        description={t("system.role.deleteDescription")}
+        confirmText={t("system.role.deleteConfirm")}
         onConfirm={handleDelete}
       />
     </div>
@@ -321,6 +335,7 @@ function RoleFormDialog({
   editing: any | null;
   onSave: (data: Partial<any>, customDeptIds: number[]) => void;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = React.useState<Partial<any>>({});
   const [deptTree, setDeptTree] = React.useState<TreeNode[]>([]);
   const [checkedDepts, setCheckedDepts] = React.useState<Set<string | number>>(new Set());
@@ -354,7 +369,7 @@ function RoleFormDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.code) {
-      toast.error("请填写角色名称与编码");
+      toast.error(t("system.role.formError"));
       return;
     }
     onSave(form, Array.from(checkedDepts).map(Number));
@@ -364,32 +379,32 @@ function RoleFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{editing ? "编辑角色" : "新增角色"}</DialogTitle>
+          <DialogTitle>{editing ? t("system.role.editRole") : t("system.role.createRole")}</DialogTitle>
           <DialogDescription>
-            {editing ? `修改角色 ${editing.name}` : "创建一个新的系统角色"}
+            {editing ? t("system.role.editDescription", { name: editing.name }) : t("system.role.createDescription")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>角色名称 *</Label>
+              <Label>{t("system.role.form.name")}</Label>
               <Input
                 value={form.name ?? ""}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="如：管理员"
+                placeholder={t("system.role.form.namePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>角色编码 *</Label>
+              <Label>{t("system.role.form.code")}</Label>
               <Input
                 value={form.code ?? ""}
                 onChange={(e) => setForm({ ...form, code: e.target.value })}
-                placeholder="如：admin"
+                placeholder={t("system.role.form.codePlaceholder")}
               />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>数据范围</Label>
+            <Label>{t("system.role.form.dataScope")}</Label>
             <Select
               value={form.dataScope ?? "self"}
               onValueChange={(v) => setForm({ ...form, dataScope: v })}
@@ -398,18 +413,18 @@ function RoleFormDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">全部数据</SelectItem>
-                <SelectItem value="dept_and_below">本部门及以下</SelectItem>
-                <SelectItem value="dept">仅本部门</SelectItem>
-                <SelectItem value="self">仅本人</SelectItem>
-                <SelectItem value="custom">自定义</SelectItem>
+                <SelectItem value="all">{t("system.role.dataScope.all")}</SelectItem>
+                <SelectItem value="dept_and_below">{t("system.role.dataScope.dept_and_below")}</SelectItem>
+                <SelectItem value="dept">{t("system.role.dataScope.dept")}</SelectItem>
+                <SelectItem value="self">{t("system.role.dataScope.self")}</SelectItem>
+                <SelectItem value="custom">{t("system.role.dataScope.custom")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {form.dataScope === "custom" && (
             <div className="space-y-2 rounded-lg border p-3">
-              <Label className="mb-2 block">选择自定义部门</Label>
+              <Label className="mb-2 block">{t("system.role.selectCustomDept")}</Label>
               <div className="max-h-[200px] overflow-y-auto rounded border bg-muted/20 p-2">
                 <CheckableTree
                   data={deptTree}
@@ -421,7 +436,7 @@ function RoleFormDialog({
           )}
 
           <div className="space-y-2">
-            <Label>状态</Label>
+            <Label>{t("common.status")}</Label>
             <Select
               value={form.status ?? "enabled"}
               onValueChange={(v) => setForm({ ...form, status: v })}
@@ -430,25 +445,25 @@ function RoleFormDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="enabled">启用</SelectItem>
-                <SelectItem value="disabled">停用</SelectItem>
+                <SelectItem value="enabled">{t("system.status.enabled")}</SelectItem>
+                <SelectItem value="disabled">{t("system.status.disabled")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>描述</Label>
+            <Label>{t("system.role.form.description")}</Label>
             <Textarea
               value={form.description ?? ""}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="角色职责说明"
+              placeholder={t("system.role.form.descriptionPlaceholder")}
               rows={3}
             />
           </div>
           <DialogFooter className="pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              取消
+              {t("common.cancel")}
             </Button>
-            <Button type="submit">{editing ? "保存" : "创建"}</Button>
+            <Button type="submit">{editing ? t("common.save") : t("common.create")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

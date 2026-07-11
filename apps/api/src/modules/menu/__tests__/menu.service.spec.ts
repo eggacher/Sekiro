@@ -56,6 +56,50 @@ describe("MenuService", () => {
     ).rejects.toThrow(UnprocessableEntityException);
   });
 
+  it("创建按钮类型 permission 含连字符应通过校验", async () => {
+    repository.create.mockResolvedValue({ id: 1 });
+    await expect(
+      service.create({
+        title: "分配角色",
+        type: "button",
+        permission: "system:user:assign-role",
+      }),
+    ).resolves.toBeDefined();
+    expect(repository.create).toHaveBeenCalled();
+  });
+
+  it("创建按钮类型 permission 含 dict-item 应通过校验", async () => {
+    repository.create.mockResolvedValue({ id: 1 });
+    await expect(
+      service.create({
+        title: "新增字典项",
+        type: "button",
+        permission: "system:dict-item:create",
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it("创建按钮类型 permission 含 update-status 应通过校验", async () => {
+    repository.create.mockResolvedValue({ id: 1 });
+    await expect(
+      service.create({
+        title: "修改状态",
+        type: "button",
+        permission: "system:role:update-status",
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it("创建按钮类型 permission 首部连字符抛出异常", async () => {
+    await expect(
+      service.create({
+        title: "非法",
+        type: "button",
+        permission: "system:-user:create",
+      }),
+    ).rejects.toThrow(UnprocessableEntityException);
+  });
+
   it("新建菜单时如果 parentId 不存在抛出异常", async () => {
     repository.findById.mockResolvedValue(null);
     await expect(

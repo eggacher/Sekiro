@@ -1,96 +1,36 @@
-# Task 4 Report: 全量验证与文档更新 (Story #15)
+# Task 4 Report: MfaProvider (TOTP Wrapper)
 
-## What I implemented
+## Status
+DONE
 
-Completed the final Task 4 of Story #15: 个人中心（资料/改密/通知偏好）.
+## Files Created
+- `apps/api/src/modules/auth/providers/mfa.provider.ts`
+- `apps/api/src/modules/auth/providers/__tests__/mfa.provider.spec.ts`
 
-1. **Ran full verification suite**
-   - `pnpm typecheck` — passed
-   - `pnpm lint` — passed
-   - `pnpm --filter @sekiro/api test` — 101 / 101 tests passed
+## Commit
+- `f2c086d` feat(mfa): add MfaProvider for TOTP generation and verification
 
-2. **Updated progress ledger**
-   - File: `.superpowers/sdd/progress.md`
-   - Marked Story #15 tasks 1–4 and Final review as complete.
-   - Fixed duplicate / leftover unchecked task entries.
-   - Recorded verification results.
+## Implementation Summary
+Created a NestJS-injectable `MfaProvider` wrapping `speakeasy` to:
+- Generate base32 TOTP secrets (`generateSecret`)
+- Build `otpauth://` URLs for QR code generation (`getOtpauthUrl`)
+- Verify 6-digit TOTP codes with a configurable window (`verify`, default window 1)
 
-3. **Updated GitHub Issues sync document**
-   - File: `.superpowers/sdd/GITHUB_ISSUES_STATUS.md`
-   - Added Story #15 to the summary status table as ✅ 完成 / Closed.
-   - Added Story #15 to the GitHub update todo list as closed.
-   - Added an update log entry.
+## Test Summary
+All 5 tests pass:
+- generates a base32 secret
+- returns an otpauth URL containing the expected scheme, secret, and issuer
+- verifies a valid current TOTP code
+- rejects an invalid code
+- rejects a code outside the allowed window
 
-4. **Committed the documentation changes**
-   - Commit: `docs(sync): update progress and issue status for Story #15`
-   - Included the previously-untracked Story #15 plan file `docs/superpowers/plans/2026-07-05-personal-center.md`.
-
-## Verification command output
-
-### `pnpm typecheck`
-
-```
-> sekiro@0.1.0 typecheck /Users/zero/projects/Sekiro
-> pnpm -r typecheck
-
-Scope: 3 of 4 workspace projects
-packages/shared typecheck$ tsc --noEmit
-packages/shared typecheck: Done
-apps/web typecheck$ tsc --noEmit
-apps/api typecheck$ tsc --noEmit
-apps/web typecheck: Done
-apps/api typecheck: Done
+## Verification Commands
+```bash
+cd apps/api
+pnpm test providers/__tests__/mfa.provider.spec.ts
+pnpm typecheck
 ```
 
-### `pnpm lint`
-
-```
-> sekiro@0.1.0 lint /Users/zero/projects/Sekiro
-> pnpm -r lint
-
-Scope: 3 of 4 workspace projects
-apps/web lint$ next lint
-apps/web lint: ✔ No ESLint warnings or errors
-apps/web lint: Done
-```
-
-### `pnpm --filter @sekiro/api test`
-
-```
-> @sekiro/api@0.1.0 test /Users/zero/projects/Sekiro/apps/api
-> vitest run
-
-... (16 test files passed)
-
-Test Files  16 passed (16)
-Tests       101 passed (101)
-Start at    21:41:27
-Duration    3.15s
-```
-
-## Files changed
-
-- `.superpowers/sdd/progress.md`
-- `.superpowers/sdd/GITHUB_ISSUES_STATUS.md`
-- `.superpowers/sdd/task-3-brief.md` (carried-over task brief update)
-- `.superpowers/sdd/task-3-report.md` (carried-over Task 3 report)
-- `.superpowers/sdd/task-4-brief.md` (carried-over task brief update)
-- `docs/superpowers/plans/2026-07-05-personal-center.md` (newly tracked Story #15 plan)
-
-## Self-review findings
-
-- Spec coverage aligned with Story #15 acceptance criteria:
-  - 个人中心三个 Tab — Task 3
-  - 基本信息可改 — Task 3
-  - 安全：修改密码需旧密码 + 二次确认 — Task 1–3
-  - 修改密码后强制重新登录 — Task 3
-  - 通知偏好：4 类开关 — Task 3 (localStorage)
-  - 头像上传（base64）— Task 3
-- No TBD/TODO/"implement later" placeholders found in the touched files.
-- Type consistency checked: `UpdateUserDto` supports nickname/phone/email/avatar; `UpdatePasswordDto` defines oldPassword/newPassword; frontend form shapes match.
-- Progress ledger duplicate entries removed.
-- GitHub Issues sync document updated in the correct summary table and todo list sections.
-
-## Issues or concerns
-
-None. All verification commands passed and the documentation is consistent.
+## Concerns
+- `pnpm typecheck` passes.
+- Running the repository's ESLint configuration directly against the new test file produces an error: `Definition for rule '@typescript-eslint/no-var-requires' was not found`. This is caused by the `// eslint-disable-next-line @typescript-eslint/no-var-requires` comment prescribed by the task brief. The root ESLint config only extends `next/core-web-vitals` and does not load `@typescript-eslint`, so the disable comment references an undefined rule. Since `apps/api` has no `lint` script and the project's automated checks (`test`, `typecheck`) pass, this does not block the task, but a future cleanup could either remove the unused disable comment or add `@typescript-eslint` to the ESLint config.

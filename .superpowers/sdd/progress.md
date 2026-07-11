@@ -400,3 +400,290 @@
 - **GitHub Issue**: [#26](https://github.com/eggacher/Sekiro/issues/26) 已关闭
 
 ---
+
+---
+
+# Issue #32: MFA / TOTP — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-10-mfa-implementation.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-10-mfa-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/chenggang/orca/workspaces/Sekiro/issue-32-mfa` (branch `issue-32-mfa`)
+- **开始时间**：2026-07-10
+
+## 任务清单
+
+- [x] Task 1: Prisma schema migration
+  - **Commits**: `13dda75`, `811349a`, `76cb643`
+  - **审阅**: ✅ baseline + incremental migration 结构正确；schema test 覆盖新字段
+- [ ] Task 2: Install MFA dependencies
+- [ ] Task 3: MfaCryptoProvider
+- [ ] Task 4: MfaProvider (TOTP)
+- [ ] Task 5: JwtProvider MFA token methods
+- [ ] Task 6: MfaService
+- [ ] Task 7: Update AuthService for MFA branching
+- [ ] Task 8: Update JwtAuthGuard to reject MFA tokens
+- [ ] Task 9: Add MFA controller endpoints and DTOs
+- [ ] Task 10: Update shared types
+- [ ] Task 11: Update frontend login page
+- [ ] Task 12: Update frontend profile page
+- [ ] Task 13: Update .env.example
+- [ ] Task 14: Final verification
+- [ ] Final: 全量代码 review
+
+## 完成记录
+
+### Task 1: Prisma schema migration
+- **相关文件**：
+  - `apps/api/prisma/schema.prisma`
+  - `apps/api/prisma/migrations/0_init/migration.sql`
+  - `apps/api/prisma/migrations/20260710092620_add_mfa_fields/migration.sql`
+  - `apps/api/prisma/schema.test.ts`
+  - `apps/api/prisma.config.ts`
+- **审阅**: ✅ 已通过 re-review
+- **备注**: 本地 dev 数据库做了 reset 以重建 migration 历史；生产环境应使用 `prisma migrate resolve --applied 0_init`
+
+## 完成记录（更新）
+
+### Task 2: Install MFA dependencies
+- **Commit**: `330a7f8`
+- **审阅**: ✅ 依赖安装正确
+
+### Task 3: MfaCryptoProvider
+- **Commit**: `4d43259`
+- **修复 Commit**: `796780f`
+- **审阅**: ✅ TOTP secret 加解密实现正确
+
+### Task 4: MfaProvider (TOTP)
+- **Commit**: `f2c086d`
+- **审阅**: ✅ RFC 6238 TOTP 生成与验证正确
+
+### Task 5: JwtProvider MFA token methods
+- **Commit**: `c29d4a7`
+- **审阅**: ✅ mfaToken 签发与验证正确
+
+### Task 6: MfaService
+- **Commit**: `c55dde2`
+- **审阅**: ✅ MFA 开启/关闭/登录验证流程正确
+
+### Task 7: Update AuthService for MFA branching
+- **Commit**: `7cf0007`
+- **审阅**: ✅ 登录分支与 loginWithMfa 实现正确
+
+### Task 8: Update JwtAuthGuard to reject MFA tokens
+- **Commit**: `efb9320`
+- **审阅**: ✅ mfa token 不能访问受保护资源
+
+### Task 9: Add MFA controller endpoints and DTOs
+- **Commit**: `c7b8c52`
+- **审阅**: ✅ 四个 MFA 端点与 DTOs 实现正确
+
+### Task 10: Update shared types
+- **Commit**: `12c663f`
+- **审阅**: ✅ 共享类型更新正确
+
+### Task 11: Update frontend login page
+- **Commit**: `ba79c5c`
+- **审阅**: ✅ 登录页 MFA 两步验证实现正确
+
+### Task 12: Update frontend profile page
+- **Commit**: `d00c1d1`
+- **审阅**: ✅ 个人中心 MFA 开关/二维码弹窗实现正确
+
+### Task 13: Update .env.example
+- **Commit**: `501e65d`
+- **审阅**: ✅ MFA_SECRET_KEY 文档化
+
+### Task 14: Final verification
+- **Commit**: `13b7574`
+- **审阅**: ✅ `pnpm typecheck` + `pnpm test` + `pnpm lint` 全部通过
+- **测试**: API 142/142 通过，共 27 个测试文件
+
+---
+
+# 数据库密码重置 — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-10-reset-passwords.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-10-reset-passwords-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/feature/reset-passwords` (branch `feature/reset-passwords`)
+- **开始时间**：2026-07-10
+
+## 任务清单
+
+- [x] Task 1: 编写数据库密码重置脚本
+- [x] Task 2: 执行脚本并验证密码可用性
+
+## 完成记录
+
+### Task 1: 编写数据库密码重置脚本
+- **相关文件**：
+  - [reset-passwords.ts](file:///Users/zero/projects/Sekiro/.worktrees/feature/reset-passwords/apps/api/prisma/reset-passwords.ts)
+  - [package.json](file:///Users/zero/projects/Sekiro/.worktrees/feature/reset-passwords/apps/api/package.json)
+- **Commit**: `9ccf4a4`
+- **审阅**: ✅ 脚本编写完成，可通过 `pnpm --filter @sekiro/api db:reset-passwords` 直接执行；`apps/api/package.json` 正确注册了相关命令。
+
+### Task 2: 执行脚本并验证密码可用性
+- **相关文件**：
+  - [reset-passwords.ts](file:///Users/zero/projects/Sekiro/.worktrees/feature/reset-passwords/apps/api/prisma/reset-passwords.ts)
+- **审阅**: ✅ 脚本运行正常并成功重置了全部 12 位用户的密码哈希；
+- **测试**: ✅ `pnpm --filter @sekiro/api test` 167/167 全量单元测试顺利通过；
+- **手动验证**: ✅ 借助本地运行中的 NestJS 服务，通过 `curl` 模拟前端 MD5 登录验证，`admin` (password: admin123) 与 `zhangsan` (password: sekiro123) 均成功获得 token 响应，验证正常。
+
+---
+
+# CrudTable 通用表格模糊搜索 — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-10-crud-table-fuzzy-search.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-10-crud-table-fuzzy-search-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/feature/crud-table-fuzzy-search` (branch `feature/crud-table-fuzzy-search`)
+- **开始时间**：2026-07-10
+
+## 任务清单
+
+- [x] Task 1: 修改 CrudTable 组件过滤逻辑
+
+## 完成记录
+
+### Task 1: 修改 CrudTable 组件过滤逻辑
+- **相关文件**：
+  - [crud-table.tsx](file:///Users/zero/.worktrees/feature/crud-table-fuzzy-search/apps/web/components/shared/crud-table.tsx)
+- **Commit**: `1e42972`
+- **审阅**: ✅ 完成过滤逻辑判断差异化改造，通过识别 `type === "select"` 保持下拉框精确过滤，其他文本输入型搜索项一律升级为不区分大小写的 `includes` 模糊搜索模式。
+- **验证**: ✅ `pnpm typecheck` 无类型或编译报错，`pnpm --filter @sekiro/api test` 全量 API 测试无 regression 全部通过。
+
+---
+
+# 数据字典类型状态视觉标识 — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-10-dict-status-indicator.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-10-dict-status-indicator-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/feature/dict-status-indicator` (branch `feature/dict-status-indicator`)
+- **开始时间**：2026-07-10
+
+- [x] Task 1: 优化字典管理页面的字典类型状态视觉显示
+
+## 完成记录
+
+### Task 1: 优化字典管理页面的字典类型状态视觉显示
+- **相关文件**：
+  - [page.tsx](file:///Users/zero/.worktrees/feature/dict-status-indicator/apps/web/app/(dashboard)/system/dict/page.tsx)
+- **Commit**: `0b143a5`
+- **审阅**: ✅ 完成左侧字典类型列表项视觉增强，停用类型将呈现 `opacity-60` 半透明样式且包含 `[停用]` 红色线框 Badge；右侧字典项详情头部追加 `<StatusBadge>` 组件展示。
+- **验证**: ✅ `pnpm typecheck` 全部通过。
+
+
+
+---
+
+# Issue #35: 按钮级权限控制 (Button-Level Permission Control) — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-11-button-level-permission-control.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-11-button-level-permission-control-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/feature/button-permission-control` (branch `feature/button-permission-control`)
+- **开始时间**：2026-07-11
+- **完成时间**：2026-07-11
+- **基线 BASE**：`a6d20cc`
+
+## 任务清单
+
+- [x] Task 1: Shared constants — SUPER_ADMIN_ROLE + expand PERMISSIONS to 28 (`1cd6823`)
+- [x] Task 2: Relax menu permission regex (TDD) (`ae3d23f`)
+- [x] Task 3: Extend Session interface with permissions + roles (`28f9376`)
+- [x] Task 4: RedisSessionProvider.updateSession method (TDD) (`19fe46c`)
+- [x] Task 5: @RequiresPermissions decorator + PermissionGuard (TDD) (`63b5ca5`)
+- [x] Task 6: Store permissions + roles in Session at login (TDD) (`48f6991`)
+- [x] Task 7: /auth/me writes permissions + roles back to Session (TDD) (`859173f`)
+- [x] Task 8: JwtAuthGuard attaches session permissions + roles (TDD) (`241e9da`)
+- [x] Task 9: Decorate 7 system controllers with PermissionGuard + @RequiresPermissions (`8656053`)
+- [x] Task 10: Seed 25 new button menus + role-menu assignments (`a5ccab0`)
+- [x] Task 11: Frontend foundation — usePermission hook + HasPermission + completeLogin roles (`539a3eb`, fix `d880aab`)
+- [x] Task 12: Gate User page buttons (`e268acb`)
+- [x] Task 13: Gate Role page buttons (`de2c126`)
+- [x] Task 14: Gate Menu page buttons (`8d05eaa`)
+- [x] Task 15: Gate Dept page buttons (`af37b4d`)
+- [x] Task 16: Gate Position page buttons (`b88ca21`)
+- [x] Task 17: Gate Dict page buttons (`d040fb9`)
+- [x] Final: 全量代码 review — Ready to merge: Yes (无 Critical/Important)
+
+## 完成记录（摘要）
+
+### 后端 (Task 1-10)
+- 28 个权限编码 + `SUPER_ADMIN_ROLE` 共享常量；Session 扩展 `permissions[]`/`roles[]`；`updateSession` 支持局部补丁；登录(含 MFA)/`/auth/me` 写入并刷新 perms+roles；`JwtAuthGuard` 挂载到 `req.user`；`@RequiresPermissions` + `PermissionGuard`（超管短路 + O(1) `includes` + 双层 `?? []` 兜底）；7 Controller × 28 写方法装饰；菜单正则放宽支持连字符；seed 新增 25 按钮 + 角色授权。每任务 TDD RED→GREEN，全量 184/184。
+
+### 前端 (Task 11-17)
+- `usePermission()` hook + `<HasPermission>` 包裹组件（超管绕过逻辑与后端 guard 对称）；登录补全 `roles`；User/Role/Menu/Dept/Position/Dict 六页面写按钮全部门控（User 下拉触发器在所有子项无权时隐藏）。`no-duplicate-imports` 通过 inline `type` 合并 `@sekiro/shared` 导入解决。`"use client"` 已补全。
+
+### Final 验证（全量）
+- **API typecheck**: ✅ clean
+- **API tests**: ✅ 184/184 通过 (32 test files)
+- **Web typecheck**: ✅ clean
+- **Web lint**: ✅ clean
+- **分支范围**: `a6d20cc..d040fb9` (18 commits, 34 files, +800/−207)
+- **合并提交**: `3ed0020` (--no-ff merge to dev, 已推送 origin)
+
+### Final whole-branch review Minor 项（均非阻塞）
+- M1: Session.permissions/roles 为可选(`?`)，spec 要求必填；运行时 `?? []` 已兜底，建议后续 follow-up 收紧。
+- M2/M3: usePermission `?? []` 分配与 `has/hasAny` 函数身份（plan-mandated，render-only 安全）。
+- M4: User 页 `<DropdownMenuSeparator />` 无条件渲染（plan-mandated UX 细节）。
+- M5: loginWithMfa `(ur: any)` 预存类型债（out of scope）。
+
+---
+
+# 清理在线用户登录纪录 (One-Time Cleanup) — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-11-clear-online-users.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-11-clear-online-users-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro` (dev branch)
+- **开始时间**：2026-07-11
+- **基线 BASE**：`3ed0020`
+
+## 任务清单
+
+- [x] Task 1: Clean up Redis session keys
+
+## 完成记录
+
+### Task 1: Clean up Redis session keys
+- **审阅**: ✅ 成功清理 Redis 中全部 3 个以 `sekiro:session:` 开头的 Key，完成一次性用户下线，已验证通过。
+- **验证**: ✅ 宿主机与容器中 `keys "sekiro:session:*"` 查询结果均为空。
+
+Task 1: complete (commits 3ed0020..f9f4397, review clean)
+
+---
+
+# 用户编辑修改角色失效修复 (User Role Save Bug Fix) — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-11-user-role-save-fix.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/feature-user-role-save-bug` (feature/user-role-save-bug branch)
+- **开始时间**：2026-07-11
+- **基线 BASE**：`75abc7a`
+
+## 任务清单
+
+- [x] Task 1: Update handleSave to persist roleIds
+
+## 完成记录
+
+### Task 1: Update handleSave to persist roleIds
+- **相关文件**：[page.tsx](file:///Users/zero/projects/Sekiro/.worktrees/feature-user-role-save-bug/apps/web/app/(dashboard)/system/user/page.tsx)
+- **Commit**: `deb5ad8`
+- **审阅**: ✅ 成功修复角色保存逻辑：在前端提交时对 `roleIds` 提取，并增加对 `/system/user/:id/roles` 的 API 调用。
+- **验证**: ✅ 运行 `pnpm typecheck` 通过，`pnpm --filter @sekiro/web lint` 通过，API tests (184/184) 成功通过。
+
+Task 1: complete (commits 75abc7a..deb5ad8, review clean)
+
+
+

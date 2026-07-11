@@ -27,6 +27,7 @@ import {
 import { ThemeSettings } from "./theme-toggle";
 import { LangSwitcher } from "./lang-switcher";
 import { useTranslation } from "@/lib/i18n";
+import { translateMenuTitle } from "@/lib/i18n/menu-title";
 import { Separator } from "@/components/ui/separator";
 import { useAppStore } from "@/lib/store/app-store";
 
@@ -57,10 +58,10 @@ export function Header() {
             <span key={c.href} className="flex items-center gap-1">
               {i > 0 && <span className="text-muted-foreground/50">/</span>}
               {i === crumbs.length - 1 ? (
-                <span className="font-medium text-foreground">{c.title}</span>
+                <span className="font-medium text-foreground">{translateMenuTitle(t, c.title)}</span>
               ) : (
                 <Link href={c.href} className="text-muted-foreground hover:text-foreground">
-                  {c.title}
+                  {translateMenuTitle(t, c.title)}
                 </Link>
               )}
             </span>

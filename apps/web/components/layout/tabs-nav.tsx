@@ -8,6 +8,7 @@ import { useAppStore } from "@/lib/store/app-store";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { findBreadcrumb } from "@/lib/menu";
 import { useTranslation } from "@/lib/i18n";
+import { translateMenuTitle } from "@/lib/i18n/menu-title";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,7 +60,7 @@ export function TabsNav() {
               )}
             >
               {tab.href === "/" && <Home className="h-3 w-3" />}
-              <span>{tab.title}</span>
+              <span>{translateMenuTitle(t, tab.title)}</span>
               {tab.closable !== false && (
                 <button
                   onClick={(e) => handleClose(e, tab.href)}

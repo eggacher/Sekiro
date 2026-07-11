@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store/app-store";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useTranslation } from "@/lib/i18n";
+import { translateMenuTitle } from "@/lib/i18n/menu-title";
 import { getMenuIcon } from "@/lib/menu-icon-map";
 import { Logo } from "./logo";
 
@@ -79,13 +80,15 @@ function SidebarItem({
   const isActive = pathname === href;
   const isChildActive = item.children?.some((c) => pathname.startsWith(c.path || "#"));
   const Icon = getMenuIcon(item.icon);
+  const { t } = useTranslation();
+  const title = translateMenuTitle(t, item.title);
 
   // 单层菜单
   if (!hasChildren) {
     return (
       <Link
         href={href}
-        title={collapsed ? item.title : undefined}
+        title={collapsed ? title : undefined}
         className={cn(
           "mb-1 flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
           isActive
@@ -95,7 +98,7 @@ function SidebarItem({
         )}
       >
         <Icon className="h-[18px] w-[18px] shrink-0" />
-        {!collapsed && <span>{item.title}</span>}
+        {!collapsed && <span>{title}</span>}
       </Link>
     );
   }
@@ -104,14 +107,14 @@ function SidebarItem({
   return (
     <div className="mb-1">
       <div
-        title={collapsed ? item.title : undefined}
+        title={collapsed ? title : undefined}
         className={cn(
           "flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground",
           collapsed && "justify-center px-0"
         )}
       >
         <Icon className="h-[18px] w-[18px] shrink-0" />
-        {!collapsed && <span className="flex-1">{item.title}</span>}
+        {!collapsed && <span className="flex-1">{title}</span>}
       </div>
       {!collapsed && (
         <div className="ml-[18px] mt-1 border-l pl-3">
@@ -132,7 +135,7 @@ function SidebarItem({
                 )}
               >
                 <ChildIcon className="h-4 w-4 shrink-0" />
-                <span>{child.title}</span>
+                <span>{translateMenuTitle(t, child.title)}</span>
               </Link>
             );
           })}
