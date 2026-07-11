@@ -646,7 +646,7 @@
 - **执行方式**：subagent-driven-development
 - **工作区**：`/Users/zero/projects/Sekiro` (dev branch)
 - **开始时间**：2026-07-11
-- **基线 BASE**：`2d0de21`
+- **基线 BASE**：`3ed0020`
 
 ## 任务清单
 
@@ -658,5 +658,5 @@
 - **审阅**: ✅ 成功清理 Redis 中全部 3 个以 `sekiro:session:` 开头的 Key，完成一次性用户下线，已验证通过。
 - **验证**: ✅ 宿主机与容器中 `keys "sekiro:session:*"` 查询结果均为空。
 
-Task 1: complete (commits 3c24fbc..3c24fbc, review clean)
+Task 1: complete (commits 3ed0020..f9f4397, review clean)
 
