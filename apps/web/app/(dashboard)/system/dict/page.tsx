@@ -17,12 +17,13 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
+import { HasPermission } from "@/components/shared/has-permission";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api/client";
 import { useTranslation } from "@/lib/i18n";
-import type { DictType, DictItem, PageResult } from "@sekiro/shared";
+import { PERMISSIONS, type DictType, type DictItem, type PageResult } from "@sekiro/shared";
 
 export default function DictPage() {
   const { t } = useTranslation();
@@ -184,10 +185,12 @@ export default function DictPage() {
         <div className="rounded-lg border bg-card">
           <div className="flex items-center justify-between border-b p-3">
             <span className="text-sm font-medium">{t("system.dict.typeTitle")}</span>
-            <Button size="sm" variant="ghost" className="h-7"
-              onClick={() => { setEditingType(null); setTypeFormOpen(true); }}>
-              <Plus className="h-3.5 w-3.5" />{t("common.create")}
-            </Button>
+            <HasPermission code={PERMISSIONS.DICT_CREATE}>
+              <Button size="sm" variant="ghost" className="h-7"
+                onClick={() => { setEditingType(null); setTypeFormOpen(true); }}>
+                <Plus className="h-3.5 w-3.5" />{t("common.create")}
+              </Button>
+            </HasPermission>
           </div>
           <div className="p-2">
             <div className="relative mb-2">
@@ -251,18 +254,24 @@ export default function DictPage() {
                   <p className="mt-0.5 text-xs text-muted-foreground">{active.remark}</p>
                 </div>
                 <div className="flex gap-1">
-                  <Button size="sm" variant="ghost" className="h-7"
-                    onClick={() => { setEditingType(active); setTypeFormOpen(true); }}>
-                    <Edit2 className="h-3.5 w-3.5" />{t("system.dict.editType")}
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-7 text-destructive"
-                    onClick={() => setDelType(active.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />{t("system.dict.deleteType")}
-                  </Button>
-                  <Button size="sm"
-                    onClick={() => { setEditingItem(null); setItemFormOpen(true); }}>
-                    <Plus className="h-3.5 w-3.5" />{t("system.dict.createItem")}
-                  </Button>
+                  <HasPermission code={PERMISSIONS.DICT_UPDATE}>
+                    <Button size="sm" variant="ghost" className="h-7"
+                      onClick={() => { setEditingType(active); setTypeFormOpen(true); }}>
+                      <Edit2 className="h-3.5 w-3.5" />{t("system.dict.editType")}
+                    </Button>
+                  </HasPermission>
+                  <HasPermission code={PERMISSIONS.DICT_DELETE}>
+                    <Button size="sm" variant="ghost" className="h-7 text-destructive"
+                      onClick={() => setDelType(active.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />{t("system.dict.deleteType")}
+                    </Button>
+                  </HasPermission>
+                  <HasPermission code={PERMISSIONS.DICT_ITEM_CREATE}>
+                    <Button size="sm"
+                      onClick={() => { setEditingItem(null); setItemFormOpen(true); }}>
+                      <Plus className="h-3.5 w-3.5" />{t("system.dict.createItem")}
+                    </Button>
+                  </HasPermission>
                 </div>
               </div>
               <Table>
@@ -299,14 +308,18 @@ export default function DictPage() {
                         <TableCell><StatusBadge status={it.status} /></TableCell>
                         <TableCell>
                           <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-primary"
-                              onClick={() => { setEditingItem(it); setItemFormOpen(true); }}>
-                              <Edit2 className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                              onClick={() => setDelItemValue(it.value)}>
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                            <HasPermission code={PERMISSIONS.DICT_ITEM_UPDATE}>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-primary"
+                                onClick={() => { setEditingItem(it); setItemFormOpen(true); }}>
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </HasPermission>
+                            <HasPermission code={PERMISSIONS.DICT_ITEM_DELETE}>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                                onClick={() => setDelItemValue(it.value)}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </HasPermission>
                           </div>
                         </TableCell>
                       </TableRow>
