@@ -10,7 +10,7 @@
 
 ## 设计细节
 
-设计一个独立的 Node.js / TypeScript 脚本 [reset-passwords.ts](file:///Users/zero/projects/Sekiro/apps/api/prisma/reset-passwords.ts)。
+设计一个独立的 Node.js / TypeScript 脚本 [reset-passwords.ts](file://<PROJECT_ROOT>/apps/api/prisma/reset-passwords.ts)。
 
 ### 1. 技术栈与依赖
 - **运行器**: `tsx`

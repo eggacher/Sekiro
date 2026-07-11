@@ -17,7 +17,7 @@
 - Stale permissions accepted until next `/auth/me` refresh (which writes back to the session).
 - Frontend has NO test framework — verify via `typecheck` + `lint`; no new framework introduced.
 - Backend tests use Vitest with `__tests__/` dirs colocated; run via `pnpm --filter @sekiro/api test`.
-- All commands run from repo root `/Users/zero/projects/Sekiro` unless noted.
+- All commands run from repo root `<PROJECT_ROOT>` unless noted.
 - DRY, YAGNI, TDD, frequent commits. Do NOT add comments to code unless asked.
 
 ---

@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- 工作目录:`/Users/zero/projects/Sekiro`,所有 pnpm 命令在根执行
+- 工作目录:`<PROJECT_ROOT>`,所有 pnpm 命令在根执行
 - pnpm workspace,子包用 `pnpm --filter @sekiro/api <cmd>`
 - TypeScript strict 模式(继承 `tsconfig.base.json`)
 - Prisma schema 文件:`apps/api/prisma/schema.prisma`

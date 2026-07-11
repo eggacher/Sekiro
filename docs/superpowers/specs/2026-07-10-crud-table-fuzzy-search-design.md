@@ -1,6 +1,6 @@
 # CrudTable 通用表格模糊搜索设计方案
 
-本文档旨在设计一种方案，使通用表格组件 [crud-table.tsx](file:///Users/zero/projects/Sekiro/apps/web/components/shared/crud-table.tsx) 在客户端过滤数据时，支持对输入框类型（`input`）的检索项进行模糊搜索，解决用户管理等页面精确匹配导致体验不佳的问题。
+本文档旨在设计一种方案，使通用表格组件 [crud-table.tsx](file://<PROJECT_ROOT>/apps/web/components/shared/crud-table.tsx) 在客户端过滤数据时，支持对输入框类型（`input`）的检索项进行模糊搜索，解决用户管理等页面精确匹配导致体验不佳的问题。
 
 ## 用户评审要点
 
@@ -10,7 +10,7 @@
 
 ## 设计细节
 
-对通用组件 [crud-table.tsx](file:///Users/zero/projects/Sekiro/apps/web/components/shared/crud-table.tsx) 的过滤逻辑进行修改。
+对通用组件 [crud-table.tsx](file://<PROJECT_ROOT>/apps/web/components/shared/crud-table.tsx) 的过滤逻辑进行修改。
 
 ### 1. 过滤判断差异化
 在 `filtered` 计算属性中，将原来的单一 `===` 精确匹配替换为基于检索字段类型的分支判断：

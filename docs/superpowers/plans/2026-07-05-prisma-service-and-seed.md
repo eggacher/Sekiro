@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- 工作目录：`/Users/zero/projects/Sekiro`，所有 pnpm 命令在根执行
+- 工作目录：`<PROJECT_ROOT>`，所有 pnpm 命令在根执行
 - pnpm workspace，子包用 `pnpm --filter @sekiro/api <cmd>`
 - TypeScript strict 模式（继承 `tsconfig.base.json`）
 - 所有密码用 bcrypt hash，cost ≥ 10
@@ -118,7 +118,7 @@ Expected: 通过，无 TS 错误
 - [ ] 提交 PrismaService 模块
 
 ```bash
-cd /Users/zero/projects/Sekiro
+cd <PROJECT_ROOT>
 git add apps/api/src/modules/prisma/
 git commit -m "feat(api): PrismaService NestJS 模块实现
 
@@ -272,7 +272,7 @@ Expected: 通过，无错误
 - [ ] 提交 Seed 脚本框架和依赖
 
 ```bash
-cd /Users/zero/projects/Sekiro
+cd <PROJECT_ROOT>
 git add apps/api/package.json apps/api/prisma/seed.ts
 git commit -m "feat(api): Seed 脚本框架 + bcrypt 依赖
 
@@ -1087,7 +1087,7 @@ Expected: 成功完成，无约束冲突错误
 - [ ] 提交完整 Seed 脚本
 
 ```bash
-cd /Users/zero/projects/Sekiro
+cd <PROJECT_ROOT>
 git add apps/api/prisma/seed.ts apps/api/package.json
 git commit -m "feat(api): 完整 Seed 数据脚本实现
 
@@ -1214,7 +1214,7 @@ Expected: 通过，无错误
 - [ ] 提交集成验证和文档更新
 
 ```bash
-cd /Users/zero/projects/Sekiro
+cd <PROJECT_ROOT>
 git add apps/api/README.md
 git commit -m "docs(api): Seed 脚本使用说明
 

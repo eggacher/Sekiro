@@ -26,7 +26,7 @@
 
 - [x] **Step 1: Edit page.tsx to destructure roleIds and call the roles API**
 
-Modify [page.tsx](file:///Users/zero/projects/Sekiro/.worktrees/feature-user-role-save-bug/apps/web/app/(dashboard)/system/user/page.tsx) to update `handleSave`:
+Modify [page.tsx](file://<PROJECT_ROOT>/.worktrees/feature-user-role-save-bug/apps/web/app/(dashboard)/system/user/page.tsx) to update `handleSave`:
 
 Replace the old destructuring block:
 ```typescript
