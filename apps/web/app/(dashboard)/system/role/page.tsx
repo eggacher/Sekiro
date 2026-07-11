@@ -35,6 +35,8 @@ import { CrudTable, type Column } from "@/components/shared/crud-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { CheckableTree, type TreeNode } from "@/components/shared/checkable-tree";
+import { HasPermission } from "@/components/shared/has-permission";
+import { PERMISSIONS } from "@sekiro/shared";
 import { apiClient } from "@/lib/api/client";
 import { useTranslation } from "@/lib/i18n";
 import { translateMenuTitle } from "@/lib/i18n/menu-title";
@@ -199,36 +201,42 @@ export default function RolePage() {
       align: "right",
       render: (r) => (
         <div className="flex items-center justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1 text-primary"
-            onClick={() => {
-              setEditing(r);
-              setFormOpen(true);
-            }}
-          >
-            <Edit2 className="h-3.5 w-3.5" />
-            {t("common.edit")}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1 text-purple-600"
-            onClick={() => openPerm(r)}
-          >
-            <Settings2 className="h-3.5 w-3.5" />
-            {t("system.role.permission")}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive"
-            onClick={() => setDelId(r.id)}
-            disabled={r.id === 1}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          <HasPermission code={PERMISSIONS.ROLE_UPDATE}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 text-primary"
+              onClick={() => {
+                setEditing(r);
+                setFormOpen(true);
+              }}
+            >
+              <Edit2 className="h-3.5 w-3.5" />
+              {t("common.edit")}
+            </Button>
+          </HasPermission>
+          <HasPermission code={PERMISSIONS.ROLE_ASSIGN_PERMISSION}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 text-purple-600"
+              onClick={() => openPerm(r)}
+            >
+              <Settings2 className="h-3.5 w-3.5" />
+              {t("system.role.permission")}
+            </Button>
+          </HasPermission>
+          <HasPermission code={PERMISSIONS.ROLE_DELETE}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive"
+              onClick={() => setDelId(r.id)}
+              disabled={r.id === 1}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </HasPermission>
         </div>
       ),
     },
@@ -237,10 +245,12 @@ export default function RolePage() {
   return (
     <div>
       <PageHeader title={t("system.role.title")} description={t("system.role.description")}>
-        <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
-          <Plus className="h-4 w-4" />
-          {t("system.role.createRole")}
-        </Button>
+        <HasPermission code={PERMISSIONS.ROLE_CREATE}>
+          <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
+            <Plus className="h-4 w-4" />
+            {t("system.role.createRole")}
+          </Button>
+        </HasPermission>
       </PageHeader>
 
       <CrudTable

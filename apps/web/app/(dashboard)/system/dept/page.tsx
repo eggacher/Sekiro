@@ -25,9 +25,10 @@ import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TreeTable, type TreeRow } from "@/components/shared/tree-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { HasPermission } from "@/components/shared/has-permission";
 import { apiClient } from "@/lib/api/client";
 import { useTranslation } from "@/lib/i18n";
-import type { Dept } from "@sekiro/shared";
+import { PERMISSIONS, type Dept } from "@sekiro/shared";
 
 export default function DeptPage() {
   const { t } = useTranslation();
@@ -143,32 +144,38 @@ export default function DeptPage() {
       width: 220,
       render: (row: Dept) => (
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1 text-primary"
-            onClick={() => { setEditing(null); setParentId(row.id); setFormOpen(true); }}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {t("common.create")}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1 text-primary"
-            onClick={() => { setEditing(row); setParentId(findParentId(depts, row.id)); setFormOpen(true); }}
-          >
-            <Edit2 className="h-3.5 w-3.5" />
-            {t("common.edit")}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive"
-            onClick={() => setDelId(row.id)}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          <HasPermission code={PERMISSIONS.DEPT_CREATE}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 text-primary"
+              onClick={() => { setEditing(null); setParentId(row.id); setFormOpen(true); }}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t("common.create")}
+            </Button>
+          </HasPermission>
+          <HasPermission code={PERMISSIONS.DEPT_UPDATE}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 text-primary"
+              onClick={() => { setEditing(row); setParentId(findParentId(depts, row.id)); setFormOpen(true); }}
+            >
+              <Edit2 className="h-3.5 w-3.5" />
+              {t("common.edit")}
+            </Button>
+          </HasPermission>
+          <HasPermission code={PERMISSIONS.DEPT_DELETE}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive"
+              onClick={() => setDelId(row.id)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </HasPermission>
         </div>
       ),
     },
@@ -177,10 +184,12 @@ export default function DeptPage() {
   return (
     <div>
       <PageHeader title={t("system.dept.title")} description={t("system.dept.description")}>
-        <Button onClick={() => { setEditing(null); setParentId(null); setFormOpen(true); }}>
-          <Plus className="h-4 w-4" />
-          {t("system.dept.createDept")}
-        </Button>
+        <HasPermission code={PERMISSIONS.DEPT_CREATE}>
+          <Button onClick={() => { setEditing(null); setParentId(null); setFormOpen(true); }}>
+            <Plus className="h-4 w-4" />
+            {t("system.dept.createDept")}
+          </Button>
+        </HasPermission>
       </PageHeader>
 
       <TreeTable<Dept> columns={columns} data={depts as TreeRow<Dept>[]} />

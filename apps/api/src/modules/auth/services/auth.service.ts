@@ -57,6 +57,11 @@ export class AuthService {
     // 1. 查询用户
     const user = await this.prismaService.user.findUnique({
       where: { username },
+      include: {
+        roles: {
+          include: { role: true },
+        },
+      },
     });
     if (!user) {
       await this.prismaService.loginLog.create({
@@ -154,6 +159,7 @@ export class AuthService {
     // 7. 计算权限和菜单
     const permissions = await this.getUserPermissions(user.id);
     const menus = await this.buildMenuTree(user.id);
+    const roles = user.roles.map((ur) => ur.role.code);
 
     // 7. 创建 Session ID 并签发 Token
     const sessionId = uuidv4();
@@ -181,6 +187,8 @@ export class AuthService {
       createdAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+      permissions,
+      roles,
     };
     await this.redisSessionProvider.createSession(sessionId, session, 2592000);
 
@@ -218,6 +226,7 @@ export class AuthService {
           avatar: user.avatar,
           status: user.status,
           deptId: user.deptId,
+          roles,
         },
         permissions,
         menus,
@@ -251,6 +260,7 @@ export class AuthService {
     // 计算权限和菜单
     const permissions = await this.getUserPermissions(user.id);
     const menus = await this.buildMenuTree(user.id);
+    const roles = user.roles.map((ur: any) => ur.role.code);
 
     // 创建 Session ID 并签发 Token
     const sessionId = uuidv4();
@@ -278,6 +288,8 @@ export class AuthService {
       createdAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      permissions,
+      roles,
     };
     await this.redisSessionProvider.createSession(sessionId, session, 2592000);
 
@@ -313,6 +325,7 @@ export class AuthService {
           avatar: user.avatar,
           status: user.status,
           deptId: user.deptId,
+          roles,
         },
         permissions,
         menus,
@@ -354,7 +367,10 @@ export class AuthService {
    * 2. 计算权限和菜单
    * 3. 组装 CurrentUser
    */
-  async getMe(userId: number): Promise<{
+  async getMe(
+    userId: number,
+    sessionId?: string,
+  ): Promise<{
     user: CurrentUser;
     permissions: string[];
     menus: MenuNode[];
@@ -377,6 +393,10 @@ export class AuthService {
     const permissions = await this.getUserPermissions(userId);
     const menus = await this.buildMenuTree(userId);
     const roles = user.roles.map((ur) => ur.role.code);
+
+    if (sessionId) {
+      await this.redisSessionProvider.updateSession(sessionId, { permissions, roles });
+    }
 
     return {
       user: {

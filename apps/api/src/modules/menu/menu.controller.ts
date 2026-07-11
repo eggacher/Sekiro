@@ -7,11 +7,13 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from "@nes
 import { MenuService } from "./services/menu.service";
 import { CreateMenuDto, UpdateMenuDto } from "./dtos";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { ApiResponse as ApiResponseType } from "@sekiro/shared";
+import { PermissionGuard } from "../auth/guards/permission.guard";
+import { RequiresPermissions } from "../auth/decorators/requires-permissions.decorator";
+import { ApiResponse as ApiResponseType, PERMISSIONS } from "@sekiro/shared";
 
 @ApiTags('Menu')
 @Controller("system/menu")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 @ApiBearerAuth()
 export class MenuController {
   constructor(
@@ -34,6 +36,7 @@ export class MenuController {
     return { code: 0, message: "查询成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.MENU_CREATE)
   @Post()
   @HttpCode(200)
   @ApiBody({ type: CreateMenuDto })
@@ -45,6 +48,7 @@ export class MenuController {
     return { code: 0, message: "创建成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.MENU_UPDATE)
   @Put(":id")
   @HttpCode(200)
   @ApiBody({ type: UpdateMenuDto })
@@ -59,6 +63,7 @@ export class MenuController {
     return { code: 0, message: "更新成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.MENU_DELETE)
   @Delete(":id")
   @HttpCode(200)
   @ApiOperation({ summary: '删除菜单' })

@@ -84,7 +84,7 @@ export default function LoginPage() {
       avatar: data.user!.avatar,
       email: data.user!.email,
       phone: data.user!.phone,
-      roles: [],
+      roles: data.user?.roles ?? [],
       permissions: data.permissions || [],
     };
 

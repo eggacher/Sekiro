@@ -48,6 +48,8 @@ export interface Session {
   createdAt: string;
   lastActiveAt: string;
   expiresAt: string;
+  permissions?: string[];
+  roles?: string[];
 }
 
 /**

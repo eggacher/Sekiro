@@ -38,10 +38,13 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { apiClient } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
-import type { User, Dept, Role, Position, PageResult } from "@sekiro/shared";
+import { HasPermission } from "@/components/shared/has-permission";
+import { usePermission } from "@/lib/hooks/use-permission";
+import { PERMISSIONS, type User, type Dept, type Role, type Position, type PageResult } from "@sekiro/shared";
 
 export default function UserPage() {
   const { t } = useTranslation();
+  const { hasAny } = usePermission();
   const [users, setUsers] = React.useState<User[]>([]);
   const [depts, setDepts] = React.useState<Dept[]>([]);
   const [roles, setRoles] = React.useState<Role[]>([]);
@@ -263,43 +266,53 @@ export default function UserPage() {
       align: "right",
       render: (row) => (
         <div className="flex items-center justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1 text-primary"
-            onClick={() => {
-              setEditing(row);
-              setFormOpen(true);
-            }}
-          >
-            <Edit2 className="h-3.5 w-3.5" />
-            {t("common.edit")}
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setResetTarget(row)}>
-                <KeyRound className="h-4 w-4" />
-                {t("system.user.resetPassword")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openAssignRoles(row)}>
-                <ShieldCheck className="h-4 w-4" />
-                {t("system.user.assignRoles")}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setDelId(row.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-                {t("common.delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <HasPermission code={PERMISSIONS.USER_UPDATE}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 text-primary"
+              onClick={() => {
+                setEditing(row);
+                setFormOpen(true);
+              }}
+            >
+              <Edit2 className="h-3.5 w-3.5" />
+              {t("common.edit")}
+            </Button>
+          </HasPermission>
+          {hasAny([PERMISSIONS.USER_RESET, PERMISSIONS.USER_ASSIGN_ROLE, PERMISSIONS.USER_DELETE]) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <HasPermission code={PERMISSIONS.USER_RESET}>
+                  <DropdownMenuItem onClick={() => setResetTarget(row)}>
+                    <KeyRound className="h-4 w-4" />
+                    {t("system.user.resetPassword")}
+                  </DropdownMenuItem>
+                </HasPermission>
+                <HasPermission code={PERMISSIONS.USER_ASSIGN_ROLE}>
+                  <DropdownMenuItem onClick={() => openAssignRoles(row)}>
+                    <ShieldCheck className="h-4 w-4" />
+                    {t("system.user.assignRoles")}
+                  </DropdownMenuItem>
+                </HasPermission>
+                <DropdownMenuSeparator />
+                <HasPermission code={PERMISSIONS.USER_DELETE}>
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={() => setDelId(row.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {t("common.delete")}
+                  </DropdownMenuItem>
+                </HasPermission>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       ),
     },
@@ -316,15 +329,17 @@ export default function UserPage() {
           <Download className="h-4 w-4" />
           {t("system.user.export")}
         </Button>
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          {t("system.user.createUser")}
-        </Button>
+        <HasPermission code={PERMISSIONS.USER_CREATE}>
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            {t("system.user.createUser")}
+          </Button>
+        </HasPermission>
       </PageHeader>
 
       <CrudTable

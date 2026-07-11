@@ -378,6 +378,38 @@ const menuData = [
     status: "enabled" as const,
     parentId: 2,
   },
+  // ===== User 按钮补充 =====
+  { id: 214, title: "重置密码", type: "button" as const, permission: "system:user:reset", sort: 4, status: "enabled" as const, parentId: 21 },
+  { id: 215, title: "分配角色", type: "button" as const, permission: "system:user:assign-role", sort: 5, status: "enabled" as const, parentId: 21 },
+  { id: 216, title: "分配岗位", type: "button" as const, permission: "system:user:assign-position", sort: 6, status: "enabled" as const, parentId: 21 },
+  { id: 217, title: "修改状态", type: "button" as const, permission: "system:user:update-status", sort: 7, status: "enabled" as const, parentId: 21 },
+  // ===== Role 按钮 =====
+  { id: 221, title: "新增", type: "button" as const, permission: "system:role:create", sort: 1, status: "enabled" as const, parentId: 22 },
+  { id: 222, title: "编辑", type: "button" as const, permission: "system:role:update", sort: 2, status: "enabled" as const, parentId: 22 },
+  { id: 223, title: "删除", type: "button" as const, permission: "system:role:delete", sort: 3, status: "enabled" as const, parentId: 22 },
+  { id: 224, title: "权限分配", type: "button" as const, permission: "system:role:assign-permission", sort: 4, status: "enabled" as const, parentId: 22 },
+  { id: 225, title: "数据权限", type: "button" as const, permission: "system:role:data-scope", sort: 5, status: "enabled" as const, parentId: 22 },
+  { id: 226, title: "修改状态", type: "button" as const, permission: "system:role:update-status", sort: 6, status: "enabled" as const, parentId: 22 },
+  // ===== Menu 按钮 =====
+  { id: 231, title: "新增", type: "button" as const, permission: "system:menu:create", sort: 1, status: "enabled" as const, parentId: 23 },
+  { id: 232, title: "编辑", type: "button" as const, permission: "system:menu:update", sort: 2, status: "enabled" as const, parentId: 23 },
+  { id: 233, title: "删除", type: "button" as const, permission: "system:menu:delete", sort: 3, status: "enabled" as const, parentId: 23 },
+  // ===== Dept 按钮 =====
+  { id: 241, title: "新增", type: "button" as const, permission: "system:dept:create", sort: 1, status: "enabled" as const, parentId: 24 },
+  { id: 242, title: "编辑", type: "button" as const, permission: "system:dept:update", sort: 2, status: "enabled" as const, parentId: 24 },
+  { id: 243, title: "删除", type: "button" as const, permission: "system:dept:delete", sort: 3, status: "enabled" as const, parentId: 24 },
+  // ===== Position 按钮 =====
+  { id: 251, title: "新增", type: "button" as const, permission: "system:position:create", sort: 1, status: "enabled" as const, parentId: 25 },
+  { id: 252, title: "编辑", type: "button" as const, permission: "system:position:update", sort: 2, status: "enabled" as const, parentId: 25 },
+  { id: 253, title: "删除", type: "button" as const, permission: "system:position:delete", sort: 3, status: "enabled" as const, parentId: 25 },
+  // ===== Dict 按钮 =====
+  { id: 261, title: "新增", type: "button" as const, permission: "system:dict:create", sort: 1, status: "enabled" as const, parentId: 26 },
+  { id: 262, title: "编辑", type: "button" as const, permission: "system:dict:update", sort: 2, status: "enabled" as const, parentId: 26 },
+  { id: 263, title: "删除", type: "button" as const, permission: "system:dict:delete", sort: 3, status: "enabled" as const, parentId: 26 },
+  // ===== DictItem 按钮 =====
+  { id: 271, title: "新增字典项", type: "button" as const, permission: "system:dict-item:create", sort: 1, status: "enabled" as const, parentId: 26 },
+  { id: 272, title: "编辑字典项", type: "button" as const, permission: "system:dict-item:update", sort: 2, status: "enabled" as const, parentId: 26 },
+  { id: 273, title: "删除字典项", type: "button" as const, permission: "system:dict-item:delete", sort: 3, status: "enabled" as const, parentId: 26 },
   {
     id: 3,
     title: "系统监控",
@@ -1011,7 +1043,7 @@ async function main() {
         },
       });
     }
-    console.log("  ✅ 菜单插入完成（共 16 条，含按钮）\n");
+    console.log("  ✅ 菜单插入完成（共 41 条，含按钮）\n");
 
     // Step 8: 插入用户-角色关联（UserRole）
     console.log("📦 Step 8: 插入用户-角色关联...");
@@ -1069,11 +1101,11 @@ async function main() {
     // Step 10: 插入角色-菜单关联（RoleMenu）
     console.log("📦 Step 10: 插入角色-菜单权限...");
     const roleMenuMappings = {
-      // 超级管理员: 全部菜单 + 全部按钮 (16 条)
-      1: [1, 2, 21, 211, 212, 213, 22, 23, 24, 25, 26, 3, 31, 32, 33, 34],
+      // 超级管理员: 全部菜单 + 全部按钮
+      1: [1, 2, 21, 211, 212, 213, 214, 215, 216, 217, 22, 221, 222, 223, 224, 225, 226, 23, 231, 232, 233, 24, 241, 242, 243, 25, 251, 252, 253, 26, 261, 262, 263, 271, 272, 273, 3, 31, 32, 33, 34],
 
-      // 管理员: 系统管理全部 + 用户操作按钮（无监控） (11 条)
-      2: [1, 2, 21, 211, 212, 213, 22, 23, 24, 25, 26],
+      // 管理员: 系统管理全部 + 全部按钮（无监控）
+      2: [1, 2, 21, 211, 212, 213, 214, 215, 216, 217, 22, 221, 222, 223, 224, 225, 226, 23, 231, 232, 233, 24, 241, 242, 243, 25, 251, 252, 253, 26, 261, 262, 263, 271, 272, 273],
 
       // 财务专员: 工作台 + 系统管理（仅菜单无按钮） (6 条)
       3: [1, 2, 21, 24, 25, 26],
@@ -1149,7 +1181,7 @@ async function main() {
     console.log("  - 字典类型：4 种（9 项）");
     console.log("  - 用户：12 条");
     console.log("  - 角色：7 条");
-    console.log("  - 菜单：16 条（含按钮）");
+    console.log("  - 菜单：41 条（含按钮）");
     console.log(`  - 用户-角色：${userRoleCount} 条`);
     console.log(`  - 用户-岗位：${userPositionMappings.length} 条`);
     console.log(`  - 角色-菜单：${roleMenuCount} 条`);

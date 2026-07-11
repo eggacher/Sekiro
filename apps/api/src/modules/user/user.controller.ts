@@ -18,14 +18,16 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiQuery, ApiResponse } 
 import { UserService } from "./services/user.service";
 import { CreateUserDto, UpdateUserDto, UpdatePasswordDto, QueryUserDto } from "./dtos";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { CommonStatus, ApiResponse as ApiResponseType } from "@sekiro/shared";
+import { PermissionGuard } from "../auth/guards/permission.guard";
+import { RequiresPermissions } from "../auth/decorators/requires-permissions.decorator";
+import { CommonStatus, ApiResponse as ApiResponseType, PERMISSIONS } from "@sekiro/shared";
 import { DataScopeInterceptor } from "../auth/interceptors/data-scope.interceptor";
 import { UserScope } from "../auth/decorators/user-scope.decorator";
 import { UserDataScope } from "../auth/types";
 
 @ApiTags('User')
 @Controller("system/user")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 @ApiBearerAuth()
 export class UserController {
   constructor(
@@ -86,6 +88,7 @@ export class UserController {
     return { code: 0, message: "密码修改成功", data: null };
   }
 
+  @RequiresPermissions(PERMISSIONS.USER_CREATE)
   @Post()
   @HttpCode(200)
   @ApiBody({ type: CreateUserDto })
@@ -97,6 +100,7 @@ export class UserController {
     return { code: 0, message: "创建成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.USER_UPDATE)
   @Put(":id")
   @HttpCode(200)
   @ApiBody({ type: UpdateUserDto })
@@ -111,6 +115,7 @@ export class UserController {
     return { code: 0, message: "更新成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.USER_DELETE)
   @Delete(":id")
   @HttpCode(200)
   @ApiOperation({ summary: '删除用户' })
@@ -123,6 +128,7 @@ export class UserController {
     return { code: 0, message: "删除成功", data: null };
   }
 
+  @RequiresPermissions(PERMISSIONS.USER_UPDATE_STATUS)
   @Put(":id/status")
   @HttpCode(200)
   @ApiOperation({ summary: '更新用户状态' })
@@ -135,6 +141,7 @@ export class UserController {
     return { code: 0, message: "状态更新成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.USER_RESET)
   @Put(":id/reset-password")
   @HttpCode(200)
   @ApiOperation({ summary: '重置用户密码' })
@@ -144,6 +151,7 @@ export class UserController {
     return { code: 0, message: "密码重置成功", data: null };
   }
 
+  @RequiresPermissions(PERMISSIONS.USER_ASSIGN_ROLE)
   @Put(":id/roles")
   @HttpCode(200)
   @ApiOperation({ summary: '分配用户角色' })
@@ -156,6 +164,7 @@ export class UserController {
     return { code: 0, message: "分配角色成功", data: null };
   }
 
+  @RequiresPermissions(PERMISSIONS.USER_ASSIGN_POSITION)
   @Put(":id/positions")
   @HttpCode(200)
   @ApiOperation({ summary: '分配用户岗位' })

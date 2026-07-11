@@ -103,7 +103,7 @@ export class MenuService {
         if (!data.permission) {
           throw new UnprocessableEntityException("按钮类型必须填写权限标识");
         }
-        if (!/^[a-z]+:[a-z]+:[a-z]+$/.test(data.permission)) {
+        if (!/^[a-z]+(-[a-z]+)*(:[a-z]+(-[a-z]+)*){2}$/.test(data.permission)) {
           throw new UnprocessableEntityException("权限标识格式必须为 module:resource:action");
         }
         break;

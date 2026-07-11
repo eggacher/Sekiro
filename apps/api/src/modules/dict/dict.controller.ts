@@ -7,11 +7,13 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiQuery, ApiResponse } 
 import { DictService } from "./services/dict.service";
 import { CreateDictDto, UpdateDictDto, QueryDictDto } from "./dtos";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { ApiResponse as ApiResponseType } from "@sekiro/shared";
+import { PermissionGuard } from "../auth/guards/permission.guard";
+import { RequiresPermissions } from "../auth/decorators/requires-permissions.decorator";
+import { ApiResponse as ApiResponseType, PERMISSIONS } from "@sekiro/shared";
 
 @ApiTags('Dict')
 @Controller("system/dict")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 @ApiBearerAuth()
 export class DictController {
   constructor(
@@ -36,6 +38,7 @@ export class DictController {
     return { code: 0, message: "查询成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.DICT_CREATE)
   @Post()
   @HttpCode(200)
   @ApiBody({ type: CreateDictDto })
@@ -47,6 +50,7 @@ export class DictController {
     return { code: 0, message: "创建成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.DICT_UPDATE)
   @Put(":id")
   @HttpCode(200)
   @ApiBody({ type: UpdateDictDto })
@@ -61,6 +65,7 @@ export class DictController {
     return { code: 0, message: "更新成功", data };
   }
 
+  @RequiresPermissions(PERMISSIONS.DICT_DELETE)
   @Delete(":id")
   @HttpCode(200)
   @ApiOperation({ summary: '删除字典类型' })
