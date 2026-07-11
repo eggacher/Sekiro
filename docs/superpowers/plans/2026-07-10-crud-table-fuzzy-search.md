@@ -5,7 +5,7 @@
 **Goal:** 修改 `CrudTable` 前端通用组件，为文本输入类型（`input`）的检索项提供模糊包含查询（Case-insensitive partial match）支持。
 
 **Architecture:**
-修改 [crud-table.tsx](file:///Users/zero/projects/Sekiro/apps/web/components/shared/crud-table.tsx) 里的客户端数据过滤邏辑 (`filtered` 计算变量)，通过判断当前筛选条件对应的配置类型是不是 `select`，来区分精确匹配与模糊包含匹配。
+修改 [crud-table.tsx](file://<PROJECT_ROOT>/apps/web/components/shared/crud-table.tsx) 里的客户端数据过滤邏辑 (`filtered` 计算变量)，通过判断当前筛选条件对应的配置类型是不是 `select`，来区分精确匹配与模糊包含匹配。
 
 **Tech Stack:** React, Next.js, TypeScript
 

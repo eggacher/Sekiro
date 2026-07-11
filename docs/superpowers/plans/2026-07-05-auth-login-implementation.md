@@ -88,7 +88,7 @@ packages/shared/src/types.ts            # 检查/补充 LoginRequest、LoginResp
 
 - [ ] Step 1.1: 检查 package.json 中的依赖
 ```bash
-cd /Users/zero/projects/Sekiro && cat apps/api/package.json | grep -E "@nestjs/jwt|redis|bcrypt"
+cd <PROJECT_ROOT> && cat apps/api/package.json | grep -E "@nestjs/jwt|redis|bcrypt"
 ```
 预期：看到 bcrypt 已有，但没有 @nestjs/jwt 和 redis
 
@@ -101,7 +101,7 @@ cd /Users/zero/projects/Sekiro && cat apps/api/package.json | grep -E "@nestjs/j
 
 - [ ] Step 1.3: 安装依赖
 ```bash
-cd /Users/zero/projects/Sekiro && pnpm install
+cd <PROJECT_ROOT> && pnpm install
 ```
 预期：所有包安装成功
 
@@ -128,13 +128,13 @@ export const redisConfig: RedisConfig = {
 - [ ] Step 1.5: 验证依赖可导入
 运行：
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && node -e "require('@nestjs/jwt'); require('redis'); console.log('OK')"
+cd <PROJECT_ROOT>/apps/api && node -e "require('@nestjs/jwt'); require('redis'); console.log('OK')"
 ```
 预期：输出 "OK"
 
 - [ ] Step 1.6: Commit
 ```bash
-cd /Users/zero/projects/Sekiro && git add apps/api/package.json apps/api/src/config/redis.config.ts && git commit -m "chore: add @nestjs/jwt and redis dependencies"
+cd <PROJECT_ROOT> && git add apps/api/package.json apps/api/src/config/redis.config.ts && git commit -m "chore: add @nestjs/jwt and redis dependencies"
 ```
 
 ---
@@ -156,7 +156,7 @@ cd /Users/zero/projects/Sekiro && git add apps/api/package.json apps/api/src/con
 
 - [ ] Step 2.1: 检查 @sekiro/shared 中是否有 LoginRequest 和 LoginResponse
 ```bash
-cd /Users/zero/projects/Sekiro && grep -n "LoginRequest\|LoginResponse" packages/shared/src/types.ts | head -20
+cd <PROJECT_ROOT> && grep -n "LoginRequest\|LoginResponse" packages/shared/src/types.ts | head -20
 ```
 
 - [ ] Step 2.2: 如果 @sekiro/shared 中没有，在 packages/shared/src/types.ts 中添加
@@ -298,7 +298,7 @@ export * from './refresh.dto';
 
 - [ ] Step 2.7: Commit
 ```bash
-cd /Users/zero/projects/Sekiro && git add packages/shared/src/types.ts apps/api/src/modules/auth/types.ts apps/api/src/modules/auth/dtos/ && git commit -m "feat: add auth types and DTOs"
+cd <PROJECT_ROOT> && git add packages/shared/src/types.ts apps/api/src/modules/auth/types.ts apps/api/src/modules/auth/dtos/ && git commit -m "feat: add auth types and DTOs"
 ```
 
 ---
@@ -369,7 +369,7 @@ describe('JwtProvider', () => {
 
 - [ ] Step 3.2: 运行测试确认失败
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && pnpm test -- jwt.provider.spec.ts 2>&1 | head -30
+cd <PROJECT_ROOT>/apps/api && pnpm test -- jwt.provider.spec.ts 2>&1 | head -30
 ```
 预期：FAIL，找不到 JwtProvider
 
@@ -441,13 +441,13 @@ export class JwtProvider {
 
 - [ ] Step 3.4: 运行测试确认通过
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && pnpm test -- jwt.provider.spec.ts 2>&1
+cd <PROJECT_ROOT>/apps/api && pnpm test -- jwt.provider.spec.ts 2>&1
 ```
 预期：PASS
 
 - [ ] Step 3.5: Commit
 ```bash
-cd /Users/zero/projects/Sekiro && git add apps/api/src/modules/auth/providers/jwt.provider.ts apps/api/src/modules/auth/providers/__tests__/jwt.provider.spec.ts && git commit -m "feat: implement JwtProvider for token signing and verification"
+cd <PROJECT_ROOT> && git add apps/api/src/modules/auth/providers/jwt.provider.ts apps/api/src/modules/auth/providers/__tests__/jwt.provider.spec.ts && git commit -m "feat: implement JwtProvider for token signing and verification"
 ```
 
 ---
@@ -564,7 +564,7 @@ describe('RedisSessionProvider', () => {
 
 - [ ] Step 4.3: 运行测试确认失败
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && pnpm test -- redis-session.provider.spec.ts 2>&1 | head -20
+cd <PROJECT_ROOT>/apps/api && pnpm test -- redis-session.provider.spec.ts 2>&1 | head -20
 ```
 预期：FAIL，找不到 RedisSessionProvider
 
@@ -622,13 +622,13 @@ export class RedisSessionProvider {
 
 - [ ] Step 4.5: 运行测试确认通过
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && pnpm test -- redis-session.provider.spec.ts 2>&1
+cd <PROJECT_ROOT>/apps/api && pnpm test -- redis-session.provider.spec.ts 2>&1
 ```
 预期：PASS
 
 - [ ] Step 4.6: Commit
 ```bash
-cd /Users/zero/projects/Sekiro && git add apps/api/src/redis.module.ts apps/api/src/modules/auth/providers/redis-session.provider.ts apps/api/src/modules/auth/providers/__tests__/redis-session.provider.spec.ts && git commit -m "feat: implement RedisSessionProvider and RedisModule"
+cd <PROJECT_ROOT> && git add apps/api/src/redis.module.ts apps/api/src/modules/auth/providers/redis-session.provider.ts apps/api/src/modules/auth/providers/__tests__/redis-session.provider.spec.ts && git commit -m "feat: implement RedisSessionProvider and RedisModule"
 ```
 
 ---
@@ -716,7 +716,7 @@ describe('LoginFailureProvider', () => {
 
 - [ ] Step 5.2: 运行测试确认失败
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && pnpm test -- login-failure.provider.spec.ts 2>&1 | head -20
+cd <PROJECT_ROOT>/apps/api && pnpm test -- login-failure.provider.spec.ts 2>&1 | head -20
 ```
 预期：FAIL
 
@@ -781,13 +781,13 @@ export class LoginFailureProvider {
 
 - [ ] Step 5.4: 运行测试确认通过
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && pnpm test -- login-failure.provider.spec.ts 2>&1
+cd <PROJECT_ROOT>/apps/api && pnpm test -- login-failure.provider.spec.ts 2>&1
 ```
 预期：PASS
 
 - [ ] Step 5.5: Commit
 ```bash
-cd /Users/zero/projects/Sekiro && git add apps/api/src/modules/auth/providers/login-failure.provider.ts apps/api/src/modules/auth/providers/__tests__/login-failure.provider.spec.ts && git commit -m "feat: implement LoginFailureProvider for failure tracking and account locking"
+cd <PROJECT_ROOT> && git add apps/api/src/modules/auth/providers/login-failure.provider.ts apps/api/src/modules/auth/providers/__tests__/login-failure.provider.spec.ts && git commit -m "feat: implement LoginFailureProvider for failure tracking and account locking"
 ```
 
 ---
@@ -993,7 +993,7 @@ describe('AuthService', () => {
 
 - [ ] Step 6.3: 运行测试确认失败
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && pnpm test -- auth.service.spec.ts 2>&1 | head -30
+cd <PROJECT_ROOT>/apps/api && pnpm test -- auth.service.spec.ts 2>&1 | head -30
 ```
 预期：FAIL
 
@@ -1282,13 +1282,13 @@ export class AuthService {
 
 - [ ] Step 6.5: 运行测试确认通过
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && pnpm test -- auth.service.spec.ts 2>&1
+cd <PROJECT_ROOT>/apps/api && pnpm test -- auth.service.spec.ts 2>&1
 ```
 预期：全部通过
 
 - [ ] Step 6.6: Commit
 ```bash
-cd /Users/zero/projects/Sekiro && git add apps/api/src/modules/auth/services/ && git commit -m "feat: implement AuthService with login, refresh, and logout logic"
+cd <PROJECT_ROOT> && git add apps/api/src/modules/auth/services/ && git commit -m "feat: implement AuthService with login, refresh, and logout logic"
 ```
 
 ---
@@ -1450,7 +1450,7 @@ class AppModule {}
 
 - [ ] Step 7.5: 验证接口可访问
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && npx tsx src/main.ts &
+cd <PROJECT_ROOT>/apps/api && npx tsx src/main.ts &
 sleep 2
 curl -X POST http://localhost:3001/auth/login \
   -H 'Content-Type: application/json' \
@@ -1461,7 +1461,7 @@ kill %1
 
 - [ ] Step 7.6: Commit
 ```bash
-cd /Users/zero/projects/Sekiro && git add apps/api/src/modules/auth/ apps/api/src/main.ts apps/api/src/redis.module.ts && git commit -m "feat: implement AuthController and register AuthModule in AppModule"
+cd <PROJECT_ROOT> && git add apps/api/src/modules/auth/ apps/api/src/main.ts apps/api/src/redis.module.ts && git commit -m "feat: implement AuthController and register AuthModule in AppModule"
 ```
 
 ---
@@ -1475,27 +1475,27 @@ cd /Users/zero/projects/Sekiro && git add apps/api/src/modules/auth/ apps/api/sr
 
 - [ ] Step 8.1: 确认所有单元测试通过
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && pnpm test 2>&1 | tail -30
+cd <PROJECT_ROOT>/apps/api && pnpm test 2>&1 | tail -30
 ```
 预期：所有 auth 相关测试通过
 
 - [ ] Step 8.2: 检查 TypeScript 编译
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && pnpm typecheck
+cd <PROJECT_ROOT>/apps/api && pnpm typecheck
 ```
 预期：0 errors
 
 - [ ] Step 8.3: 验证模块导入
 ```bash
-cd /Users/zero/projects/Sekiro/apps/api && npx tsx -e "import { AuthModule } from './src/modules/auth'; console.log('OK')"
+cd <PROJECT_ROOT>/apps/api && npx tsx -e "import { AuthModule } from './src/modules/auth'; console.log('OK')"
 ```
 预期：OK
 
 - [ ] Step 8.4: 启动应用并手动测试登录接口
 ```bash
-cd /Users/zero/projects/Sekiro && pnpm docker:up &
+cd <PROJECT_ROOT> && pnpm docker:up &
 sleep 5
-cd /Users/zero/projects/Sekiro/apps/api && pnpm dev &
+cd <PROJECT_ROOT>/apps/api && pnpm dev &
 sleep 5
 
 # 测试登录
@@ -1511,7 +1511,7 @@ pnpm docker:down
 
 - [ ] Step 8.5: Commit 最终代码
 ```bash
-cd /Users/zero/projects/Sekiro && git add -A && git commit -m "feat: complete auth module with login, refresh, logout"
+cd <PROJECT_ROOT> && git add -A && git commit -m "feat: complete auth module with login, refresh, logout"
 ```
 
 ---

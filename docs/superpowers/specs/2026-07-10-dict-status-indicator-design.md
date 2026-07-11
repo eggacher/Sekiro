@@ -10,7 +10,7 @@
 
 ## 设计细节
 
-修改 [dict/page.tsx](file:///Users/zero/projects/Sekiro/apps/web/app/(dashboard)/system/dict/page.tsx) 页面。
+修改 [dict/page.tsx](file://<PROJECT_ROOT>/apps/web/app/(dashboard)/system/dict/page.tsx) 页面。
 
 ### 1. 左侧字典类型列表项视觉增强
 在 `filteredTypes.map((d) => ...)` 列表项中：

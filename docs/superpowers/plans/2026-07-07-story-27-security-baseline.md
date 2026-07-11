@@ -96,7 +96,7 @@ apps/web/next.config.js                      # 开发/生产 CSP headers 兜底
 - [ ] **Step 2: 安装并锁定**
 
 ```bash
-cd /Users/zero/projects/Sekiro/.worktrees/story/27-security-baseline
+cd <PROJECT_ROOT>/.worktrees/story/27-security-baseline
 pnpm install
 ```
 
@@ -157,7 +157,7 @@ describe("crypto.util", () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd /Users/zero/projects/Sekiro/.worktrees/story/27-security-baseline/apps/api
+cd <PROJECT_ROOT>/.worktrees/story/27-security-baseline/apps/api
 pnpm test src/modules/security/utils/__tests__/crypto.util.spec.ts
 ```
 
@@ -593,7 +593,7 @@ app.useGlobalFilters(new ThrottlerExceptionFilter());
 - [ ] **Step 6: Run typecheck**
 
 ```bash
-cd /Users/zero/projects/Sekiro/.worktrees/story/27-security-baseline
+cd <PROJECT_ROOT>/.worktrees/story/27-security-baseline
 pnpm typecheck
 ```
 
@@ -652,7 +652,7 @@ describe("ThrottlerExceptionFilter", () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd /Users/zero/projects/Sekiro/.worktrees/story/27-security-baseline/apps/api
+cd <PROJECT_ROOT>/.worktrees/story/27-security-baseline/apps/api
 pnpm test src/modules/security/filters/__tests__/throttler-exception.filter.spec.ts
 ```
 
@@ -752,7 +752,7 @@ export class HealthController {
 - [ ] **Step 3: Run typecheck and tests**
 
 ```bash
-cd /Users/zero/projects/Sekiro/.worktrees/story/27-security-baseline
+cd <PROJECT_ROOT>/.worktrees/story/27-security-baseline
 pnpm typecheck
 pnpm --filter @sekiro/api test
 ```
@@ -1265,7 +1265,7 @@ module.exports = nextConfig;
 - [ ] **Step 4: Run typecheck**
 
 ```bash
-cd /Users/zero/projects/Sekiro/.worktrees/story/27-security-baseline
+cd <PROJECT_ROOT>/.worktrees/story/27-security-baseline
 pnpm typecheck
 ```
 
@@ -1396,7 +1396,7 @@ git commit -m "test(security): add integration test for helmet security headers"
 - [ ] **Step 1: Run full test suite**
 
 ```bash
-cd /Users/zero/projects/Sekiro/.worktrees/story/27-security-baseline
+cd <PROJECT_ROOT>/.worktrees/story/27-security-baseline
 pnpm --filter @sekiro/api test
 ```
 
