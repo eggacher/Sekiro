@@ -109,11 +109,12 @@ export default function UserPage() {
   }, []);
 
   const handleSave = async (data: Partial<User>) => {
-    // roleIds 与 status 不是 CreateUserDto / UpdateUserDto 声明的字段；
+    // roleIds, positionIds 与 status 不是 CreateUserDto / UpdateUserDto 声明的字段；
     // 全局 ValidationPipe 启用 whitelist + forbidNonWhitelisted，
     // 因此这里显式从 payload 中剔除，避免接口收到未知字段而报 422。
-    const { positionIds, ...userData } = data;
+    const { positionIds, roleIds, ...userData } = data;
     const positionIdsToAssign = positionIds ?? [];
+    const roleIdsToAssign = roleIds ?? [];
 
     try {
       const userPayload = editing
@@ -138,11 +139,17 @@ export default function UserPage() {
         await apiClient.put(`/system/user/${editing.id}/positions`, {
           positionIds: positionIdsToAssign,
         });
+        await apiClient.put(`/system/user/${editing.id}/roles`, {
+          roleIds: roleIdsToAssign,
+        });
         toast.success(t("system.user.updateSuccess"));
       } else {
         const created = await apiClient.post<User>("/system/user", userPayload);
         await apiClient.put(`/system/user/${created.id}/positions`, {
           positionIds: positionIdsToAssign,
+        });
+        await apiClient.put(`/system/user/${created.id}/roles`, {
+          roleIds: roleIdsToAssign,
         });
         toast.success(t("system.user.createSuccess"));
       }
