@@ -26,9 +26,10 @@ import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TreeTable, type TreeRow } from "@/components/shared/tree-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { HasPermission } from "@/components/shared/has-permission";
 import { apiClient } from "@/lib/api/client";
 import { useTranslation } from "@/lib/i18n";
-import type { Menu } from "@sekiro/shared";
+import { PERMISSIONS, type Menu } from "@sekiro/shared";
 
 export default function MenuPage() {
   const { t } = useTranslation();
@@ -153,41 +154,47 @@ export default function MenuPage() {
       render: (row: Menu) => (
         <div className="flex items-center gap-1">
           {row.type !== "button" && (
+            <HasPermission code={PERMISSIONS.MENU_CREATE}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1 text-primary"
+                onClick={() => {
+                  setEditing(null);
+                  setParentId(row.id);
+                  setFormOpen(true);
+                }}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {t("common.create")}
+              </Button>
+            </HasPermission>
+          )}
+          <HasPermission code={PERMISSIONS.MENU_UPDATE}>
             <Button
               variant="ghost"
               size="sm"
               className="h-8 gap-1 text-primary"
               onClick={() => {
-                setEditing(null);
-                setParentId(row.id);
+                setEditing(row);
+                setParentId(findParentId(menus, row.id));
                 setFormOpen(true);
               }}
             >
-              <Plus className="h-3.5 w-3.5" />
-              {t("common.create")}
+              <Edit2 className="h-3.5 w-3.5" />
+              {t("common.edit")}
             </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1 text-primary"
-            onClick={() => {
-              setEditing(row);
-              setParentId(findParentId(menus, row.id));
-              setFormOpen(true);
-            }}
-          >
-            <Edit2 className="h-3.5 w-3.5" />
-            {t("common.edit")}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive"
-            onClick={() => setDelId(row.id)}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          </HasPermission>
+          <HasPermission code={PERMISSIONS.MENU_DELETE}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive"
+              onClick={() => setDelId(row.id)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </HasPermission>
         </div>
       ),
     },
@@ -196,10 +203,12 @@ export default function MenuPage() {
   return (
     <div>
       <PageHeader title={t("system.menu.title")} description={t("system.menu.description")}>
-        <Button onClick={() => { setEditing(null); setParentId(null); setFormOpen(true); }}>
-          <Plus className="h-4 w-4" />
-          {t("system.menu.createMenu")}
-        </Button>
+        <HasPermission code={PERMISSIONS.MENU_CREATE}>
+          <Button onClick={() => { setEditing(null); setParentId(null); setFormOpen(true); }}>
+            <Plus className="h-4 w-4" />
+            {t("system.menu.createMenu")}
+          </Button>
+        </HasPermission>
       </PageHeader>
 
       <div className="rounded-lg border bg-card p-3 mb-3">
