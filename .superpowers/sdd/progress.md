@@ -660,3 +660,30 @@
 
 Task 1: complete (commits 3ed0020..f9f4397, review clean)
 
+---
+
+# 用户编辑修改角色失效修复 (User Role Save Bug Fix) — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-11-user-role-save-fix.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/feature-user-role-save-bug` (feature/user-role-save-bug branch)
+- **开始时间**：2026-07-11
+- **基线 BASE**：`75abc7a`
+
+## 任务清单
+
+- [x] Task 1: Update handleSave to persist roleIds
+
+## 完成记录
+
+### Task 1: Update handleSave to persist roleIds
+- **相关文件**：[page.tsx](file:///Users/zero/projects/Sekiro/.worktrees/feature-user-role-save-bug/apps/web/app/(dashboard)/system/user/page.tsx)
+- **Commit**: `deb5ad8`
+- **审阅**: ✅ 成功修复角色保存逻辑：在前端提交时对 `roleIds` 提取，并增加对 `/system/user/:id/roles` 的 API 调用。
+- **验证**: ✅ 运行 `pnpm typecheck` 通过，`pnpm --filter @sekiro/web lint` 通过，API tests (184/184) 成功通过。
+
+Task 1: complete (commits 75abc7a..deb5ad8, review clean)
+
+
+

@@ -44,7 +44,7 @@ import { PERMISSIONS, type User, type Dept, type Role, type Position, type PageR
 
 export default function UserPage() {
   const { t } = useTranslation();
-  const { hasAny } = usePermission();
+  const { has, hasAny } = usePermission();
   const [users, setUsers] = React.useState<User[]>([]);
   const [depts, setDepts] = React.useState<Dept[]>([]);
   const [roles, setRoles] = React.useState<Role[]>([]);
@@ -109,11 +109,12 @@ export default function UserPage() {
   }, []);
 
   const handleSave = async (data: Partial<User>) => {
-    // roleIds 与 status 不是 CreateUserDto / UpdateUserDto 声明的字段；
+    // roleIds, positionIds 与 status 不是 CreateUserDto / UpdateUserDto 声明的字段；
     // 全局 ValidationPipe 启用 whitelist + forbidNonWhitelisted，
     // 因此这里显式从 payload 中剔除，避免接口收到未知字段而报 422。
-    const { positionIds, ...userData } = data;
+    const { positionIds, roleIds, ...userData } = data;
     const positionIdsToAssign = positionIds ?? [];
+    const roleIdsToAssign = roleIds ?? [];
 
     try {
       const userPayload = editing
@@ -135,15 +136,63 @@ export default function UserPage() {
 
       if (editing) {
         await apiClient.put<User>(`/system/user/${editing.id}`, userPayload);
-        await apiClient.put(`/system/user/${editing.id}/positions`, {
-          positionIds: positionIdsToAssign,
-        });
+        const promises: Promise<any>[] = [];
+
+        if (has(PERMISSIONS.USER_ASSIGN_POSITION)) {
+          promises.push(
+            apiClient.put(`/system/user/${editing.id}/positions`, {
+              positionIds: positionIdsToAssign,
+            })
+          );
+        }
+
+        if (has(PERMISSIONS.USER_ASSIGN_ROLE)) {
+          promises.push(
+            apiClient.put(`/system/user/${editing.id}/roles`, {
+              roleIds: roleIdsToAssign,
+            })
+          );
+        }
+
+        if (has(PERMISSIONS.USER_UPDATE_STATUS) && data.status && data.status !== editing.status) {
+          promises.push(
+            apiClient.put(`/system/user/${editing.id}/status`, {
+              status: data.status,
+            })
+          );
+        }
+
+        await Promise.all(promises);
         toast.success(t("system.user.updateSuccess"));
       } else {
         const created = await apiClient.post<User>("/system/user", userPayload);
-        await apiClient.put(`/system/user/${created.id}/positions`, {
-          positionIds: positionIdsToAssign,
-        });
+        const promises: Promise<any>[] = [];
+
+        if (has(PERMISSIONS.USER_ASSIGN_POSITION)) {
+          promises.push(
+            apiClient.put(`/system/user/${created.id}/positions`, {
+              positionIds: positionIdsToAssign,
+            })
+          );
+        }
+
+        if (has(PERMISSIONS.USER_ASSIGN_ROLE)) {
+          promises.push(
+            apiClient.put(`/system/user/${created.id}/roles`, {
+              roleIds: roleIdsToAssign,
+            })
+          );
+        }
+
+        if (has(PERMISSIONS.USER_UPDATE_STATUS) && data.status === "disabled") {
+          promises.push(
+            apiClient.put(`/system/user/${created.id}/status`, {
+              status: "disabled",
+            })
+          );
+        }
+
+        await Promise.all(promises);
         toast.success(t("system.user.createSuccess"));
       }
 
@@ -435,6 +484,7 @@ function UserFormDialog({
   onSave: (data: Partial<User>) => void;
 }) {
   const { t } = useTranslation();
+  const { has } = usePermission();
   const [form, setForm] = React.useState<Partial<User>>({});
 
   React.useEffect(() => {
@@ -557,6 +607,7 @@ function UserFormDialog({
               <Select
                 value={form.status ?? "enabled"}
                 onValueChange={(v) => setForm({ ...form, status: v as User["status"] })}
+                disabled={!has(PERMISSIONS.USER_UPDATE_STATUS)}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -575,6 +626,7 @@ function UserFormDialog({
                     <Checkbox
                       checked={(form.roleIds ?? []).includes(r.id)}
                       onCheckedChange={(checked) => toggleRole(r.id, checked === true)}
+                      disabled={!has(PERMISSIONS.USER_ASSIGN_ROLE)}
                     />
                     {r.name}
                   </label>
@@ -602,6 +654,7 @@ function UserFormDialog({
                           onCheckedChange={(checked) =>
                             togglePosition(p.id, checked === true)
                           }
+                          disabled={!has(PERMISSIONS.USER_ASSIGN_POSITION)}
                         />
                         {p.name}
                         {isDisabled && (
