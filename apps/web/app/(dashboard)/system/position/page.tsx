@@ -12,13 +12,14 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { HasPermission } from "@/components/shared/has-permission";
 import { PageHeader } from "@/components/shared/page-header";
 import { CrudTable, type Column } from "@/components/shared/crud-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { apiClient } from "@/lib/api/client";
 import { useTranslation } from "@/lib/i18n";
-import type { Position, PageResult } from "@sekiro/shared";
+import { PERMISSIONS, type Position, type PageResult } from "@sekiro/shared";
 
 export default function PositionPage() {
   const { t } = useTranslation();
@@ -94,14 +95,18 @@ export default function PositionPage() {
       key: "actions", title: t("common.operation"), width: 160, align: "right",
       render: (r) => (
         <div className="flex items-center justify-end gap-1">
-          <Button variant="ghost" size="sm" className="h-8 gap-1 text-primary"
-            onClick={() => { setEditing(r); setFormOpen(true); }}>
-            <Edit2 className="h-3.5 w-3.5" />{t("common.edit")}
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"
-            onClick={() => setDelId(r.id)}>
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          <HasPermission code={PERMISSIONS.POSITION_UPDATE}>
+            <Button variant="ghost" size="sm" className="h-8 gap-1 text-primary"
+              onClick={() => { setEditing(r); setFormOpen(true); }}>
+              <Edit2 className="h-3.5 w-3.5" />{t("common.edit")}
+            </Button>
+          </HasPermission>
+          <HasPermission code={PERMISSIONS.POSITION_DELETE}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"
+              onClick={() => setDelId(r.id)}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </HasPermission>
         </div>
       ),
     },
@@ -110,9 +115,11 @@ export default function PositionPage() {
   return (
     <div>
       <PageHeader title={t("system.position.title")} description={t("system.position.description")}>
-        <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
-          <Plus className="h-4 w-4" />{t("system.position.createPosition")}
-        </Button>
+        <HasPermission code={PERMISSIONS.POSITION_CREATE}>
+          <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
+            <Plus className="h-4 w-4" />{t("system.position.createPosition")}
+          </Button>
+        </HasPermission>
       </PageHeader>
 
       <CrudTable columns={columns} data={list} loading={loading}
