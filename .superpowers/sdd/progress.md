@@ -635,3 +635,19 @@
 - M2/M3: usePermission `?? []` 分配与 `has/hasAny` 函数身份（plan-mandated，render-only 安全）。
 - M4: User 页 `<DropdownMenuSeparator />` 无条件渲染（plan-mandated UX 细节）。
 - M5: loginWithMfa `(ur: any)` 预存类型债（out of scope）。
+
+---
+
+# 清理在线用户登录纪录 (One-Time Cleanup) — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-11-clear-online-users.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-11-clear-online-users-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro` (dev branch)
+- **开始时间**：2026-07-11
+- **基线 BASE**：`2d0de21`
+
+## 任务清单
+
+- [ ] Task 1: Clean up Redis session keys
