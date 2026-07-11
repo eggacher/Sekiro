@@ -159,7 +159,7 @@ export interface LoginResponse {
   token?: string;
   refreshToken?: string;
   expiresIn?: number;
-  user?: Omit<User, "createdAt">;
+  user?: Omit<User, "createdAt"> & { roles: string[] };
   permissions?: string[];
   menus?: Menu[];
   mfaRequired?: boolean;
