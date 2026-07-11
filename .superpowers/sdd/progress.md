@@ -660,3 +660,19 @@
 
 Task 1: complete (commits 3ed0020..f9f4397, review clean)
 
+---
+
+# 用户编辑修改角色失效修复 (User Role Save Bug Fix) — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-11-user-role-save-fix.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/feature-user-role-save-bug` (feature/user-role-save-bug branch)
+- **开始时间**：2026-07-11
+- **基线 BASE**：`75abc7a`
+
+## 任务清单
+
+- [ ] Task 1: Update handleSave to persist roleIds
+
+
