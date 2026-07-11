@@ -650,4 +650,13 @@
 
 ## 任务清单
 
-- [ ] Task 1: Clean up Redis session keys
+- [x] Task 1: Clean up Redis session keys
+
+## 完成记录
+
+### Task 1: Clean up Redis session keys
+- **审阅**: ✅ 成功清理 Redis 中全部 3 个以 `sekiro:session:` 开头的 Key，完成一次性用户下线，已验证通过。
+- **验证**: ✅ 宿主机与容器中 `keys "sekiro:session:*"` 查询结果均为空。
+
+Task 1: complete (commits 3c24fbc..3c24fbc, review clean)
+

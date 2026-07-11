@@ -24,17 +24,17 @@
 - Consumes: None
 - Produces: None
 
-- [ ] **Step 1: Verify current keys exist**
+- [x] **Step 1: Verify current keys exist**
 
 Run: `docker exec sekiro-redis redis-cli keys "sekiro:session:*"`
 Expected: Prints a list of active session keys (e.g., `sekiro:session:0509f615-c21a-4950-8b26-23a19ab8531e` etc.).
 
-- [ ] **Step 2: Execute targeted deletion command**
+- [x] **Step 2: Execute targeted deletion command**
 
 Run: `docker exec sekiro-redis sh -c 'redis-cli keys "sekiro:session:*" | xargs -r redis-cli del'`
 Expected: Prints the number of keys deleted (e.g., `(integer) 3`).
 
-- [ ] **Step 3: Verify keys are successfully deleted**
+- [x] **Step 3: Verify keys are successfully deleted**
 
 Run: `docker exec sekiro-redis redis-cli keys "sekiro:session:*"`
 Expected: No keys returned (empty output).
