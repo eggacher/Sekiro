@@ -579,3 +579,59 @@
 - **验证**: ✅ `pnpm typecheck` 全部通过。
 
 
+
+---
+
+# Issue #35: 按钮级权限控制 (Button-Level Permission Control) — 执行进度
+
+## 计划信息
+- **计划文件**：`docs/superpowers/plans/2026-07-11-button-level-permission-control.md`
+- **规范文件**：`docs/superpowers/specs/2026-07-11-button-level-permission-control-design.md`
+- **执行方式**：subagent-driven-development
+- **工作区**：`/Users/zero/projects/Sekiro/.worktrees/feature/button-permission-control` (branch `feature/button-permission-control`)
+- **开始时间**：2026-07-11
+- **完成时间**：2026-07-11
+- **基线 BASE**：`a6d20cc`
+
+## 任务清单
+
+- [x] Task 1: Shared constants — SUPER_ADMIN_ROLE + expand PERMISSIONS to 28 (`1cd6823`)
+- [x] Task 2: Relax menu permission regex (TDD) (`ae3d23f`)
+- [x] Task 3: Extend Session interface with permissions + roles (`28f9376`)
+- [x] Task 4: RedisSessionProvider.updateSession method (TDD) (`19fe46c`)
+- [x] Task 5: @RequiresPermissions decorator + PermissionGuard (TDD) (`63b5ca5`)
+- [x] Task 6: Store permissions + roles in Session at login (TDD) (`48f6991`)
+- [x] Task 7: /auth/me writes permissions + roles back to Session (TDD) (`859173f`)
+- [x] Task 8: JwtAuthGuard attaches session permissions + roles (TDD) (`241e9da`)
+- [x] Task 9: Decorate 7 system controllers with PermissionGuard + @RequiresPermissions (`8656053`)
+- [x] Task 10: Seed 25 new button menus + role-menu assignments (`a5ccab0`)
+- [x] Task 11: Frontend foundation — usePermission hook + HasPermission + completeLogin roles (`539a3eb`, fix `d880aab`)
+- [x] Task 12: Gate User page buttons (`e268acb`)
+- [x] Task 13: Gate Role page buttons (`de2c126`)
+- [x] Task 14: Gate Menu page buttons (`8d05eaa`)
+- [x] Task 15: Gate Dept page buttons (`af37b4d`)
+- [x] Task 16: Gate Position page buttons (`b88ca21`)
+- [x] Task 17: Gate Dict page buttons (`d040fb9`)
+- [x] Final: 全量代码 review — Ready to merge: Yes (无 Critical/Important)
+
+## 完成记录（摘要）
+
+### 后端 (Task 1-10)
+- 28 个权限编码 + `SUPER_ADMIN_ROLE` 共享常量；Session 扩展 `permissions[]`/`roles[]`；`updateSession` 支持局部补丁；登录(含 MFA)/`/auth/me` 写入并刷新 perms+roles；`JwtAuthGuard` 挂载到 `req.user`；`@RequiresPermissions` + `PermissionGuard`（超管短路 + O(1) `includes` + 双层 `?? []` 兜底）；7 Controller × 28 写方法装饰；菜单正则放宽支持连字符；seed 新增 25 按钮 + 角色授权。每任务 TDD RED→GREEN，全量 184/184。
+
+### 前端 (Task 11-17)
+- `usePermission()` hook + `<HasPermission>` 包裹组件（超管绕过逻辑与后端 guard 对称）；登录补全 `roles`；User/Role/Menu/Dept/Position/Dict 六页面写按钮全部门控（User 下拉触发器在所有子项无权时隐藏）。`no-duplicate-imports` 通过 inline `type` 合并 `@sekiro/shared` 导入解决。`"use client"` 已补全。
+
+### Final 验证（全量）
+- **API typecheck**: ✅ clean
+- **API tests**: ✅ 184/184 通过 (32 test files)
+- **Web typecheck**: ✅ clean
+- **Web lint**: ✅ clean
+- **分支范围**: `a6d20cc..d040fb9` (18 commits, 34 files, +800/−207)
+- **合并提交**: `3ed0020` (--no-ff merge to dev, 已推送 origin)
+
+### Final whole-branch review Minor 项（均非阻塞）
+- M1: Session.permissions/roles 为可选(`?`)，spec 要求必填；运行时 `?? []` 已兜底，建议后续 follow-up 收紧。
+- M2/M3: usePermission `?? []` 分配与 `has/hasAny` 函数身份（plan-mandated，render-only 安全）。
+- M4: User 页 `<DropdownMenuSeparator />` 无条件渲染（plan-mandated UX 细节）。
+- M5: loginWithMfa `(ur: any)` 预存类型债（out of scope）。
