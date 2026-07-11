@@ -24,7 +24,7 @@
 - Consumes: `roleIds` from form `data` object of type `Partial<User>`
 - Produces: API call `PUT /system/user/:id/roles` with `{ roleIds: number[] }`
 
-- [ ] **Step 1: Edit page.tsx to destructure roleIds and call the roles API**
+- [x] **Step 1: Edit page.tsx to destructure roleIds and call the roles API**
 
 Modify [page.tsx](file:///Users/zero/projects/Sekiro/.worktrees/feature-user-role-save-bug/apps/web/app/(dashboard)/system/user/page.tsx) to update `handleSave`:
 
@@ -72,22 +72,22 @@ And update the edit/create API calls:
       }
 ```
 
-- [ ] **Step 2: Run typecheck to verify there are no compilation errors**
+- [x] **Step 2: Run typecheck to verify there are no compilation errors**
 
 Run: `pnpm typecheck`
 Expected: PASS (All packages typecheck cleanly)
 
-- [ ] **Step 3: Run frontend lint check**
+- [x] **Step 3: Run frontend lint check**
 
 Run: `pnpm --filter @sekiro/web lint`
 Expected: PASS (No lint errors)
 
-- [ ] **Step 4: Run backend API tests to ensure no regressions**
+- [x] **Step 4: Run backend API tests to ensure no regressions**
 
 Run: `pnpm --filter @sekiro/api test`
 Expected: PASS (184/184 passing)
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 Run:
 ```bash
